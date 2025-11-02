@@ -14,6 +14,6 @@ export const CODE_SNIPPETS: Record<string, string> = {
   "python": `\ndef greet(name):\n\tprint("Hello, " + name + "!")\n\ngreet("Alex")\n`,
   "java": `\npublic class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello World");\n\t}\n}\n`,
   "c":'#include <stdio.h>\n\nint  main(void)\n{\n\tprintf("Hello World in C");\n\treturn (0);\n}\n',
-  "php": "<?php\n\n$name = 'Alex';\necho $name;\n ?>\n",
+  "php": "<?php\n\n$name = 'Alex';\necho $name;\n?>\n",
   "r": `\ngreet <- function(name) {\n\tprint(paste("Hello,", name, "!"))\n}\n\ngreet("Alex")\n`,
 };
