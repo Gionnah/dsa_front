@@ -14,10 +14,10 @@ export default function page() {
     }
   return (
     <div className="bg-neutral-900 flex text-white h-screen w-full p-4">
-        <div className="w-3/5">
+        <div className="w-4/6">
             <EditorComponent value={value} setValue={setValue} onMount={onMount} Language={Language} setLanguage={setLanguage}/>
         </div>
-        <div className="w-2/5">
+        <div className="w-2/6">
             <Console setLanguage={setLanguage} setValue={setValue}/>
         </div>
     </div>
