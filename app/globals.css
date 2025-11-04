@@ -1,4 +1,30 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out forwards;
+}
 
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.nav-item:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.progress-ring {
+  transition: stroke-dashoffset 0.5s ease;
+}
