@@ -2,28 +2,30 @@
 import { Bell, CalendarDays, Home, LogOut, Trophy, UserRound } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function HomeLayout({children}: any) {
+  const pathname = usePathname();
   return (
     <div className="flex h-screen bg-neutral-900 text-gray-100">
       <aside className="w-15 bg-neutral-800/7 border-r border-neutral-700 flex flex-col items-center py-6">
         <div className="mb-8">
-        
+            
         </div>
 
         <nav className="flex-1 flex flex-col space-y-2 w-full px-2">
           {[
-            { link: "home", label: "Home", icon: <Home className='w-5 h-5'/> },
-            { link: "users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
-            { link: "challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
-            { link: "event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
+            { link: "/home", label: "Home", icon: <Home className='w-5 h-5'/> },
+            { link: "/users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
+            { link: "/challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
+            { link: "/event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
           ].map((item, i) => (
             <div key={i} className="nav-item relative group">
               <Link
                 href={`${item.link}`}
                 className={`flex items-center justify-center w-full h-12 rounded-xl ${
-                  i === 0
-                    ? "bg-teal-600 text-white hover:bg-teal-700"
+                  item.link === pathname
+                    ? "bg-teal-300/50 text-white hover:bg-teal-700"
                     : "text-gray-400 hover:bg-neutral-700 hover:text-white"
                 } transition`}
               >

@@ -6,7 +6,7 @@ export default function Dashboard() {
   return (
     <div className="">
         <HomeLayout>
-            <div className="">
+            <div className="p-2 bg-neutral-800 rounded-lg shadow-2xl">
                 <section className="relative bg-blue-950 rounded-sm p-8 mb-4 overflow-hidden animate-slide-in">
                     <div className="absolute inset-0"></div>
                     <div className="relative z-10 flex items-center justify-between">
