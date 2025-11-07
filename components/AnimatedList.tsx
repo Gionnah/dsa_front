@@ -6,22 +6,36 @@ interface AnimatedItemProps {
   delay?: number;
   index: number;
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
+  onMouseLeave?: MouseEventHandler<HTMLDivElement>;
   onClick?: MouseEventHandler<HTMLDivElement>;
+  isSelected?: boolean;
 }
 
-const AnimatedItem: React.FC<AnimatedItemProps> = ({ children, delay = 0, index, onMouseEnter, onClick }) => {
+const AnimatedItem: React.FC<AnimatedItemProps> = ({ 
+  children, 
+  delay = 0, 
+  index, 
+  onMouseEnter, 
+  onMouseLeave,
+  onClick, 
+  isSelected = false 
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.5, once: false });
+  
   return (
     <motion.div
       ref={ref}
       data-index={index}
       onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       onClick={onClick}
       initial={{ scale: 0.7, opacity: 0 }}
       animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
       transition={{ duration: 0.2, delay }}
       className="mb-4 cursor-pointer"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       {children}
     </motion.div>
@@ -68,6 +82,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(initialSelectedIndex);
   const [keyboardNav, setKeyboardNav] = useState<boolean>(false);
+  const [isHovering, setIsHovering] = useState<boolean>(false);
   const [topGradientOpacity, setTopGradientOpacity] = useState<number>(0);
   const [bottomGradientOpacity, setBottomGradientOpacity] = useState<number>(1);
 
@@ -78,17 +93,35 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
     setBottomGradientOpacity(scrollHeight <= clientHeight ? 0 : Math.min(bottomDistance / 50, 1));
   };
 
+  // Reset selection quand la souris quitte la liste
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    if (!keyboardNav) {
+      setSelectedIndex(-1);
+    }
+  };
+
+  // Gestion améliorée de la navigation clavier
   useEffect(() => {
     if (!enableArrowNavigation) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
         e.preventDefault();
         setKeyboardNav(true);
-        setSelectedIndex(prev => Math.min(prev + 1, items.length - 1));
+        setIsHovering(false);
+        setSelectedIndex(prev => {
+          if (prev < 0) return 0;
+          return Math.min(prev + 1, items.length - 1);
+        });
       } else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
         e.preventDefault();
         setKeyboardNav(true);
-        setSelectedIndex(prev => Math.max(prev - 1, 0));
+        setIsHovering(false);
+        setSelectedIndex(prev => {
+          if (prev < 0) return items.length - 1;
+          return Math.max(prev - 1, 0);
+        });
       } else if (e.key === 'Enter') {
         if (selectedIndex >= 0 && selectedIndex < items.length) {
           e.preventDefault();
@@ -96,6 +129,9 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
             onItemSelect(items[selectedIndex], selectedIndex);
           }
         }
+      } else if (e.key === 'Escape') {
+        setSelectedIndex(-1);
+        setKeyboardNav(false);
       }
     };
 
@@ -103,16 +139,20 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [items, selectedIndex, onItemSelect, enableArrowNavigation]);
 
+  // Scroll vers l'élément sélectionné
   useEffect(() => {
     if (!keyboardNav || selectedIndex < 0 || !listRef.current) return;
+    
     const container = listRef.current;
     const selectedItem = container.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement | null;
+    
     if (selectedItem) {
       const extraMargin = 50;
       const containerScrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
       const itemTop = selectedItem.offsetTop;
       const itemBottom = itemTop + selectedItem.offsetHeight;
+
       if (itemTop < containerScrollTop + extraMargin) {
         container.scrollTo({ top: itemTop - extraMargin, behavior: 'smooth' });
       } else if (itemBottom > containerScrollTop + containerHeight - extraMargin) {
@@ -122,16 +162,30 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
         });
       }
     }
-    setKeyboardNav(false);
   }, [selectedIndex, keyboardNav]);
 
+  // Reset keyboardNav après un délai d'inactivité
+  useEffect(() => {
+    if (!keyboardNav) return;
+
+    const timeout = setTimeout(() => {
+      setKeyboardNav(false);
+    }, 2000); // Reset après 2 secondes d'inactivité
+
+    return () => clearTimeout(timeout);
+  }, [keyboardNav, selectedIndex]);
+
   return (
-    <div className={`relative w-[380px] ${className}`}>
+    <div 
+      className={`relative w-[380px] ${className}`}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => setIsHovering(true)}
+    >
       <div
         ref={listRef}
         className={`max-h-[200px] overflow-y-auto py-4 px-2 ${
           displayScrollbar
-            ? '[&::-webkit-scrollbar]:w-[8px] [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222] [&::-webkit-scrollbar-thumb]:rounded-[4px]'
+            ? '[&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]'
             : 'scrollbar-hide'
         }`}
         onScroll={handleScroll}
@@ -145,15 +199,31 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
             key={index}
             delay={0.1}
             index={index}
-            onMouseEnter={() => setSelectedIndex(index)}
+            isSelected={selectedIndex === index}
+            onMouseEnter={() => {
+              setIsHovering(true);
+              setSelectedIndex(index);
+            }}
+            onMouseLeave={() => {
+              if (isHovering && !keyboardNav) {
+                setSelectedIndex(-1);
+              }
+            }}
             onClick={() => {
               setSelectedIndex(index);
+              setKeyboardNav(false);
               if (onItemSelect) {
                 onItemSelect(item, index);
               }
             }}
           >
-            <div className={`flex items-center justify-between px-4 py-2 bg-[#111] ${selectedIndex === index ? 'bg-[#222]' : ''} ${itemClassName}`}>
+            <div 
+              className={`flex items-center justify-between px-4 py-2 bg-[#111] transition-all duration-200 ${
+                selectedIndex === index 
+                  ? 'bg-[#222] border-l-2 border-blue-500' 
+                  : 'hover:bg-[#1a1a1a]'
+              } ${itemClassName}`}
+            >
               <p className='bg-neutral-600/20 py-4 px-6'>{index + 1}</p>
               <p className="text-white m-0">{item}</p>
               <p className='py-4 px-6 border'>Run TEST</p>
@@ -164,13 +234,13 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
       {showGradients && (
         <>
           <div
-            className="absolute top-0 left-0 right-0 h-[50px] to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute top-0 left-0 right-0 h-[50px] bg-gradient-to-b from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: topGradientOpacity }}
-          ></div>
+          />
           <div
-            className="absolute bottom-0 left-0 right-0 h-[100px]  to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute bottom-0 left-0 right-0 h-[100px] bg-gradient-to-t from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: bottomGradientOpacity }}
-          ></div>
+          />
         </>
       )}
     </div>
