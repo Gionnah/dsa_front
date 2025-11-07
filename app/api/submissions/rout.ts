@@ -1,7 +1,7 @@
 // /api/submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const JUDGE0_URL = "http://localhost:8000/api";
+const JUDGE0_URL = "http://localhost:2358";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await fetch(
-      `${JUDGE0_URL}/execute`,
+      `${JUDGE0_URL}/submissions?base64_encoded=false&wait=false`,
       {
         method: "POST",
         headers: { 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
           "X-RapidAPI-Key": "votre-clef-si-necessaire", // Optionnel selon votre config
         },
         body: JSON.stringify({
-          code: body.source_code,
+          source_code: body.source_code,
           language_id: body.language_id,
           stdin: body.stdin || "",
           // Ajout de champs utiles pour le débogage

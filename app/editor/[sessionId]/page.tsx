@@ -24,19 +24,19 @@ export default function page() {
             }),
         });
 
-        const { token } = await res.json();
+        const result = await res.json();
 
         // Poll result until it's ready
-        let result;
-        while (true) {
-            const r = await fetch(`/api/submissions?token=${token}`);
-            result = await r.json();
-            if (result.status?.id > 2) break; // 1: In Queue, 2: Processing
-            await new Promise((r) => setTimeout(r, 1000));
-        }
+        // let result;
+        // while (true) {
+        //     const r = await fetch(`/api/submissions?token=${token}`);
+        //     result = await r.json();
+        //     if (result.status?.id > 2) break; // 1: In Queue, 2: Processing
+        //     await new Promise((r) => setTimeout(r, 1000));
+        // }
 
-        setOutput(result.stdout  || "No output");
-        setError(result.stderr)
+        setOutput(result.output  || "No output");
+        setError(result.error)
         setLoading(false);
     };
 
