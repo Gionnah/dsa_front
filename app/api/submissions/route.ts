@@ -1,13 +1,12 @@
 // /api/submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const JUDGE0_URL = "http://localhost:8000/api";
 
+const JUDGE0_URL = "http://localhost:8000/api";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validation basique
     if (!body.source_code || !body.language_id) {
       return NextResponse.json(
         { error: "source_code et language_id sont requis" },
@@ -16,18 +15,16 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await fetch(
-      `${JUDGE0_URL}/execute`,
+      `${JUDGE0_URL}/execute/`,
       {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-RapidAPI-Key": "votre-clef-si-necessaire", // Optionnel selon votre config
         },
         body: JSON.stringify({
           code: body.source_code,
           language_id: body.language_id,
           stdin: body.stdin || "",
-          // Ajout de champs utiles pour le débogage
           cpu_time_limit: 10,
           memory_limit: 128000,
         }),
@@ -80,12 +77,8 @@ export async function GET(req: Request) {
 
     const data = await result.json();
     
-    // Log pour débogage
-    console.log("Réponse Judge0:", data);
-    
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Erreur interne:", error);
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }
