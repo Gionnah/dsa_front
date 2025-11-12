@@ -1,19 +1,46 @@
 // /api/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { setCookie } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
     const { username, password } = await req.json();
-    const result = await fetch(`${process.env.API_URL}/accounts/login/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ username, password })
-    });
-    if (!result.ok) {
-        return NextResponse.json({ error: 'Authentication failed', ok: ''}, { status: 401 });
+    
+    try {
+        const result = await fetch(`${process.env.API_URL}/accounts/login/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ username, password })
+        });
+        
+        if (!result.ok) {
+            return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+        }
+        
+        const data = await result.json();
+        
+        const response = NextResponse.json({ ok: 'ok' }, { status: 200 });
+
+        response.cookies.set({
+            name: 'Access',
+            value: data.access,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 15, // 15 minutes
+            path: '/',
+        });
+        
+        response.cookies.set({
+            name: 'Refresh',
+            value: data.refresh,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7, // 7 jours
+            path: '/',
+        });
+        return response;
+        
+    } catch (error) {
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
-    const data = await result.json();
-    setCookie('Access', data.access);
-    setCookie('Refresh', data.refresh);
-    return NextResponse.json({ ok: 'ok' }, { status: 200 });
 }

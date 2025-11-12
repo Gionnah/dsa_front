@@ -1,6 +1,4 @@
 "use client"
-import { getCookie } from '@/lib/session';
-import { get } from 'http';
 import { useState } from 'react'
 
 export default function LoginForm() {
@@ -22,7 +20,6 @@ export default function LoginForm() {
         });
         const data = await response.json();
     }
-    console.log('session', getCookie('Access'));
 
     return (
     <div>

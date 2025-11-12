@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function ChallengesPage() {
+  const [challengesData, setChallengesData] = useState<any[]>([]);
   const challenges = [
     {
       id: 1,
@@ -45,6 +47,21 @@ export default function ChallengesPage() {
       color: "from-teal-500 to-cyan-600",
     },
   ];
+
+  const getChallenges = async () => {
+      const response = await fetch('/api/challenges', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setChallengesData(data);
+  }
+
+  useEffect(() => {
+    getChallenges();
+  }, []);
 
   return (
     <div className="min-h-screen  text-gray-100 px-8 py-10">
