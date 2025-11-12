@@ -1,14 +1,25 @@
 // /api/me/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     // Simulated user data
-    const result = await fetch(`${process.env.API_URL}/accounts/me/`, {
+    const result = await fetch(`${process.env.API_URL}/my-stats/`, {
         method: 'GET',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
+            "Content-Type": "application/json",
+        },
+    });
+    const challengesList = await fetch(`${process.env.API_URL}/challenges/my-challenges/`, {
+        method: 'GET',
+        headers: {
+            "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
+            "Content-Type": "application/json",
+        },
     });
     if (!result.ok)
         return NextResponse.json({ok: ''}, {status: 500})
-    const data = await result.json();
-    return NextResponse.json({ok: 'ok', data}, {status: 200});
+    const stat = await result.json();
+    const challenges = await challengesList.json();
+    return NextResponse.json({ok: 'ok', stat, challenges}, {status: 200});
 }
