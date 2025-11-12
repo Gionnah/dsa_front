@@ -3,60 +3,64 @@
 import { useEffect, useState } from "react";
 
 export default function UsersPage() {
-  const [usersData, setUsersData] = useState([]);
+  const [usersData, setUsersData] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
     fetchUsers();
-
   }, []);
 
   const fetchUsers = async () => {
-    const response = await fetch("/api/users");
-    const data = await response.json();
-    setUsersData(data);
-  }
+    try {
+      const response = await fetch("/api/users");
+      const data = await response.json();
+      setUsersData(data);
+    } catch (error) {
+      console.error("Erreur lors du chargement des utilisateurs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      username: "@johncode",
-      status: "Member",
-      grade: "alpha",
-      xp: 8450,
-      matricule: "76/LA/23-24",
-      color: "from-teal-500 to-blue-600",
-    },
-    {
-      id: 2,
-      name: "Sarah Lin",
-      username: "@sarahdev",
-      status: "Staff",
-      grade: "beta",
-      xp: 6120,
-      matricule: "45/LA/23-24",
-      color: "from-blue-500 to-indigo-600",
-    },
-    {
-      id: 3,
-      name: "Alex Carter",
-      username: "@carterx",
-      status: "Member",
-      grade: "beta",
-      xp: 1850,
-      matricule: "12/LA/23-24",
-      color: "from-green-500 to-emerald-600",
-    },
-    {
-      id: 4,
-      name: "Leila Ben",
-      username: "@leilacode",
-      status: "Member",
-      grade: "alpha",
-      xp: 4970,
-      matricule: "91/LA/23-24",
-      color: "from-amber-500 to-orange-600",
-    },
+  // Tableau de couleurs prédéfinies pour les avatars
+  const colorGradients = [
+    "from-teal-500 to-blue-600",
+    "from-blue-500 to-indigo-600",
+    "from-green-500 to-emerald-600",
+    "from-amber-500 to-orange-600",
+    "from-purple-500 to-pink-600",
+    "from-red-500 to-orange-600",
+    "from-indigo-500 to-purple-600",
+    "from-pink-500 to-rose-600",
+    "from-cyan-500 to-blue-600",
+    "from-orange-500 to-red-600",
   ];
+
+  // Fonction pour obtenir une couleur basée sur l'ID de l'utilisateur
+  const getUserColor = (userId: any) => {
+    return colorGradients[userId % colorGradients.length];
+  };
+
+  // Fonction pour déterminer le grade basé sur l'XP
+  const getGradeFromXP = (xp: any) => {
+    if (xp >= 5000) return "alpha";
+    if (xp >= 2000) return "beta";
+    if (xp >= 1000) return "gamma";
+    return "delta";
+  };
+
+  // Fonction pour formater le nom d'utilisateur avec @
+  const formatUsername = (username: string) => {
+    return username.startsWith('@') ? username : `@${username}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen text-gray-100 px-8 py-10 flex items-center justify-center">
+        <div className="text-white text-lg">Chargement des utilisateurs...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-gray-100 px-8 py-10">
@@ -65,7 +69,12 @@ export default function UsersPage() {
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Utilisateurs</h1>
           <p className="text-gray-400">
-            Gérez les membres, rôles et niveaux d’expérience de la plateforme.
+            Gérez les membres, rôles et niveaux d'expérience de la plateforme.
+          </p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <p className="text-gray-400">
+            {usersData.length} utilisateur{usersData.length > 1 ? 's' : ''} trouvé{usersData.length > 1 ? 's' : ''}
           </p>
         </div>
       </div>
@@ -99,13 +108,13 @@ export default function UsersPage() {
                 Utilisateur
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
-                Matricule
+                Numéro d'inscription
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
-                Grade
+                Parcours
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
-                Status
+                Challenges Rejoints
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
                 XP
@@ -117,38 +126,43 @@ export default function UsersPage() {
           </thead>
 
           <tbody className="divide-y divide-neutral-700">
-            {users.map((user) => (
+            {usersData && usersData?.length > 0 && usersData?.map((user: any) => (
               <tr
                 key={user.id}
                 className="hover:bg-neutral-700/40 transition-colors"
               >
                 <td className="px-6 py-4 flex items-center space-x-4">
                   <div
-                    className={`w-10 h-10 rounded-xl bg-linear-to-br ${user.color} flex items-center justify-center font-bold text-white`}
+                    className={`w-10 h-10 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white`}
                   >
-                    {user.name.charAt(0)}
+                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-semibold text-white">{user.name}</p>
-                    <p className="text-sm text-gray-400">{user.username}</p>
+                    <p className="font-semibold text-white">
+                      {user.prenom} {user.nom}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {formatUsername(user.username)}
+                    </p>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-semibold`}
-                  >
-                    {user.matricule}
+                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-neutral-700 text-gray-300">
+                    {user.numero_inscription}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-300">{user.grade}</td>
-                <td className="px-6 py-4 text-sm text-gray-300">{user.status}</td>
-                <td className="px-6 py-4 text-sm text-teal-400 font-semibold">
-                  {user.xp.toLocaleString()} XP
+                <td className="px-6 py-4 text-sm text-gray-300">
+                  {user.parcours}
                 </td>
-
+                <td className="px-6 py-4 text-sm text-gray-300">
+                  {user.challenges_joined}
+                </td>
+                <td className="px-6 py-4 text-sm text-teal-400 font-semibold">
+                  {user.total_xp.toLocaleString()} XP
+                </td>
                 <td className="px-6 py-4 text-right space-x-3">
                   <button className="text-blue-400 hover:text-blue-500 text-sm font-medium">
-                    Show profil
+                    Voir profil
                   </button>
                 </td>
               </tr>
@@ -156,6 +170,12 @@ export default function UsersPage() {
           </tbody>
         </table>
       </div>
+
+      {usersData.length === 0 && (
+        <div className="text-center py-10 text-gray-400">
+          Aucun utilisateur trouvé.
+        </div>
+      )}
     </div>
   );
 }
