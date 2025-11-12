@@ -2,6 +2,7 @@ import { ArrowBigDownDash, CloudCheck, File, Play } from 'lucide-react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
+import { span } from 'framer-motion/client';
 
 const items = ['Test 1', 'Test 2', 'Test 3', 'Test 4', 'Test 5', 'Test 6', 'Test 7', 'Test 8', 'Test 9', 'Test 10']; 
 
@@ -39,13 +40,19 @@ export default function Console({error, output, loading, runCode, setLanguage, s
                 </button>
             </div>
         </div>
-        <div className="h-[30vh] w-full shadow-inner shadow-black bg-neutral-800 border border-gray-900 mt-2 rounded-b-lg p-4 text-sm text-green-400 font-mono overflow-y-auto">
-            <p className='my-1 text-gray-200'>Output: </p>
-            <div>{output}</div>
+        <div className={`h-[30vh] w-full shadow-inner border ${output && output != "No output" ? "border-green-900 bg-neutral-800 shadow-black" : error ? "border-red-950 bg-neutral-800 shadow-red-950" : "border-gray-900 shadow-black bg-neutral-800"} mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto`}>
+            <p className='my-1 text-gray-200'>{!output && !error ?  "Output:" : ""} </p>
+            <div>{output && output != "No output" && 
+                    <>
+                        <p className='my-1 text-green-500'>Ok :D</p>
+                        <div className='text-gray-300 text-xs whitespace-pre'>{output}</div>
+                    </>
+                }
+            </div>
             {error && 
                 <>
                     <p className='my-1 text-red-500'>Error: </p>
-                    <div className='text-red-500'>{error}</div>
+                    <div className='text-red-600 text-xs whitespace-pre'>{error}</div>
                 </>
             }
         </div>
