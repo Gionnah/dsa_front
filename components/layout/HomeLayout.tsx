@@ -3,9 +3,13 @@ import { Bell, CalendarDays, Home, LogOut, Trophy, UserRound } from "lucide-reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from "react";
 
 export default function HomeLayout({children}: any) {
   const pathname = usePathname();
+  useEffect(() => {
+    document.title = `DSA Contest - ${pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}`;
+  }, [pathname]);
   return (
     <div className="flex h-screen bg-neutral-900 text-gray-100">
       <aside className="w-15 bg-neutral-800/7 border-r border-neutral-700 flex flex-col items-center py-6">

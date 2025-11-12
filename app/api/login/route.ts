@@ -15,5 +15,5 @@ export async function POST(req: NextRequest) {
     const data = await result.json();
     setCookie('Access', data.access);
     setCookie('Refresh', data.refresh);
-    return NextResponse.json({ message: `ok`, ok: 'ok' }, { status: 200 });
+    return NextResponse.json({ ok: 'ok' }, { status: 200 });
 }
