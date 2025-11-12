@@ -98,75 +98,76 @@ export default function ChallengesPage() {
 
       {/* Challenges Grid */}
       <div className="space-y-4 grid">
-        {challenges.map((c) => (
-          <Link href={`/challenges/challengeId`}
+        {challengesData && challengesData?.length > 0 ? challengesData?.map((c) => (
+          <Link href={`/challenges/${c.id}`}
             key={c.id}
             className="border bg-black/20 border-neutral-700 rounded-xl p-6 flex flex-col justify-between card-hover hover:border-teal-500 transition"
           >
             <div className="flex justify-between">
                 <div>
                     <h3 className="text-xl font-bold text-white mb-2">{c.title}</h3>
-                    <p className="text-gray-400 text-sm mb-1">
+                    {/* <p className="text-gray-400 text-sm mb-1">
                         Langage : <span className="text-white">{c.language}</span>
-                    </p>
+                    </p> */}
                 </div>
-                <p className="text-xs text-gray-500">{c.participants} participants</p>
+                <p className="text-xs text-gray-500">
+                  Created at {new Date(c.created_at).toLocaleDateString('fr-FR')}
+                </p>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
                 <div className={`text-sm font-semibold ${
-                    c.difficulty === "Facile"
+                    c.difficulty === "easy"
                       ? "text-cyan-500"
-                      : c.difficulty === "Moyen"
+                      : c.difficulty === "medium"
                       ? "text-amber-500"
                       : "text-red-500"
                   }`}
                 >
-                  {c.difficulty === "Facile"
+                  {c.difficulty === "easy"
                       ? (
                         <div className="">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
                         </div>
                       )
-                      : c.difficulty === "Moyen"
+                      : c.difficulty === "medium"
                       ? (
                         <div className="flex gap-1">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
                         </div>
                       )
                       : (
                         <div className="flex gap-1">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
                                 </svg>
                         </div>
                       )}
                 </div>
               </div>
-
               <div className="text-right">
-                <p className="text-sm text-teal-400 font-semibold">+{c.xp} XP</p>
+                <p className="text-sm text-teal-400 font-semibold">+{c.xp_reward} XP</p>
                 <button className="mt-2 px-3 py-1 bg-linear-to-r from-teal-500 to-blue-600 text-xs rounded-lg hover:scale-105 transition">
-                  Start
+                  Click to view details
                 </button>
               </div>
             </div>
           </Link>
-        ))}
+        )) : <div className="w-full text-center text-gray-500 col-span-full">No challenges available. </div>}
       </div>
     </div>
   );

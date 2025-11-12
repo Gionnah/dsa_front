@@ -56,10 +56,10 @@ export default function HomeLayout({children}: any) {
 
       <main className="flex-1 overflow-y-auto bg-neutral-900">
         <header className="bg-neutral-800 border-b border-neutral-700">
-          <div className="flex items-center justify-between px-8 py-2">
+          <div className="flex items-center justify-between px-8 py-4">
             <div>     
                 <div className="flex items-center gap-4">
-                    <Image src={'/dsa_logo.png'} alt='dsa logo' width={70} height={40}/>
+                    <Image src={'/dsa_logo.png'} alt='dsa logo' width={70} height={80}/>
                 </div>
             </div>
             <div className="flex items-center space-x-4">
