@@ -20,6 +20,17 @@ export default function OneChallenge() {
         setChallengesData(data);
     }
 
+    const joinChallenge = async () => {
+        const response = await fetch(`/api/challenges/${challengeId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await response.json();
+        setChallengesData(data);
+    }
+
     useEffect(() => {
         getChallenges();
     }, [])
@@ -98,11 +109,20 @@ export default function OneChallenge() {
                         </div>
                     </section>
                     <div className="button">
-                        <Link href={`/editor/${challengeData.id}`} className="mt-2 px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
-                            <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
-                                Go to editor
-                            </span>
-                        </Link>
+                        {challengeData && challengeData?.join ? (
+                             <Link href={`/editor/${challengeData.id}`} className="mt-2 px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
+                                <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
+                                    Go to editor
+                                </span>
+                            </Link>
+                        ) : (
+                            <button onClick={joinChallenge} className="mt-2 px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
+                                <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
+                                    Join challenge
+                                </span>
+                            </button>
+                        )}
+                       
                     </div>
                 </div>
 
