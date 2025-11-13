@@ -4,6 +4,7 @@ import { useState } from 'react'
 export default function LoginForm() {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
 
     const changeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
@@ -11,14 +12,17 @@ export default function LoginForm() {
     const changePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
     }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         const response = await fetch('/api/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ username, password })
         });
-        const data = await response.json();
+        setLoading(false);
+        if (response.ok) window.location.href = '/home';
     }
 
     return (
@@ -51,7 +55,7 @@ export default function LoginForm() {
             </div>
 
             <div>
-                <button type="submit" className="flex w-full justify-center cursor-pointer rounded-md bg-blue-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 transition-all duration-200 focus:shadow-ls focus:shadow-blue-700">Sign in</button>
+                <button type="submit" className={`flex w-full justify-center cursor-pointer rounded-md ${loading ? "bg-indigo-500" : "bg-blue-500"} px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 transition-all duration-200 focus:shadow-ls focus:shadow-blue-700`}>{loading ? "loading..":"Sign in"}</button>
             </div>
             </form>
 

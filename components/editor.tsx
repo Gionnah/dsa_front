@@ -5,10 +5,10 @@ export default function EditorComponent({onMount, Language, setLanguage, value, 
 
     return (
         <div className="">
-            <div className="mt-2 rounded-lg">
+            <div className="mt-3 rounded-lg">
                 <Editor 
                     className="rounded-lg shadow-lg"
-                    height="90vh" 
+                    height="70vh" 
                     theme="vs-dark"
                     language={Language}
                     defaultLanguage={Language} 

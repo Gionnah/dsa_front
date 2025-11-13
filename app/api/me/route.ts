@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const challengesList = await fetch(`${process.env.API_URL}/challenges/my-challenges/`, {
         method: 'GET',
         headers: {
-            "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
+            "Authorization": `Bearer y ${req.cookies.get('Access')?.value || ''}`,
             "Content-Type": "application/json",
         },
     });

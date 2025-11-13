@@ -232,7 +232,7 @@ export default function OneChallenge() {
                         {/* Code Template */}
                         <div className="bg-neutral-800 rounded-lg p-6 shadow-2xl shadow-black border border-white/10">
                             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                <span className="bg-linear-to-r from-gray-100 to-neutral-300 bg-clip-text text-transparent">
+                                <span className="bg-linear-to-r text-sm from-gray-100 to-neutral-300 bg-clip-text text-transparent">
                                     Number of challenger:
                                 </span>
                             </h3>
@@ -247,7 +247,7 @@ export default function OneChallenge() {
                                 </div>
                             </div>
                             <h3 className="text-xl mt-4 font-bold text-white mb-4 flex items-center gap-2">
-                                <span className="bg-linear-to-r from-gray-100 to-neutral-300 bg-clip-text text-transparent">
+                                <span className="bg-linear-to-r text-sm from-gray-100 to-neutral-300 bg-clip-text text-transparent">
                                     Created at:
                                 </span>
                             </h3>

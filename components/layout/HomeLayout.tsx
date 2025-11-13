@@ -7,9 +7,17 @@ import { useEffect } from "react";
 
 export default function HomeLayout({children}: any) {
   const pathname = usePathname();
+
   useEffect(() => {
     document.title = `DSA Contest - ${pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}`;
   }, [pathname]);
+
+  const logout = async () => {
+    await fetch('/api/logout', {
+      method: 'POST',
+    });
+    window.location.href = '/login';
+  }
   return (
     <div className="flex h-screen bg-neutral-900 text-gray-100">
       <aside className="w-15 bg-neutral-800/7 border-r border-neutral-700 flex flex-col items-center py-6">
@@ -65,9 +73,9 @@ export default function HomeLayout({children}: any) {
             <div className="flex items-center space-x-4">
                 <button className="relative text-gray-400 hover:text-white transition">
                     <Bell className='cursor-pointer'/>
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-teal-500 rounded-full"></span>
+                    <span className="cursor-pointer absolute top-0 right-0 w-2 h-2 bg-teal-500 rounded-full"></span>
                 </button>
-                <button className={`cursor-pointe text-gray-400`}>
+                <button onClick={logout} className={`relative text-gray-400 hover:text-white transition cursor-pointer`}>
                     <LogOut className='w-4 h-4' />
                 </button>
             </div>

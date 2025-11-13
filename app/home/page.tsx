@@ -9,14 +9,18 @@ export default function Dashboard() {
     const [isDark, setIsDark] = useState(true);
 
     const getUserDetails = async () => {
-        const response = await fetch('/api/me', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = await response.json();
-        setUserDetails(data);
+        try {
+            const response = await fetch('/api/me', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            setUserDetails(data);
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+        }
     }
 
     useEffect(() => {
@@ -39,17 +43,26 @@ export default function Dashboard() {
     };
 
     const getCurrentChallenge = () => {
-        if (!userDetails?.challenges) return null;
-        return userDetails.challenges.find((challenge: any) => challenge.status === "in_progress");
+        // Vérification plus robuste pour s'assurer que challenges est un tableau
+        if (!userDetails?.challenges || !Array.isArray(userDetails.challenges)) {
+            return null;
+        }
+        return userDetails.challenges.find((challenge: any) => challenge?.status === "in_progress");
     };
 
     const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
     };
+
+    // S'assurer que les défis récents sont un tableau avant d'utiliser .map()
+    const recentChallenges = Array.isArray(userDetails?.challenges) 
+        ? userDetails.challenges.slice(0, 3) 
+        : [];
 
     // Classes CSS pour le mode sombre
     const bgPrimary = isDark ? "bg-neutral-900" : "bg-neutral-50";
@@ -62,7 +75,7 @@ export default function Dashboard() {
     const ringColor = isDark ? "stroke-neutral-600" : "stroke-neutral-300";
     const progressBg = isDark ? "bg-neutral-600" : "bg-neutral-200";
     const progressFill = isDark ? "bg-green-400" : "bg-neutral-700";
-    const buttonBg = isDark ? "bg-black/30 shadow-lg hover:bg-neutral-600 cursor-pointer" : "cursor-pointer bg-neutral-800 hover:bg-neutral-900";
+    const buttonBg = isDark ? "bg-black/30 shadow-lg hover:bg-black/40 transition-all duration-300 cursor-pointer" : "cursor-pointer bg-neutral-800 hover:bg-neutral-900";
     const avatarBg = isDark ? "bg-neutral-700" : "bg-neutral-100";
     const avatarText = isDark ? "text-neutral-300" : "text-neutral-700";
 
@@ -159,11 +172,11 @@ export default function Dashboard() {
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
-                                            <div className={`px-4 py-2 bg-black/20 rounded-lg border border-black/50 transition-colors duration-300`}>
+                                            <div className={`px-4 py-2 bg-black/40 rounded-lg border border-black/50 transition-colors duration-300`}>
                                                 <p className={`text-xs ${textSecondary}`}>Challenges</p>
                                                 <p className={`text-lg font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.joined || 0}</p>
                                             </div>
-                                            <div className={`px-4 py-2 bg-black/20 rounded-lg border border-black/50 transition-colors duration-300`}>
+                                            <div className={`px-4 py-2 bg-black/40 rounded-lg border border-black/50 transition-colors duration-300`}>
                                                 <p className={`text-xs ${textSecondary}`}>Success Rate</p>
                                                 <p className={`text-lg font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.completion_rate || 0}%</p>
                                             </div>
@@ -278,31 +291,35 @@ export default function Dashboard() {
                                     </h2>
                                 </div>
                                 <div className="p-6 space-y-3">
-                                    {userDetails?.challenges?.slice(0, 3).map((challenge: any) => (
-                                        <div 
-                                            key={challenge.id} 
-                                            className={`bg-black/40 p-4 rounded-xl border ${borderColor} hover:border-neutral-400 transition-all duration-300`}
-                                        >
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className="flex-1">
-                                                    <p className={`font-bold ${textPrimary} mb-1`}>{challenge.challenge_title}</p>
-                                                    <p className={`text-sm ${textSecondary}`}>
-                                                        {challenge.status === 'completed' ? '✅ Completed' : '🔄 In Progress'}
-                                                    </p>
+                                    {recentChallenges.length > 0 ? (
+                                        recentChallenges.map((challenge: any) => (
+                                            <div 
+                                                key={challenge.id} 
+                                                className={`bg-black/40 p-4 rounded-xl border ${borderColor} hover:border-neutral-400 transition-all duration-300`}
+                                            >
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex-1">
+                                                        <p className={`font-bold ${textPrimary} mb-1`}>{challenge.challenge_title}</p>
+                                                        <p className={`text-sm ${textSecondary}`}>
+                                                            {challenge.status === 'completed' ? '✅ Completed' : '🔄 In Progress'}
+                                                        </p>
+                                                    </div>
+                                                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${isDark ? 'bg-neutral-600 text-neutral-300 border-neutral-500' : 'bg-neutral-200 text-neutral-700 border-neutral-300'} border transition-colors duration-300`}>
+                                                        {challenge.challenge_difficulty}
+                                                    </span>
                                                 </div>
-                                                <span className={`px-3 py-1 rounded-lg text-xs font-medium ${isDark ? 'bg-neutral-600 text-neutral-300 border-neutral-500' : 'bg-neutral-200 text-neutral-700 border-neutral-300'} border transition-colors duration-300`}>
-                                                    {challenge.challenge_difficulty}
-                                                </span>
+                                                <div className={`flex justify-between text-xs ${textMuted}`}>
+                                                    <span className="flex items-center gap-1">
+                                                        <Zap className="w-3 h-3" />
+                                                        {challenge.xp_earned} XP
+                                                    </span>
+                                                    <span>{challenge.attempts_count} attempts</span>
+                                                </div>
                                             </div>
-                                            <div className={`flex justify-between text-xs ${textMuted}`}>
-                                                <span className="flex items-center gap-1">
-                                                    <Zap className="w-3 h-3" />
-                                                    {challenge.xp_earned} XP
-                                                </span>
-                                                <span>{challenge.attempts_count} attempts</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    ) : (
+                                        <p className={`text-center ${textMuted} py-4`}>No challenges found</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
