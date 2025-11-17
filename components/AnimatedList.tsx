@@ -43,8 +43,8 @@ const AnimatedItem: React.FC<AnimatedItemProps> = ({
 };
 
 interface AnimatedListProps {
-  items?: string[];
-  onItemSelect?: (item: string, index: number) => void;
+  items?: number[];
+  onItemSelect?: (item: number, index: number) => void;
   showGradients?: boolean;
   enableArrowNavigation?: boolean;
   className?: string;
@@ -55,21 +55,8 @@ interface AnimatedListProps {
 
 const AnimatedList: React.FC<AnimatedListProps> = ({
   items = [
-    'Item 1',
-    'Item 2',
-    'Item 3',
-    'Item 4',
-    'Item 5',
-    'Item 6',
-    'Item 7',
-    'Item 8',
-    'Item 9',
-    'Item 10',
-    'Item 11',
-    'Item 12',
-    'Item 13',
-    'Item 14',
-    'Item 15'
+    1,
+    2,
   ],
   onItemSelect,
   showGradients = true,
@@ -79,6 +66,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
   displayScrollbar = true,
   initialSelectedIndex = -1
 }) => {
+  const test_list = items?.map((testCase: any, index: number) => `Test Case ${index + 1}`) || [];
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(initialSelectedIndex);
   const [keyboardNav, setKeyboardNav] = useState<boolean>(false);
@@ -177,7 +165,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
 
   return (
     <div 
-      className={`relative w-[380px] ${className}`}
+      className={`relative w-[380px] min-h-full ${className}`}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={() => setIsHovering(true)}
     >
@@ -225,7 +213,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
               } ${itemClassName}`}
             >
               <p className='bg-neutral-600/20 py-4 px-6'>{index + 1}</p>
-              <p className="text-white m-0">{item}</p>
+              <p className="text-white m-0">Test {index + 1}</p>
               <p className='py-4 px-6 border'>Run TEST</p>
             </div>
           </AnimatedItem>
@@ -234,11 +222,11 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
       {showGradients && (
         <>
           <div
-            className="absolute top-0 left-0 right-0 h-[50px] bg-gradient-to-b from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute min-h-full top-0 left-0 right-0 h-[50px] bg-linear-to-b from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: topGradientOpacity }}
           />
           <div
-            className="absolute bottom-0 left-0 right-0 h-[100px] bg-gradient-to-t from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute bottom-0 left-0 right-0 h-[100px] bg-linear-to-t from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: bottomGradientOpacity }}
           />
         </>

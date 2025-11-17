@@ -7,7 +7,8 @@ import { useRef, useState, useEffect } from 'react';
 
 export default function page() {
     const editorRef = useRef(null);
-    const [code, setCode] = useState<string>(CODE_SNIPPETS["python"]);
+    const [code, setCode] = useState<string>("");
+    const [responseTest, setResponseTest] = useState<any>(null);
     const [Language, setLanguage] = useState<string>("python");
     const [output, setOutput] = useState<string>("");
     const [error, setError] = useState<string>("");
@@ -16,19 +17,98 @@ export default function page() {
     const [charCount, setCharCount] = useState<number>(0);
     const [lineCount, setLineCount] = useState<number>(0);
     const [executionTime, setExecutionTime] = useState<number>(0);
+    const [activeMode, setActiveMode] = useState<'code' | 'test'>('code');
 
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
 
+    // Gestionnaire pour Ctrl+S
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Vérifie si Ctrl+S ou Cmd+S est pressé
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault(); // Empêche l'enregistrement par défaut du navigateur
+                handleSave();
+            }
+        };
+
+        // Ajoute l'écouteur d'événement
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Nettoie l'écouteur lors du démontage du composant
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [code, challengeData]); // Dépendances pour avoir le code et challengeData à jour
+
+    const handleSave = async () => {
+        // Affiche une alerte
+        alert('Code sauvegardé !');
+        
+        // Ici tu peux aussi ajouter la logique pour sauvegarder dans la base de données
+        try {
+            const response = await fetch(`/api/challenges/${challengeId}/save-code`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: code,
+                })
+            });
+            
+            if (response.ok) {
+                alert('Code sauvegardé avec succès');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+        }
+    };
+
+    const runSingleTest = async (id: number) => {
+        setActiveMode('test');
+        setLoading(true);
+        setResponseTest(null);
+        setOutput("");
+        setError("");
+        
+        try {
+            const res = await fetch(`/api/challenges/${challengeData?.id}/test/${id}`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code })
+                }
+            )
+            const data = await res.json();
+            setResponseTest(data);
+        } catch (error) {
+            console.error("Error running test:", error);
+            setResponseTest({
+                success: false,
+                message: "Erreur lors de l'exécution du test"
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const getChallenges = async () => {
-        const response = await fetch(`/api/challenges/${challengeId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = await response.json();
-        setChallengesData(data);
+        try {
+            const response = await fetch(`/api/challenges/${challengeId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            setChallengesData(data);
+            setCode(data?.saved_code || CODE_SNIPPETS["python"]);
+        } catch (error) {
+            console.error("Error fetching challenge:", error);
+        }
     }
 
     useEffect(() => {
@@ -51,7 +131,11 @@ export default function page() {
     }, [code]);
 
     const runCode = async () => {
+        setActiveMode('code');
         setLoading(true);
+        setOutput("");
+        setError("");
+        setResponseTest(null);
         const startTime = Date.now();
         
         try {
@@ -69,7 +153,7 @@ export default function page() {
             setExecutionTime(endTime - startTime);
 
             setOutput(result.output || "No output");
-            setError(result.error);
+            setError(result.error || "");
         } catch (err) {
             const endTime = Date.now();
             setExecutionTime(endTime - startTime);
@@ -113,8 +197,11 @@ export default function page() {
                                 {executionTime > 0 ? `${executionTime}ms` : 'N/A'}
                             </div>
                         </div>
-                        <button className="bg-teal-700/40 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center">
-                            Submit
+                        <button 
+                            onClick={handleSave}
+                            className="bg-teal-700/40 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center"
+                        >
+                            Save (Ctrl+S)
                         </button>
                     </div>
                 </div>
@@ -124,7 +211,6 @@ export default function page() {
                     onMount={onMount} 
                     Language={Language} 
                     setLanguage={setLanguage}
-            
                 />
             </div>
             <div className="w-2/6">
@@ -136,6 +222,10 @@ export default function page() {
                     setLanguage={setLanguage} 
                     setValue={setCode}
                     challengeData={challengeData}
+                    runSingleTest={runSingleTest}
+                    resTest={responseTest}
+                    activeMode={activeMode}
+                    onSave={handleSave}
                 />
             </div>
         </div>

@@ -2,12 +2,132 @@ import { ArrowBigDownDash, CloudCheck, File, Play } from 'lucide-react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
-import { span } from 'framer-motion/client';
 
-const items = ['Test 1', 'Test 2', 'Test 3', 'Test 4', 'Test 5', 'Test 6', 'Test 7', 'Test 8', 'Test 9', 'Test 10']; 
+export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, challengeData, resTest, activeMode, onSave}: {
+    error: string, 
+    output: string, 
+    loading: boolean, 
+    runCode: () => void,
+    setLanguage: (lang: string) => void, 
+    setValue: (code: string) => void, 
+    challengeData: any, 
+    runSingleTest: (id: number) => void, 
+    resTest: any,
+    activeMode: 'code' | 'test',
+    onSave: () => void
+}) {
+    
+    const renderTestResults = () => {
+        if (!resTest) return null;
 
-export default function Console({error, output, loading, runCode, setLanguage, setValue, challengeData}: {error: string, output: string, loading: boolean, runCode: () => void,setLanguage: (lang: string) => void, setValue: (code: string) => void, challengeData: any}) {
-  return (
+        const { data } = resTest;
+        
+        if (!data) {
+            return (
+                <>
+                    <p className='my-1 text-red-500'>Erreur</p>
+                    <div className='text-red-600 text-xs whitespace-pre'>{resTest.message || "Une erreur est survenue"}</div>
+                </>
+            );
+        }
+
+        const { success, passed_tests, total_tests, results, message } = data;
+
+        if (success) {
+            return (
+                <>
+                    <p className='my-1 text-green-500'>✅ Tous les tests sont passés!</p>
+                    <div className='text-green-400 text-xs'>
+                        Tests réussis: {passed_tests}/{total_tests}
+                    </div>
+                </>
+            );
+        } else {
+            return (
+                <>
+                    <p className='my-1 text-red-500'>❌ Échec sur certains tests</p>
+                    <div className='text-red-400 text-xs mb-2'>
+                        Tests réussis: {passed_tests}/{total_tests}
+                    </div>
+                    
+                    {results && results.map((result: any, index: number) => (
+                        <div key={index} className="mb-3 p-2 bg-red-950/20 rounded border border-red-800/30">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-red-400 text-xs font-semibold">
+                                    Test {result.test_number}
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded ${result.passed ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                                    {result.passed ? 'PASSED' : 'FAILED'}
+                                </span>
+                            </div>
+                            
+                            {!result.passed && (
+                                <div className="space-y-2 text-xs">
+                                    <div>
+                                        <span className="text-gray-400">Expected:</span>
+                                        <div className="text-green-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
+                                            {result.expected_output}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-400">Your output:</span>
+                                        <div className="text-red-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
+                                            {result.user_output}
+                                        </div>
+                                    </div>
+                                    {result.error && (
+                                        <div>
+                                            <span className="text-gray-400">Error:</span>
+                                            <div className="text-orange-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
+                                                {result.error}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {result.execution_time && (
+                                        <div className="text-gray-500 text-xs">
+                                            Execution time: {result.execution_time}s
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    
+                    {message && (
+                        <div className='text-orange-400 text-xs mt-2 p-2 bg-orange-950/20 rounded border border-orange-800/30'>
+                            {message}
+                        </div>
+                    )}
+                </>
+            );
+        }
+    };
+
+    const renderOutput = () => {
+        if (activeMode === 'test' && resTest) {
+            return renderTestResults();
+        } else {
+            return (
+                <>
+                    <p className='my-1 text-gray-200'>{!output && !error ? "Output:" : ""}</p>
+                    {output && output !== "No output" && (
+                        <>
+                            <p className='my-1 text-green-500'>Ok :D</p>
+                            <div className='text-gray-300 text-xs whitespace-pre'>{output}</div>
+                        </>
+                    )}
+                    {error && (
+                        <>
+                            <p className='my-1 text-red-500'>Error: </p>
+                            <div className='text-red-600 text-xs whitespace-pre'>{error}</div>
+                        </>
+                    )}
+                </>
+            );
+        }
+    };
+
+    return (
     <div className='w-full px-4'>
         <div className="p-2 rounded-t-lg bg-blue-900/15">
             <div className="option flex items-end justify-between">
@@ -31,41 +151,48 @@ export default function Console({error, output, loading, runCode, setLanguage, s
                 </div>
             </div>
             <div className="header flex gap-2 items-center text-sm">
-                <button onClick={runCode} className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed'>{loading ? "Running...": <>Run <Play className='w-4 h-4'/></>} </button>
-                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>Subject <File className='w-4 h-4'/></button>
-                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>Input(s) <ArrowBigDownDash className='w-4 h-4'/></button>
+                <button onClick={runCode} className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed'>
+                    {loading ? "Running..." : <>Run <Play className='w-4 h-4'/></>}
+                </button>
+                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>
+                    Subject <File className='w-4 h-4'/>
+                </button>
+                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>
+                    Input(s) <ArrowBigDownDash className='w-4 h-4'/>
+                </button>
                 
-                <button className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-800/60 text-white rounded-lg hover:bg-gray-700 transition">
-                    save <CloudCheck className="w-4 h-4" />
+                <button 
+                    onClick={onSave}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-800/60 text-white rounded-lg hover:bg-gray-700 transition"
+                >
+                    Save <CloudCheck className="w-4 h-4" />
                 </button>
             </div>
         </div>
-        <div className={`h-[30vh] w-full shadow-inner border ${output && output != "No output" ? "border-green-900 bg-neutral-800 shadow-black" : error ? "border-red-950 bg-neutral-800 shadow-red-950" : "border-gray-900 shadow-black bg-neutral-800"} mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto`}>
-            <p className='my-1 text-gray-200'>{!output && !error ?  "Output:" : ""} </p>
-            <div>{output && output != "No output" && 
-                    <>
-                        <p className='my-1 text-green-500'>Ok :D</p>
-                        <div className='text-gray-300 text-xs whitespace-pre'>{output}</div>
-                    </>
-                }
-            </div>
-            {error && 
-                <>
-                    <p className='my-1 text-red-500'>Error: </p>
-                    <div className='text-red-600 text-xs whitespace-pre'>{error}</div>
-                </>
-            }
+        
+        {/* Output Section */}
+        <div className={`h-[30vh] w-full shadow-inner border ${
+            activeMode === 'test' && resTest ? 
+                (resTest.data?.success ? "border-green-900 bg-neutral-800 shadow-black" : "border-red-950 bg-neutral-800 shadow-red-950") :
+            output && output !== "No output" ? "border-green-900 bg-neutral-800 shadow-black" : 
+            error ? "border-red-950 bg-neutral-800 shadow-red-950" : 
+            "border-gray-900 shadow-black bg-neutral-800"
+        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto`}>
+            
+            {renderOutput()}
         </div>
+
+        {/* Test Cases List */}
         <div className="h-[30vh] border border-neutral-800 w-full mt-2 rounded-sm text-sm text-green-400 font-mono overflow-hidden">
-            {/* list of test */}
             <AnimatedList
-                items={items}
-                onItemSelect={(item, index) => alert(item+ index)}
+                items={challengeData?.test_cases?.map((test: any) => test?.id) || []}
+                onItemSelect={(item, index) => runSingleTest(item)}
                 showGradients={true}
                 enableArrowNavigation={true}
                 displayScrollbar={true}
             />
         </div>
+        
         <button className='mt-2 cursor-pointer bg-amber-600 hover:bg-amber-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'>
             Finish
         </button>
