@@ -64,26 +64,23 @@ export default function ChallengesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen  text-gray-100 px-8 py-10">
+    <div className="min-h-screen  text-gray-800 px-8 py-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Challenges list</h1>
-          <p className="text-gray-400">
-            Teste tes compétences et gagne de l’expérience à chaque défi.
-          </p>
+          <h1 className="text-3xl font-bold text-blue-950 mb-2">Challenges list</h1>
         </div> 
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-8">
-        <select className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none">
+        <select className="border border-neutral-200 focus:shadow focus:shadow-pink-300 focus:border-blue-500 transition-all duration-300 ease-in-out rounded-lg px-4 py-2 text-sm focus:outline-none">
           <option>All level</option>
           <option>Easy</option>
           <option>Medium</option>
           <option>Hard</option>
         </select>
-        <select className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none">
+        <select className="border border-neutral-200 focus:shadow focus:shadow-pink-300 focus:border-blue-500 transition-all duration-300 ease-in-out rounded-lg px-4 py-2 text-sm focus:outline-none">
           <option>All grade</option>
           <option>Alpha</option>
           <option>Beta</option>
@@ -92,7 +89,7 @@ export default function ChallengesPage() {
         <input
           type="text"
           placeholder="Rechercher un challenge..."
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none"
+          className="flex-1 focus:shadow focus:shadow-pink-300 focus:border-blue-500 transition-all duration-300 ease-in-out border border-neutral-200 rounded-lg px-4 py-2 text-sm focus:outline-none"
         />
       </div>
 
@@ -101,11 +98,11 @@ export default function ChallengesPage() {
         {challengesData && challengesData?.length > 0 ? challengesData?.map((c) => (
           <Link href={`/challenges/${c.id}`}
             key={c.id}
-            className="border bg-black/20 border-neutral-700 rounded-xl p-6 flex flex-col justify-between card-hover hover:border-teal-500 transition"
+            className="bg-indigo-50/20 border border-neutral-300 rounded-xl p-6 flex flex-col justify-between card-hover hover:border-teal-500 transition"
           >
             <div className="flex justify-between">
                 <div>
-                    <h3 className="text-xl font-bold text-white mb-2">{c.title}</h3>
+                    <h3 className="text-xl font-bold text-gray-700 mb-2">{c.title}</h3>
                     {/* <p className="text-gray-400 text-sm mb-1">
                         Langage : <span className="text-white">{c.language}</span>
                     </p> */}
@@ -161,7 +158,7 @@ export default function ChallengesPage() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-teal-400 font-semibold">+{c.xp_reward} XP</p>
-                <button className="mt-2 px-3 py-1 bg-linear-to-r from-teal-500 to-blue-600 text-xs rounded-lg hover:scale-105 transition">
+                <button className="mt-2 text-white px-3 py-1 bg-linear-to-r from-teal-500 to-blue-600 text-xs rounded-lg hover:scale-105 transition">
                   Click to view details
                 </button>
               </div>

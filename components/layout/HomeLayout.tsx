@@ -3,13 +3,23 @@ import { Bell, CalendarDays, Home, LogOut, Trophy, UserRound } from "lucide-reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function HomeLayout({children}: any) {
   const pathname = usePathname();
+  const [userDetais, setUserDetails] = useState<any>([]);
+
+  const get_user_details = async () => 
+  {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+
+    setUserDetails(data);
+  }
 
   useEffect(() => {
     document.title = `DSA Contest - ${pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}`;
+    get_user_details();
   }, [pathname]);
 
   const logout = async () => {
@@ -19,10 +29,12 @@ export default function HomeLayout({children}: any) {
     window.location.href = '/login';
   }
   return (
-    <div className="flex h-screen bg-neutral-900 text-gray-100">
-      <aside className="w-15 bg-neutral-800/7 border-r border-neutral-700 flex flex-col items-center py-6">
+    <div className="flex h-screen text-gray-100">
+      <aside className="w-15 border-r border-neutral-200 flex flex-col items-center py-6">
         <div className="mb-8">
-            
+          <div className="flex items-center gap-4">
+              <Image src={'/dsa_logo.png'} alt='dsa logo' width={40} height={40}/>
+          </div>
         </div>
 
         <nav className="flex-1 flex flex-col space-y-2 w-full px-2">
@@ -37,13 +49,13 @@ export default function HomeLayout({children}: any) {
                 href={`${item.link}`}
                 className={`flex items-center justify-center w-full h-12 rounded-xl ${
                   item.link === pathname
-                    ? "bg-teal-300/50 text-white hover:bg-teal-700"
-                    : "text-gray-400 hover:bg-neutral-700 hover:text-white"
+                    ? "bg-teal-300/50 transition-all duration-300 ease-in-out text-white hover:bg-teal-700"
+                    : "text-gray-400 transition-all duration-300 ease-in-out hover:bg-teal-700/40 hover:text-white"
                 } transition`}
               >
                 {item.icon}
               </Link>
-              <div className="z-50 tooltip absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-neutral-700 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
+              <div className="z-50 tooltip absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-teal-700 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
                 {item.label}
                 <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-neutral-700"></div>
               </div>
@@ -53,7 +65,7 @@ export default function HomeLayout({children}: any) {
 
         <div className="nav-item relative group">
           <button className="w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg hover:scale-110 transition">
-            VM
+            {userDetais?.stat && userDetais?.stat?.user ? userDetais?.stat?.user?.nom && userDetais?.stat?.user?.prenom ? <>{userDetais.stat?.user?.nom[0]} {userDetais?.stat?.user?.prenom[0]}</> : userDetais?.stat?.user?.username[0].toUpperCase()  : 'A'}
           </button>
           <div className="tooltip absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-neutral-700 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
             Giovanni Jonah
@@ -62,13 +74,14 @@ export default function HomeLayout({children}: any) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto bg-neutral-900">
-        <header className="bg-neutral-800 border-b border-neutral-700">
+      <main className="flex-1 overflow-y-auto bg-indigo-300/20">
+        <header className="bg-blue-950 border-b border-neutral-700 shadow-lg relative">
+          <div className="absolute w-full h-full bg-black/35 top-0 left-0"></div>
           <div className="flex items-center justify-between px-8 py-4">
             <div>     
-                <div className="flex items-center gap-4">
+                {/* <div className="flex items-center gap-4">
                     <Image src={'/dsa_logo.png'} alt='dsa logo' width={70} height={80}/>
-                </div>
+                </div> */}
             </div>
             <div className="flex items-center space-x-4">
                 <button className="relative text-gray-400 hover:text-white transition">
@@ -82,7 +95,7 @@ export default function HomeLayout({children}: any) {
           </div>
         </header>
 
-        <div className="p-3">
+        <div className="">
           {children}
         </div>
       </main>

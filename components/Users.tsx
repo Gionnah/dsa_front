@@ -56,24 +56,24 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen text-gray-100 px-8 py-10 flex items-center justify-center">
-        <div className="text-white text-lg">Chargement des utilisateurs...</div>
+      <div className="min-h-screen text-gray-800 px-8 py-10 flex items-center justify-center">
+        <div className="text-black text-lg">Chargement des utilisateurs...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-gray-100 px-8 py-10">
+    <div className="min-h-screen text-gray-800 px-8 py-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Utilisateurs</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold text-black mb-2">Utilisateurs</h1>
+          {/* <p className="text-gray-800">
             Gérez les membres, rôles et niveaux d'expérience de la plateforme.
-          </p>
+          </p> */}
         </div>
         <div className="mt-4 md:mt-0">
-          <p className="text-gray-400">
+          <p className="text-gray-800">
             {usersData.length} utilisateur{usersData.length > 1 ? 's' : ''} trouvé{usersData.length > 1 ? 's' : ''}
           </p>
         </div>
@@ -81,13 +81,13 @@ export default function UsersPage() {
 
       {/* Filtres */}
       <div className="flex flex-wrap items-center gap-4 mb-8">
-        <select className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none">
+        <select className="border border-gray-200  focus:border-blue-400 focus:shadow focus:shadow-pink-200 transition-all ease-in-out duration-200 rounded-lg px-4 py-2 text-sm focus:outline-none">
           <option>Tous les rôles</option>
           <option>Admin</option>
           <option>Modérateur</option>
           <option>Membre</option>
         </select>
-        <select className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none">
+        <select className="border border-neutral-200 focus:border-blue-400 focus:shadow focus:shadow-pink-200 transition-all ease-in-out duration-200 rounded-lg px-4 py-2 text-sm focus:outline-none">
           <option>Tous les statuts</option>
           <option>En ligne</option>
           <option>Hors ligne</option>
@@ -95,50 +95,50 @@ export default function UsersPage() {
         <input
           type="text"
           placeholder="Rechercher un utilisateur..."
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 text-sm focus:outline-none"
+          className="flex-1 border border-neutral-200 focus:border-blue-400 focus:shadow focus:shadow-pink-200 transition-all ease-in-out duration-200 rounded-lg px-4 py-2 text-sm focus:outline-none"
         />
       </div>
 
       {/* Table des utilisateurs */}
-      <div className="overflow-x-auto rounded-xl border border-neutral-700 bg-neutral-800">
-        <table className="min-w-full divide-y divide-neutral-700">
-          <thead className="bg-neutral-800">
+      <div className="overflow-x-auto rounded-xl border border-neutral-200">
+        <table className="min-w-full divide-y divide-neutral-200">
+          <thead className="bg-neutral-100">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-800 uppercase">
                 Utilisateur
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-800 uppercase">
                 Numéro d'inscription
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-800 uppercase">
                 Parcours
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-800 uppercase">
                 Challenges Rejoints
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-800 uppercase">
                 XP
               </th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase">
+              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-800 uppercase">
                 Actions
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-neutral-700">
+          <tbody className="divide-y divide-neutral-200">
             {usersData && usersData?.length > 0 && usersData?.map((user: any) => (
               <tr
                 key={user.id}
-                className="hover:bg-neutral-700/40 transition-colors"
+                className="hover:bg-neutral-200/40 transition-colors"
               >
                 <td className="px-6 py-4 flex items-center space-x-4">
                   <div
                     className={`w-10 h-10 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white`}
                   >
-                    {user.prenom.charAt(0)}{user.nom.charAt(0)}
+                    { user.prenom.charAt(0) && user.nom.charAt(0)? user.prenom.charAt(0) && user.nom.charAt(0) : user.username.charAt(0) }
                   </div>
                   <div>
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-neutral-600">
                       {user.prenom} {user.nom}
                     </p>
                     <p className="text-sm text-gray-400">
@@ -147,14 +147,14 @@ export default function UsersPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-neutral-700 text-gray-300">
+                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-black/20 text-gray-600">
                     {user.numero_inscription}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-300">
+                <td className="px-6 py-4 text-sm text-gray-700">
                   {user.parcours}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-300">
+                <td className="px-6 py-4 text-sm text-gray-700">
                   {user.challenges_joined}
                 </td>
                 <td className="px-6 py-4 text-sm text-teal-400 font-semibold">

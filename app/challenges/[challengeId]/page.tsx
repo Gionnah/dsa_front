@@ -70,7 +70,7 @@ export default function OneChallenge() {
                     challengeData.difficulty === "easy" ? "from-cyan-900" 
                     : challengeData.difficulty === "medium" ? "from-amber-900" 
                     : "from-red-900"
-                } to-black rounded-lg shadow-2xl border border-white/10`}>
+                } to-black shadow-2xl`}>
                     <section className="relative flex rounded-sm px-8 mb-4 overflow-hidden animate-slide-in">
                         <div className="relative w-full z-10 flex items-center justify-between">
                             <div className="flex items-center space-x-6">
@@ -127,11 +127,11 @@ export default function OneChallenge() {
                 </div>
 
                 {/* Content Section */}
-                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="m-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Description & Tests */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Tab Navigation */}
-                        <div className="bg-neutral-800 rounded-lg py-2 px-2 shadow-lg">
+                        <div className="rounded-lg py-2 px-2 shadow-lg">
                             <div className="flex space-x-2 p-1 bg-black/30 rounded-md">
                                 <button
                                     onClick={() => setActiveTab('description')}

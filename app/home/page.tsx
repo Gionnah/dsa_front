@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Target, TrendingUp, Award, Clock, Zap } from "lucide-react";
+import { Trophy, Target, TrendingUp, Award, Clock, Zap, ChevronRight, Calendar, BarChart3 } from "lucide-react";
 import HomeLayout from "@/components/layout/HomeLayout";
 
 export default function Dashboard() {
     const [userDetails, setUserDetails] = useState<any>(null);
-    const [isDark, setIsDark] = useState(true);
 
     const getUserDetails = async () => {
         try {
@@ -25,15 +24,6 @@ export default function Dashboard() {
 
     useEffect(() => {
         getUserDetails();
-        
-        // Vérifier la préférence de thème système
-        const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDark(darkModeMediaQuery.matches);
-        
-        const handleChange = (e: MediaQueryListEvent) => setIsDark(e.matches);
-        darkModeMediaQuery.addEventListener('change', handleChange);
-        
-        return () => darkModeMediaQuery.removeEventListener('change', handleChange);
     }, []);
 
     const calculateRankPercentage = () => {
@@ -43,7 +33,6 @@ export default function Dashboard() {
     };
 
     const getCurrentChallenge = () => {
-        // Vérification plus robuste pour s'assurer que challenges est un tableau
         if (!userDetails?.challenges || !Array.isArray(userDetails.challenges)) {
             return null;
         }
@@ -53,79 +42,45 @@ export default function Dashboard() {
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
         });
     };
 
-    // S'assurer que les défis récents sont un tableau avant d'utiliser .map()
     const recentChallenges = Array.isArray(userDetails?.challenges) 
-        ? userDetails.challenges.slice(0, 3) 
+        ? userDetails.challenges.slice(0, 5) 
         : [];
-
-    // Classes CSS pour le mode sombre
-    const bgPrimary = isDark ? "bg-neutral-900" : "bg-neutral-50";
-    const bgCard = isDark ? "bg-black/30" : "bg-white";
-    const bgSecondary = isDark ? "bg-neutral-700" : "bg-neutral-50";
-    const borderColor = isDark ? "border-neutral-600" : "border-neutral-200";
-    const textPrimary = isDark ? "text-white" : "text-neutral-800";
-    const textSecondary = isDark ? "text-neutral-300" : "text-neutral-500";
-    const textMuted = isDark ? "text-neutral-400" : "text-neutral-500";
-    const ringColor = isDark ? "stroke-neutral-600" : "stroke-neutral-300";
-    const progressBg = isDark ? "bg-neutral-600" : "bg-neutral-200";
-    const progressFill = isDark ? "bg-green-400" : "bg-neutral-700";
-    const buttonBg = isDark ? "bg-black/30 shadow-lg hover:bg-black/40 transition-all duration-300 cursor-pointer" : "cursor-pointer bg-neutral-800 hover:bg-neutral-900";
-    const avatarBg = isDark ? "bg-neutral-700" : "bg-neutral-100";
-    const avatarText = isDark ? "text-neutral-300" : "text-neutral-700";
 
     return (
         <HomeLayout>
-            <div className={`min-h-screen ${bgPrimary} transition-colors duration-300`}>
-                <div className="max-w-7xl mx-auto">
-                    {/* Header Section */}
-                    <section className={`relative bg-linear-to-b from-indigo-950 shadow-lg rounded-2xl p-8 mb-6 shadow-black border ${borderColor} transition-colors duration-300`}>
+            <div className="min-h-screen bg-indigo-50 rounded-lg">
+                <div className="max-w-7xl space-y-6">
+                    {/* Header Compact */}
+                    <div className="bg-[url(/background.jpeg)] bg-cover relative shadow-sm p-6">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-6">
-                                {/* Avatar */}
-                                <div className={`w-24 h-24 rounded-xl bg-cyan-900/20 flex items-center justify-center border-4 border-cyan-600/5 transition-colors duration-300`}>
-                                    <span className={`text-4xl font-bold ${avatarText}`}>
-                                        {userDetails?.stat?.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                                    </span>
+                            <div className="flex items-center gap-4">
+                                <div className="w-26 h-26 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-md">
+                                    {userDetails?.stat?.user?.username?.charAt(0)?.toUpperCase() || 'U'}
                                 </div>
-                                
                                 <div>
-                                    <h3 className={`text-3xl font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
+                                    <h1 className="text-xl font-bold text-white">
                                         {userDetails?.stat?.user?.prenom && userDetails?.stat?.user?.nom 
                                             ? `${userDetails.stat.user.prenom} ${userDetails.stat.user.nom}`
                                             : userDetails?.stat?.user?.username || 'User'}
-                                    </h3>
-                                    <p className={`${textSecondary} text-base mb-3 flex items-center gap-2 transition-colors duration-300`}>
-                                        <Award className="w-4 h-4" />
-                                        Member
-                                    </p>
-                                    <div className="flex items-center space-x-4">
-                                        <span className={`px-4 py-1.5 ${bgSecondary} rounded-lg text-sm font-medium ${textPrimary} flex items-center gap-2 border ${borderColor} transition-colors duration-300`}>
-                                            <Zap className="w-4 h-4" />
-                                            {userDetails?.stat?.user?.total_xp || 0} XP
-                                        </span>
-                                        <span className={textMuted}>•</span>
-                                        <span className={`${textSecondary} flex items-center gap-2 transition-colors duration-300`}>
-                                            <Target className="w-4 h-4" />
-                                            {userDetails?.stat?.challenges?.joined || 0} Challenges
-                                        </span>
-                                    </div>
+                                    </h1>
+                                    <p className="text-slate-300 text-sm">@{userDetails?.stat?.user?.username || 'username'}</p>
                                 </div>
+                                <div className="absolute w-full h-full bg-linear-to-t from-black/35 top-0 left-0"></div>
                             </div>
                             
-                            {/* Ranking Circle */}
                             <div className="relative">
                                 <svg className="w-32 h-32 transform -rotate-90">
                                     <circle
                                         cx="64"
                                         cy="64"
                                         r="56"
-                                        stroke={isDark ? "#475569" : "#e2e8f0"}
+                                        stroke={"#e2e8f0"}
                                         strokeWidth="8"
                                         fill="none"
                                     />
@@ -133,7 +88,7 @@ export default function Dashboard() {
                                         cx="64"
                                         cy="64"
                                         r="56"
-                                        stroke={isDark ? "#94a3b8" : "#64748b"}
+                                        stroke={"#64748b"}
                                         strokeWidth="8"
                                         fill="none"
                                         strokeDasharray="351.86"
@@ -143,183 +98,226 @@ export default function Dashboard() {
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <Trophy className={`w-6 h-6 ${textMuted} mb-1 transition-colors duration-300`} />
-                                    <span className={`text-2xl font-bold ${textPrimary} transition-colors duration-300`}>
+                                    <Trophy className={`w-6 h-6 mb-1 transition-colors duration-300`} />
+                                    <span className={`text-sm font-bold transition-colors duration-300`}>
                                         #{userDetails?.stat?.ranking?.global_rank || 1}
                                     </span>
-                                    <span className={`text-xs ${textMuted} font-medium transition-colors duration-300`}>
+                                    <span className={`text-xs  font-medium transition-colors duration-300`}>
                                         Global Rank
                                     </span>
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    {/* Main Content */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left Column - Current Challenge */}
-                        <div className="lg:col-span-2">
-                            <div className={`${bgCard} rounded-2xl shadow-sm border ${borderColor} overflow-hidden transition-colors duration-300`}>
-                                <div className={`bg-cyan-600 px-6 py-4 border-b ${borderColor} transition-colors duration-300`}>
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <h2 className={`text-xl font-bold ${textPrimary} flex items-center gap-2 transition-colors duration-300`}>
-                                                <Target className="w-5 h-5" />
-                                                {userDetails?.stat?.user?.username || 'User'}
-                                            </h2>
-                                            <p className={`text-sm ${textSecondary} mt-1 transition-colors duration-300`}>
-                                                ID: {userDetails?.stat?.user?.id || 'N/A'}
-                                            </p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className={`px-4 py-2 bg-black/40 rounded-lg border border-black/50 transition-colors duration-300`}>
-                                                <p className={`text-xs ${textSecondary}`}>Challenges</p>
-                                                <p className={`text-lg font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.joined || 0}</p>
-                                            </div>
-                                            <div className={`px-4 py-2 bg-black/40 rounded-lg border border-black/50 transition-colors duration-300`}>
-                                                <p className={`text-xs ${textSecondary}`}>Success Rate</p>
-                                                <p className={`text-lg font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.completion_rate || 0}%</p>
-                                            </div>
-                                        </div>
+                    {/* Main Content - 2 columns */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-3">
+                        {/* Main column - Current challenge */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Current challenge */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                                <div className="border-b border-slate-200 px-6 py-4">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                            <Target className="w-5 h-5 text-blue-600" />
+                                            Current Challenge
+                                        </h2>
+                                        {getCurrentChallenge() && (
+                                            <span className="text-sm text-slate-500">Started on {getCurrentChallenge()?.started_at ? formatDate(getCurrentChallenge().started_at) : 'N/A'}</span>
+                                        )}
                                     </div>
                                 </div>
                                 
                                 <div className="p-6">
-                                    <div className={`bg-sky-950 rounded-xl p-6 border ${borderColor} transition-colors duration-300`}>
-                                        <h3 className={`text-base font-semibold ${textPrimary} mb-4 flex items-center gap-2 transition-colors duration-300`}>
-                                            <Clock className={`w-5 h-5 ${textMuted}`} />
-                                            Current Challenge
-                                        </h3>
-                                        {getCurrentChallenge() ? (
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <h4 className={`text-lg font-bold ${textPrimary} mb-2 transition-colors duration-300`}>
-                                                            {getCurrentChallenge()?.challenge_title || 'Unknown Challenge'}
-                                                        </h4>
-                                                        <span className={`inline-block px-3 py-1 rounded-lg text-xs font-medium ${isDark ? 'bg-white/30 text-neutral-300 border-black/40' : 'bg-neutral-200 text-neutral-700 border-neutral-300'} border transition-colors duration-300`}>
-                                                            {getCurrentChallenge()?.challenge_difficulty?.toUpperCase() || 'N/A'}
+                                    {getCurrentChallenge() ? (
+                                        <div className="space-y-6">                                            
+                                            <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                                                        {getCurrentChallenge()?.challenge_title || 'Unknown Challenge'}
+                                                    </h3>
+                                                    <span className="text-sm font-bold text-blue-600">{Math.min((getCurrentChallenge()?.attempts_count || 0) * 20, 100)}%</span>
+                                                </div>
+                                                <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-slate-200 mb-3">
+                                                    <div 
+                                                        className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-500 rounded-full"
+                                                        style={{width: `${Math.min((getCurrentChallenge()?.attempts_count || 0) * 20, 100)}%`}}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="inline-block px-4 py-1.5 rounded-lg text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                                                            Difficulty: {getCurrentChallenge()?.challenge_difficulty?.toUpperCase() || 'N/A'}
                                                         </span>
-                                                    </div>
-                                                    <button className={`px-6 py-2.5 ${buttonBg} text-white rounded-lg font-medium transition-all duration-300`}>
-                                                        Continue →
-                                                    </button>
-                                                </div>
-                                                
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between text-sm text-neutral-600">
-                                                        <span className={textSecondary}>Progress</span>
-                                                        <span className={`font-medium ${textSecondary}`}>{getCurrentChallenge()?.attempts_count || 0} attempts</span>
-                                                    </div>
-                                                    <div className={`w-full h-2.5 ${progressBg} rounded-full overflow-hidden transition-colors duration-300`}>
-                                                        <div 
-                                                            className={`h-full ${progressFill} rounded-full transition-all duration-500`}
-                                                            style={{width: `${Math.min((getCurrentChallenge()?.attempts_count || 0) * 20, 100)}%`}}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className={`px-4 py-3 ${bgCard} rounded-lg border ${borderColor} transition-colors duration-300`}>
-                                                        <p className={`text-xs ${textSecondary} mb-1`}>Experience</p>
-                                                        <p className={`font-bold ${textPrimary}`}>
-                                                            {getCurrentChallenge()?.xp_earned || 0}/{getCurrentChallenge()?.xp_reward || 0} XP
-                                                        </p>
-                                                    </div>
-                                                    <div className={`px-4 py-3 ${bgCard} rounded-lg border ${borderColor} transition-colors duration-300`}>
-                                                        <p className={`text-xs ${textSecondary} mb-1`}>Started on</p>
-                                                        <p className={`font-bold ${textPrimary}`}>
-                                                            {getCurrentChallenge()?.started_at ? formatDate(getCurrentChallenge().started_at) : 'N/A'}
-                                                        </p>
+                                                        <span className="text-slate-500 text-sm">•</span>
+                                                        <span className="text-slate-600 text-sm font-medium">{getCurrentChallenge()?.attempts_count || 0} Attempts</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <div className="text-center py-8">
-                                                <div className={`w-16 h-16 ${bgSecondary} rounded-full flex items-center justify-center mx-auto mb-4 border ${borderColor} transition-colors duration-300`}>
-                                                    <Target className={`w-8 h-8 ${textMuted}`} />
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-linear-to-br from-amber-50 to-orange-50 rounded-lg p-5 border border-amber-200">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Zap className="w-5 h-5 text-amber-600" />
+                                                        <p className="text-sm font-semibold text-slate-700">Current XP</p>
+                                                    </div>
+                                                    <p className="text-3xl font-bold text-slate-900 mb-1">
+                                                        {getCurrentChallenge()?.xp_earned || 0}
+                                                    </p>
+                                                    <p className="text-sm text-slate-600">
+                                                        {getCurrentChallenge()?.xp_reward || 0} XP
+                                                    </p>
                                                 </div>
-                                                <p className={`${textSecondary} mb-4 transition-colors duration-300`}>No active challenge</p>
-                                                <button className={`px-6 py-2.5 ${buttonBg} text-white rounded-lg font-medium transition-all duration-300`}>
-                                                    Start a Challenge
-                                                </button>
+                                                <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Calendar className="w-5 h-5 text-blue-600" />
+                                                        <p className="text-sm font-semibold text-slate-700">Started at</p>
+                                                    </div>
+                                                    <p className="text-lg font-bold text-slate-900 mb-1">
+                                                        {getCurrentChallenge()?.started_at ? new Date(getCurrentChallenge().started_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'N/A'}
+                                                    </p>
+                                                    <p className="text-sm text-slate-600">
+                                                        {getCurrentChallenge()?.started_at ? Math.floor((Date.now() - new Date(getCurrentChallenge().started_at).getTime()) / (1000 * 60 * 60 * 24)) : 0} days ago
+                                                    </p>
+                                                </div>
                                             </div>
-                                        )}
+
+                                            <button className="w-full cursor-pointer px-6 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 ease-in-out duration-300 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 group">
+                                                Continue this challenge
+                                                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                                <Target className="w-10 h-10 text-slate-400" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900 mb-2">No current challenge</h3>
+                                            <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                                                You don't have any active challenges at the moment. Start a new challenge to earn experience and improve your ranking!
+                                            </p>
+                                            <button className="px-8 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                                                Discover available challenges
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Detailed statistics */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                                <div className="border-b border-slate-200 px-6 py-4">
+                                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                        <BarChart3 className="w-5 h-5 text-purple-600" />
+                                        Your Statistics
+                                    </h2>
+                                </div>
+                                
+                                <div className="p-6">
+                                    <div className="grid grid-cols-3 gap-4 mb-6">
+                                        <div className="text-center p-4 bg-linear-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                                            <p className="text-4xl font-bold text-slate-900 mb-1">{userDetails?.stat?.challenges?.completed || 0}</p>
+                                            <p className="text-sm font-semibold text-slate-600">Challenges completed</p>
+                                        </div>
+                                        <div className="text-center p-4 bg-linear-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                                            <p className="text-4xl font-bold text-slate-900 mb-1">{userDetails?.stat?.challenges?.in_progress || 0}</p>
+                                            <p className="text-sm font-semibold text-slate-600">In progress</p>
+                                        </div>
+                                        <div className="text-center p-4 bg-linear-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                                            <p className="text-4xl font-bold text-slate-900 mb-1">{userDetails?.stat?.challenges?.completion_rate || 0}%</p>
+                                            <p className="text-sm font-semibold text-slate-600">Success rate</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                        <p className="text-sm text-slate-600 leading-relaxed">
+                                            You have participated in a total of <span className="font-bold text-slate-900">{userDetails?.stat?.challenges?.joined || 0} challenges</span>. 
+                                            Your success rate is <span className="font-bold text-slate-900">{userDetails?.stat?.challenges?.completion_rate || 0}%</span>, 
+                                            which places you at rank <span className="font-bold text-slate-900">#{userDetails?.stat?.ranking?.global_rank || 1}</span> in the global ranking 
+                                            out of {userDetails?.stat?.ranking?.total_users || 0} users. Keep it up to progress even further!
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right Column - Stats & Recent Challenges */}
+                        {/* Side column - History */}
                         <div className="space-y-6">
-                            {/* Statistics */}
-                            <div className={`${bgCard} rounded-2xl shadow-sm border ${borderColor} overflow-hidden transition-colors duration-300`}>
-                                <div className={`bg-amber-600 px-6 py-4 border-b ${borderColor} transition-colors duration-300`}>
-                                    <h2 className={`text-lg font-bold ${textPrimary} flex items-center gap-2 transition-colors duration-300`}>
-                                        <TrendingUp className="w-5 h-5" />
-                                        Statistics
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                                <div className="border-b border-slate-200 px-6 py-4">
+                                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                        <Award className="w-5 h-5 text-purple-600" />
+                                        Recent Activity
                                     </h2>
                                 </div>
-                                <div className="p-6">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className={`bg-black/40 p-5 rounded-xl text-center border ${borderColor} hover:border-neutral-400 transition-all duration-300`}>
-                                            <p className={`text-2xl font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.completed || 0}</p>
-                                            <p className={`text-sm ${textSecondary} mt-1`}>Completed</p>
-                                        </div>
-                                        <div className={`bg-black/40 p-5 rounded-xl text-center border ${borderColor} hover:border-neutral-400 transition-all duration-300`}>
-                                            <p className={`text-2xl font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.in_progress || 0}</p>
-                                            <p className={`text-sm ${textSecondary} mt-1`}>In Progress</p>
-                                        </div>
-                                        <div className={`bg-black/40 p-5 rounded-xl text-center border ${borderColor} hover:border-neutral-400 transition-all duration-300`}>
-                                            <p className={`text-2xl font-bold ${textPrimary}`}>{userDetails?.stat?.challenges?.completion_rate || 0}%</p>
-                                            <p className={`text-sm ${textSecondary} mt-1`}>Success Rate</p>
-                                        </div>
-                                        <div className={`bg-black/40 p-5 rounded-xl text-center border ${borderColor} hover:border-neutral-400 transition-all duration-300`}>
-                                            <p className={`text-2xl font-bold ${textPrimary}`}>#{userDetails?.stat?.ranking?.global_rank || 1}</p>
-                                            <p className={`text-sm ${textSecondary} mt-1`}>Ranking</p>
-                                        </div>
+                                
+                                <div className="p-6">                                    
+                                    <div className="space-y-3">
+                                        {recentChallenges.length > 0 ? (
+                                            recentChallenges.map((challenge: any) => (
+                                                <div 
+                                                    key={challenge.id} 
+                                                    className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+                                                >
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="flex-1">
+                                                            <h4 className="font-bold text-slate-900 text-sm mb-1">
+                                                                {challenge.challenge_title}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-500">
+                                                                {challenge.status === 'completed' 
+                                                                    ? '✅ Challenge completed successfully' 
+                                                                    : '⏳ Challenge in progress'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center justify-between text-xs mt-3 pt-3 border-t border-slate-200">
+                                                        <div className="flex items-center gap-4">
+                                                            <span className="flex items-center gap-1 text-slate-600">
+                                                                <Zap className="w-3 h-3 text-amber-500" />
+                                                                <span className="font-semibold">{challenge.xp_earned}</span> XP
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-slate-600">
+                                                                <Clock className="w-3 h-3 text-blue-500" />
+                                                                <span className="font-semibold">{challenge.attempts_count}</span> attempts
+                                                            </span>
+                                                        </div>
+                                                        <span className="px-2 py-1 rounded bg-white text-slate-600 border border-slate-200 font-semibold">
+                                                            {challenge.challenge_difficulty}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8">
+                                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                    <Award className="w-6 h-6 text-slate-400" />
+                                                </div>
+                                                <p className="text-slate-500 text-sm">No recent activity</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Recent Challenges */}
-                            <div className={`${bgCard} rounded-2xl shadow-sm border ${borderColor} overflow-hidden transition-colors duration-300`}>
-                                <div className={`bg-amber-600 px-6 py-4 border-b ${borderColor} transition-colors duration-300`}>
-                                    <h2 className={`text-lg font-bold ${textPrimary} flex items-center gap-2 transition-colors duration-300`}>
-                                        <Award className="w-5 h-5" />
-                                        Recent Challenges
-                                    </h2>
+                            {/* Ranking Info */}
+                            <div className="bg-linear-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center border-2 border-amber-300">
+                                        <Trophy className="w-6 h-6 text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-700">Your ranking</p>
+                                        <p className="text-2xl font-bold text-slate-900">#{userDetails?.stat?.ranking?.global_rank || 1}</p>
+                                    </div>
                                 </div>
-                                <div className="p-6 space-y-3">
-                                    {recentChallenges.length > 0 ? (
-                                        recentChallenges.map((challenge: any) => (
-                                            <div 
-                                                key={challenge.id} 
-                                                className={`bg-black/40 p-4 rounded-xl border ${borderColor} hover:border-neutral-400 transition-all duration-300`}
-                                            >
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div className="flex-1">
-                                                        <p className={`font-bold ${textPrimary} mb-1`}>{challenge.challenge_title}</p>
-                                                        <p className={`text-sm ${textSecondary}`}>
-                                                            {challenge.status === 'completed' ? '✅ Completed' : '🔄 In Progress'}
-                                                        </p>
-                                                    </div>
-                                                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${isDark ? 'bg-neutral-600 text-neutral-300 border-neutral-500' : 'bg-neutral-200 text-neutral-700 border-neutral-300'} border transition-colors duration-300`}>
-                                                        {challenge.challenge_difficulty}
-                                                    </span>
-                                                </div>
-                                                <div className={`flex justify-between text-xs ${textMuted}`}>
-                                                    <span className="flex items-center gap-1">
-                                                        <Zap className="w-3 h-3" />
-                                                        {challenge.xp_earned} XP
-                                                    </span>
-                                                    <span>{challenge.attempts_count} attempts</span>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className={`text-center ${textMuted} py-4`}>No challenges found</p>
-                                    )}
+                                
+                                <div className="w-full h-2.5 bg-white rounded-full overflow-hidden mb-3 border border-amber-200">
+                                    <div 
+                                        className="h-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-1000 rounded-full"
+                                        style={{width: `${calculateRankPercentage()}%`}}
+                                    />
                                 </div>
                             </div>
                         </div>
