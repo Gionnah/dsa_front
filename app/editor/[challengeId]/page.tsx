@@ -2,6 +2,7 @@
 import Console from '@/components/console'
 import EditorComponent from '@/components/editor'
 import { CODE_SNIPPETS } from '@/lib/constant';
+import { useParams } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 
 export default function page() {
@@ -15,6 +16,24 @@ export default function page() {
     const [charCount, setCharCount] = useState<number>(0);
     const [lineCount, setLineCount] = useState<number>(0);
     const [executionTime, setExecutionTime] = useState<number>(0);
+
+    const { challengeId } = useParams<{challengeId: string}>();
+    const [challengeData, setChallengesData] = useState<any>([]);
+
+    const getChallenges = async () => {
+        const response = await fetch(`/api/challenges/${challengeId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await response.json();
+        setChallengesData(data);
+    }
+
+    useEffect(() => {
+        getChallenges();
+    }, [])
 
     // Mise à jour du temps en temps réel
     useEffect(() => {
@@ -100,11 +119,12 @@ export default function page() {
                     </div>
                 </div>
                 <EditorComponent 
-                    value={code} 
+                    value={challengeData?.saved_code || code} 
                     setValue={setCode} 
                     onMount={onMount} 
                     Language={Language} 
                     setLanguage={setLanguage}
+            
                 />
             </div>
             <div className="w-2/6">
@@ -115,6 +135,7 @@ export default function page() {
                     loading={loading} 
                     setLanguage={setLanguage} 
                     setValue={setCode}
+                    challengeData={challengeData}
                 />
             </div>
         </div>

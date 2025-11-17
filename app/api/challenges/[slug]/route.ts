@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, {  params}: {params: {slug: string}}
 export async function POST(req: NextRequest, {  params}: {params: {slug: string}}) {
     const { slug } = await params; 
     const response = await fetch(`${URL}/challenges/${slug}/join/` , {
-        method: "GET",
+        method: "POST",
         headers: {
             "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
             "Content-Type": "application/json",

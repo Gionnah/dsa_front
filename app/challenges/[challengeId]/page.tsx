@@ -116,7 +116,7 @@ export default function OneChallenge() {
                                 </span>
                             </Link>
                         ) : (
-                            <button onClick={joinChallenge} className="mt-2 px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
+                            <button onClick={joinChallenge} className="mt-2 cursor-pointer px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
                                 <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
                                     Join challenge
                                 </span>

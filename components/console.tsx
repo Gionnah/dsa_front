@@ -6,7 +6,7 @@ import { span } from 'framer-motion/client';
 
 const items = ['Test 1', 'Test 2', 'Test 3', 'Test 4', 'Test 5', 'Test 6', 'Test 7', 'Test 8', 'Test 9', 'Test 10']; 
 
-export default function Console({error, output, loading, runCode, setLanguage, setValue}: {error: string, output: string, loading: boolean, runCode: () => void,setLanguage: (lang: string) => void, setValue: (code: string) => void}) {
+export default function Console({error, output, loading, runCode, setLanguage, setValue, challengeData}: {error: string, output: string, loading: boolean, runCode: () => void,setLanguage: (lang: string) => void, setValue: (code: string) => void, challengeData: any}) {
   return (
     <div className='w-full px-4'>
         <div className="p-2 rounded-t-lg bg-blue-900/15">
