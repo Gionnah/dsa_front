@@ -2,8 +2,9 @@ import { ArrowBigDownDash, CloudCheck, File, Play } from 'lucide-react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
+import { useState, useEffect } from 'react';
 
-export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, challengeData, resTest, activeMode, onSave}: {
+export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave}: {
     error: string, 
     output: string, 
     loading: boolean, 
@@ -12,11 +13,85 @@ export default function Console({error, output, loading, runCode, setLanguage, s
     setValue: (code: string) => void, 
     challengeData: any, 
     runSingleTest: (id: number) => void, 
+    runAllTest: () => void, 
     resTest: any,
     activeMode: 'code' | 'test',
-    onSave: () => void
+    onSave: () => void,
+    loadingSave: boolean,
 }) {
-    
+    const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
+
+    // Gestionnaire de popup éphémère
+    useEffect(() => {
+        if (popup) {
+            const timer = setTimeout(() => {
+                setPopup(null);
+            }, 3000); // Disparaît après 3 secondes
+
+            return () => clearTimeout(timer);
+        }
+    }, [popup]);
+
+    const showPopup = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setPopup({ message, type });
+    };
+
+    // Styles pour les différents types de popup
+    const getPopupStyles = (type: string) => {
+        switch (type) {
+            case 'success':
+                return 'bg-green-500 border-green-600';
+            case 'error':
+                return 'bg-red-500 border-red-600';
+            case 'info':
+                return 'bg-blue-500 border-blue-600';
+            default:
+                return 'bg-blue-500 border-blue-600';
+        }
+    };
+
+    const handleRunCode = () => {
+        if (loading) return;
+        showPopup('Exécution du code en cours...', 'info');
+        runCode();
+    };
+
+    const handleRunSingleTest = (id: number) => {
+        showPopup(`Lancement du test ${id}...`, 'info');
+        runSingleTest(id);
+    };
+
+    const handleSave = () => {
+        // showPopup('Sauvegarde en cours...', 'info');
+        onSave();
+    };
+
+    const handleLanguageChange = (value: string) => {
+        setLanguage(value);
+        setValue(CODE_SNIPPETS[value]);
+        showPopup(`Langage changé en ${value}`, 'info');
+    };
+
+    const handleSubjectClick = () => {
+        showPopup('Ouverture du sujet...', 'info');
+        // Ajoutez ici la logique pour ouvrir le sujet
+    };
+
+    const handleInputClick = () => {
+        showPopup('Téléchargement des inputs...', 'info');
+        // Ajoutez ici la logique pour les inputs
+    };
+
+    const handleFinishClick = () => {
+        showPopup('Finalisation en cours...', 'info');
+        // Ajoutez ici la logique pour finish
+    };
+
+    const handleRunAllTest = () => {
+        showPopup('Execution en cours...', 'info');
+        runAllTest();
+    };
+
     const renderTestResults = () => {
         if (!resTest) return null;
 
@@ -128,12 +203,21 @@ export default function Console({error, output, loading, runCode, setLanguage, s
     };
 
     return (
-    <div className='w-full px-4'>
+    <div className='w-full px-4 relative'>
+        {/* Popup éphémère */}
+        {popup && (
+            <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
+                <div className="flex items-center">
+                    <span>{popup.message}</span>
+                </div>
+            </div>
+        )}
+        
         <div className="p-2 rounded-t-lg bg-blue-900/15">
             <div className="option flex items-end justify-between">
                 <div className="select text-white pb-2">
                     <p className="text-gray-600 py-2">Language: </p>
-                    <Select onValueChange={(value: string) => {setLanguage(value); setValue( CODE_SNIPPETS[value]);}}>
+                    <Select onValueChange={handleLanguageChange}>
                         <SelectTrigger className="w-[120px] text-white bg-gray-800">
                             <SelectValue placeholder="python 3" />
                         </SelectTrigger>
@@ -151,21 +235,31 @@ export default function Console({error, output, loading, runCode, setLanguage, s
                 </div>
             </div>
             <div className="header flex gap-2 items-center text-sm">
-                <button onClick={runCode} className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed'>
+                <button 
+                    onClick={handleRunCode} 
+                    disabled={loading}
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed disabled:opacity-50 disabled:cursor-not-allowed'
+                >
                     {loading ? "Running..." : <>Run <Play className='w-4 h-4'/></>}
                 </button>
-                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>
+                <button 
+                    onClick={handleSubjectClick}
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
+                >
                     Subject <File className='w-4 h-4'/>
                 </button>
-                <button className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg '>
+                <button 
+                    onClick={handleInputClick}
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
+                >
                     Input(s) <ArrowBigDownDash className='w-4 h-4'/>
                 </button>
                 
                 <button 
-                    onClick={onSave}
+                    onClick={handleSave}
                     className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-800/60 text-white rounded-lg hover:bg-gray-700 transition"
                 >
-                    Save <CloudCheck className="w-4 h-4" />
+                    {loading ? <>Saving...</>: <>Save <CloudCheck className="w-4 h-4" /></>}
                 </button>
             </div>
         </div>
@@ -186,16 +280,27 @@ export default function Console({error, output, loading, runCode, setLanguage, s
         <div className="h-[30vh] border border-neutral-800 w-full mt-2 rounded-sm text-sm text-green-400 font-mono overflow-hidden">
             <AnimatedList
                 items={challengeData?.test_cases?.map((test: any) => test?.id) || []}
-                onItemSelect={(item, index) => runSingleTest(item)}
+                onItemSelect={(item, index) => handleRunSingleTest(item)}
                 showGradients={true}
                 enableArrowNavigation={true}
                 displayScrollbar={true}
             />
         </div>
         
-        <button className='mt-2 cursor-pointer bg-amber-600 hover:bg-amber-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'>
-            Finish
-        </button>
+        <div className="mt-2 flex gap-2">
+            <button 
+                onClick={handleRunAllTest}
+                className='mt-2 cursor-pointer bg-teal-600 hover:bg-teal-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'
+            >
+                Run all Test
+            </button>
+            <button 
+                onClick={handleFinishClick}
+                className='mt-2 cursor-pointer bg-amber-600 hover:bg-amber-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'
+            >
+                Finish
+            </button>
+        </div>
     </div>
   )
 }

@@ -1,5 +1,4 @@
 // /api/challenges/[slug]/test/[id]/route.ts
-import { col } from 'framer-motion/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, { params }: { params: { slug: string, id: string} }) {

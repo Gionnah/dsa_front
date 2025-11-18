@@ -18,34 +18,45 @@ export default function page() {
     const [lineCount, setLineCount] = useState<number>(0);
     const [executionTime, setExecutionTime] = useState<number>(0);
     const [activeMode, setActiveMode] = useState<'code' | 'test'>('code');
-
+    const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
+    const [loadingSave, setLoadingSave] = useState<boolean>(false);
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
 
     // Gestionnaire pour Ctrl+S
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            // Vérifie si Ctrl+S ou Cmd+S est pressé
             if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                event.preventDefault(); // Empêche l'enregistrement par défaut du navigateur
+                event.preventDefault();
                 handleSave();
             }
         };
 
-        // Ajoute l'écouteur d'événement
         document.addEventListener('keydown', handleKeyDown);
 
         // Nettoie l'écouteur lors du démontage du composant
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [code, challengeData]); // Dépendances pour avoir le code et challengeData à jour
+    }, [code, challengeData]);
+
+    // Gestionnaire de popup éphémère
+    useEffect(() => {
+        if (popup) {
+            const timer = setTimeout(() => {
+                setPopup(null);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [popup]);
+
+    const showPopup = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setPopup({ message, type });
+    };
 
     const handleSave = async () => {
-        // Affiche une alerte
-        alert('Code sauvegardé !');
-        
-        // Ici tu peux aussi ajouter la logique pour sauvegarder dans la base de données
+        setLoadingSave(true);
         try {
             const response = await fetch(`/api/challenges/${challengeId}/save-code`, {
                 method: 'POST',
@@ -58,10 +69,14 @@ export default function page() {
             });
             
             if (response.ok) {
-                alert('Code sauvegardé avec succès');
+                showPopup('Code sauvegardé avec succès !', 'success');
+            } else {
+                showPopup('Erreur lors de la sauvegarde', 'error');
             }
+            setLoadingSave(false);
         } catch (error) {
             console.error('Erreur lors de la sauvegarde:', error);
+            showPopup('Erreur lors de la sauvegarde', 'error');
         }
     };
 
@@ -90,6 +105,38 @@ export default function page() {
                 success: false,
                 message: "Erreur lors de l'exécution du test"
             });
+            showPopup("Erreur lors de l'exécution du test", 'error');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const runAllTest = async () => {
+        setActiveMode('test');
+        setLoading(true);
+        setResponseTest(null);
+        setOutput("");
+        setError("");
+        
+        try {
+            const res = await fetch(`/api/challenges/${challengeData?.id}/test`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code })
+                }
+            )
+            const data = await res.json();
+            setResponseTest(data);
+        } catch (error) {
+            console.error("Error running all test:", error);
+            setResponseTest({
+                success: false,
+                message: "Erreur lors de l'exécution du test"
+            });
+            showPopup("Erreur lors de l'exécution des tests", 'error');
         } finally {
             setLoading(false);
         }
@@ -108,6 +155,7 @@ export default function page() {
             setCode(data?.saved_code || CODE_SNIPPETS["python"]);
         } catch (error) {
             console.error("Error fetching challenge:", error);
+            showPopup('Erreur lors du chargement du défi', 'error');
         }
     }
 
@@ -115,7 +163,6 @@ export default function page() {
         getChallenges();
     }, [])
 
-    // Mise à jour du temps en temps réel
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString());
@@ -154,10 +201,17 @@ export default function page() {
 
             setOutput(result.output || "No output");
             setError(result.error || "");
+            
+            if (result.error) {
+                showPopup('Erreur lors de l\'exécution du code', 'error');
+            } else {
+                showPopup('Code exécuté avec succès', 'success');
+            }
         } catch (err) {
             const endTime = Date.now();
             setExecutionTime(endTime - startTime);
             setError("Erreur lors de l'exécution du code");
+            showPopup('Erreur lors de l\'exécution du code', 'error');
         } finally {
             setLoading(false);
         }
@@ -168,8 +222,31 @@ export default function page() {
         editor.focus();
     }
 
+    // Styles pour les différents types de popup
+    const getPopupStyles = (type: string) => {
+        switch (type) {
+            case 'success':
+                return 'bg-green-500 border-green-600';
+            case 'error':
+                return 'bg-red-500 border-red-600';
+            case 'info':
+                return 'bg-blue-500 border-blue-600';
+            default:
+                return 'bg-blue-500 border-blue-600';
+        }
+    };
+
     return (
         <div className="bg-neutral-900 flex text-white h-screen w-full p-4">
+            {/* Popup éphémère */}
+            {popup && (
+                <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
+                    <div className="flex items-center">
+                        <span>{popup.message}</span>
+                    </div>
+                </div>
+            )}
+            
             <div className="w-4/6">
                 <div className="current-stat px-4 py-2 bg-blue-950/40 rounded-lg mb-5">
                     <div className="flex justify-between items-center mb-2">
@@ -223,9 +300,11 @@ export default function page() {
                     setValue={setCode}
                     challengeData={challengeData}
                     runSingleTest={runSingleTest}
+                    runAllTest={runAllTest}
                     resTest={responseTest}
                     activeMode={activeMode}
                     onSave={handleSave}
+                    loadingSave={loadingSave}
                 />
             </div>
         </div>
