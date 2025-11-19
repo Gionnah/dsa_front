@@ -1,10 +1,13 @@
 "use client"
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react'
 
 export default function LoginForm() {
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
 
     const changeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
@@ -16,14 +19,35 @@ export default function LoginForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ username, password })
-        });
-        setLoading(false);
-        if (response.ok) window.location.href = '/home';
+        
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (response.ok) {
+                // Redirection après connexion réussie
+                if (redirect) {
+                    // Décode l'URL de redirection
+                    const redirectUrl = decodeURIComponent(redirect);
+                    window.location.href = redirectUrl;
+                } else {
+                    window.location.href = '/home'; // Redirection par défaut
+                }
+            } else {
+                // Gérer les erreurs de connexion
+                console.error('Échec de la connexion');
+                // Vous pouvez ajouter un state pour afficher un message d'erreur
+            }
+        } catch (error) {
+            console.error('Erreur lors de la connexion:', error);
+        } finally {
+            setLoading(false);
+        }
     }
+
 
     const style_input = 'block w-full min-w-xs rounded-md bg-white/80 px-3 py-1.5 text-base outline-1 -outline-offset-1 outline-black/10 placeholder:text-black/30 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-500 transition-all duration-200 focus:shadow-ls focus:shadow-blue-700 sm:text-sm/6';
 

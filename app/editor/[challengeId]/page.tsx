@@ -2,6 +2,7 @@
 import Console from '@/components/console'
 import EditorComponent from '@/components/editor'
 import { CODE_SNIPPETS } from '@/lib/constant';
+import { CloudCheck } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 
@@ -22,6 +23,7 @@ export default function page() {
     const [loadingSave, setLoadingSave] = useState<boolean>(false);
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
+
 
     // Gestionnaire pour Ctrl+S
     useEffect(() => {
@@ -73,10 +75,10 @@ export default function page() {
             } else {
                 showPopup('Erreur lors de la sauvegarde', 'error');
             }
-            setLoadingSave(false);
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde:', error);
             showPopup('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            setLoadingSave(false);
         }
     };
 
@@ -100,7 +102,6 @@ export default function page() {
             const data = await res.json();
             setResponseTest(data);
         } catch (error) {
-            console.error("Error running test:", error);
             setResponseTest({
                 success: false,
                 message: "Erreur lors de l'exécution du test"
@@ -259,14 +260,10 @@ export default function page() {
                     </div>
                     
                     {/* Mini Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="bg-white/5 p-2 rounded text-center">
                             <div className="text-xs text-gray-300">Caracteres</div>
                             <div className="font-bold text-blue-400">{charCount}</div>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Lines</div>
-                            <div className="font-bold text-blue-400">{lineCount}</div>
                         </div>
                         <div className="bg-white/5 p-2 rounded text-center">
                             <div className="text-xs text-gray-300">Time of execution</div>
@@ -276,9 +273,9 @@ export default function page() {
                         </div>
                         <button 
                             onClick={handleSave}
-                            className="bg-teal-700/40 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center"
+                            className={`${loadingSave ? 'bg-teal-700/50 cursor-not-allowed' : 'bg-teal-700/40'}  flex items-center justify-center gap-2 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center`}
                         >
-                            Save (Ctrl+S)
+                            {loadingSave ? <>Saving..</> :<>Save <CloudCheck className="w-4 h-4" /> </>}
                         </button>
                     </div>
                 </div>

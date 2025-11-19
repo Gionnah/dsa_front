@@ -4,7 +4,7 @@ import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
 import { useState, useEffect } from 'react';
 
-export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave}: {
+export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave, }: {
     error: string, 
     output: string, 
     loading: boolean, 
@@ -20,6 +20,7 @@ export default function Console({error, output, loading, runCode, setLanguage, s
     loadingSave: boolean,
 }) {
     const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
+    const [selectedTestIndex, setSelectedTestIndex] = useState<number>(-1);
 
     // Gestionnaire de popup éphémère
     useEffect(() => {
@@ -61,8 +62,13 @@ export default function Console({error, output, loading, runCode, setLanguage, s
         runSingleTest(id);
     };
 
+    // Nouveau gestionnaire pour la sélection dans la liste
+    const handleTestSelect = (item: number, index: number) => {
+        setSelectedTestIndex(index);
+        handleRunSingleTest(item);
+    };
+
     const handleSave = () => {
-        // showPopup('Sauvegarde en cours...', 'info');
         onSave();
     };
 
@@ -74,17 +80,14 @@ export default function Console({error, output, loading, runCode, setLanguage, s
 
     const handleSubjectClick = () => {
         showPopup('Ouverture du sujet...', 'info');
-        // Ajoutez ici la logique pour ouvrir le sujet
     };
 
     const handleInputClick = () => {
         showPopup('Téléchargement des inputs...', 'info');
-        // Ajoutez ici la logique pour les inputs
     };
 
     const handleFinishClick = () => {
         showPopup('Finalisation en cours...', 'info');
-        // Ajoutez ici la logique pour finish
     };
 
     const handleRunAllTest = () => {
@@ -203,7 +206,7 @@ export default function Console({error, output, loading, runCode, setLanguage, s
     };
 
     return (
-    <div className='w-full px-4 relative'>
+    <div className='w-full px-4 relative &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]'>
         {/* Popup éphémère */}
         {popup && (
             <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
@@ -213,7 +216,7 @@ export default function Console({error, output, loading, runCode, setLanguage, s
             </div>
         )}
         
-        <div className="p-2 rounded-t-lg bg-blue-900/15">
+        <div className="p-2 rounded-t-lg bg-blue-900/15 &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]">
             <div className="option flex items-end justify-between">
                 <div className="select text-white pb-2">
                     <p className="text-gray-600 py-2">Language: </p>
@@ -234,11 +237,11 @@ export default function Console({error, output, loading, runCode, setLanguage, s
                     </Select>
                 </div>
             </div>
-            <div className="header flex gap-2 items-center text-sm">
+            <div className="header grid lg:grid-cols-3 gap-3 items-center text-sm">
                 <button 
                     onClick={handleRunCode} 
                     disabled={loading}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='flex items-center justify-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed disabled:opacity-50 disabled:cursor-not-allowed'
                 >
                     {loading ? "Running..." : <>Run <Play className='w-4 h-4'/></>}
                 </button>
@@ -246,20 +249,13 @@ export default function Console({error, output, loading, runCode, setLanguage, s
                     onClick={handleSubjectClick}
                     className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
                 >
-                    Subject <File className='w-4 h-4'/>
+                    Instructions <File className='w-6 h-6'/>
                 </button>
                 <button 
                     onClick={handleInputClick}
                     className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
                 >
                     Input(s) <ArrowBigDownDash className='w-4 h-4'/>
-                </button>
-                
-                <button 
-                    onClick={handleSave}
-                    className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-800/60 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                    {loading ? <>Saving...</>: <>Save <CloudCheck className="w-4 h-4" /></>}
                 </button>
             </div>
         </div>
@@ -271,7 +267,7 @@ export default function Console({error, output, loading, runCode, setLanguage, s
             output && output !== "No output" ? "border-green-900 bg-neutral-800 shadow-black" : 
             error ? "border-red-950 bg-neutral-800 shadow-red-950" : 
             "border-gray-900 shadow-black bg-neutral-800"
-        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto`}>
+        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]`}>
             
             {renderOutput()}
         </div>
@@ -280,10 +276,13 @@ export default function Console({error, output, loading, runCode, setLanguage, s
         <div className="h-[30vh] border border-neutral-800 w-full mt-2 rounded-sm text-sm text-green-400 font-mono overflow-hidden">
             <AnimatedList
                 items={challengeData?.test_cases?.map((test: any) => test?.id) || []}
-                onItemSelect={(item, index) => handleRunSingleTest(item)}
+                onItemSelect={handleTestSelect}
+                selectedIndex={selectedTestIndex}
+                onSelectedIndexChange={setSelectedTestIndex}
                 showGradients={true}
                 enableArrowNavigation={true}
                 displayScrollbar={true}
+                data={resTest?.data}
             />
         </div>
         
