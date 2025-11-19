@@ -103,17 +103,11 @@ export default function ChallengesPage() {
             <div className="flex justify-between">
                 <div>
                     <h3 className="text-xl font-bold text-gray-700 mb-2">{c.title}</h3>
-                    {/* <p className="text-gray-400 text-sm mb-1">
-                        Langage : <span className="text-white">{c.language}</span>
-                    </p> */}
                 </div>
-                <p className="text-xs text-gray-500">
+                {/* <p className="text-xs text-gray-500">
                   Created at {new Date(c.created_at).toLocaleDateString('fr-FR')}
-                </p>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
+                </p> */}
+                 <div>
                 <div className={`text-sm font-semibold ${
                     c.difficulty === "easy"
                       ? "text-cyan-500"
@@ -156,12 +150,19 @@ export default function ChallengesPage() {
                       )}
                 </div>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+            
               <div className="text-right">
-                <p className="text-sm text-teal-400 font-semibold">+{c.xp_reward} XP</p>
-                <button className="mt-2 text-white px-3 py-1 bg-linear-to-r from-teal-500 to-blue-600 text-xs rounded-lg hover:scale-105 transition">
-                  Click to view details
-                </button>
+                  <p className="text-sm text-teal-400 font-semibold">+{c.xp_reward} XP</p>
+                  {/* <button className="mt-2 text-white px-3 py-1 bg-linear-to-r from-teal-500 to-blue-600 text-xs rounded-lg hover:scale-105 transition">
+                    Click to view details
+                  </button> */}
               </div>
+              <p className="text-xs text-gray-500">
+                Created at {new Date(c.created_at).toLocaleDateString('fr-FR')}
+              </p>
             </div>
           </Link>
         )) : <div className="w-full text-center text-gray-500 col-span-full">No challenges available. </div>}
