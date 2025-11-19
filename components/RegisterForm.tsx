@@ -70,47 +70,62 @@ const Register = () => {
     }
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setIsLoading(true)
+    
+        if (formData.password !== formData.passwordConfirm) {
+            showNotification('Les mots de passe ne correspondent pas', 'error')
+            setIsLoading(false)
+            return
+        }
 
-    if (formData.password !== formData.passwordConfirm) {
-      showNotification('Les mots de passe ne correspondent pas', 'error')
-      setIsLoading(false)
-      return
+        try {
+            const formDataToSend = new FormData()
+            
+            // Ajouter tous les champs au FormData
+            formDataToSend.append('firstName', formData.firstName)
+            formDataToSend.append('lastName', formData.lastName)
+            formDataToSend.append('username', formData.username)
+            formDataToSend.append('password', formData.password)
+            formDataToSend.append('passwordConfirm', formData.passwordConfirm)
+            formDataToSend.append('registrationNumber', formData.registrationNumber)
+            formDataToSend.append('program', formData.program)
+            formDataToSend.append('classLevel', formData.classLevel)
+            
+            if (tokenFromUrl) {
+            formDataToSend.append('token', tokenFromUrl)
+            }
+            
+            if (formData.photo) {
+            formDataToSend.append('photo', formData.photo)
+            }
+
+            const response = await fetch('/api/register', {
+            method: 'POST',
+            body: formDataToSend,
+            })
+
+            if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || 'Registration failed')
+            }
+
+            const data = await response.json()
+            console.log('Registration successful:', data)
+            showNotification('Inscription réussie ! Redirection...', 'success')
+
+            setTimeout(() => {
+            router.push('/login')
+            }, 1500)
+
+        } catch (error: any) {
+            console.error(error)
+            showNotification(error?.message || 'Une erreur est survenue lors de l\'inscription', 'error')
+        } finally {
+            setIsLoading(false)
+        }
     }
-
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          token: tokenFromUrl,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Registration failed')
-      }
-
-      const data = await response.json()
-      console.log('Registration successful:', data)
-      showNotification('Inscription réussie ! Redirection...', 'success')
-
-      setTimeout(() => {
-        router.push('/login')
-      }, 1500)
-
-    } catch (error) {
-      console.error(error)
-      showNotification('Une erreur est survenue lors de l\'inscription', 'error')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleLoginRedirect = () => {
     router.push('/login')
@@ -153,10 +168,10 @@ const Register = () => {
             <User className="h-9 w-9 text-white" strokeWidth={2.5} />
           </div>
           <h2 className="mt-6 text-4xl font-extrabold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Créer votre compte
+            Create your account
           </h2>
           <p className="mt-3 text-gray-600 text-lg">
-            Remplissez le formulaire pour compléter votre inscription
+            Fill out the form to complete your registration
           </p>
         </div>
       </div>
@@ -168,7 +183,7 @@ const Register = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="group">
                 <label htmlFor="firstName" className="block text-sm font-bold text-gray-700 mb-2">
-                  Prénom *
+                  First Name *
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -180,14 +195,14 @@ const Register = () => {
                     value={formData.firstName}
                     onChange={handleChange}
                     className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Votre prénom"
+                    placeholder="Your Firstname"
                   />
                 </div>
               </div>
 
               <div className="group">
                 <label htmlFor="lastName" className="block text-sm font-bold text-gray-700 mb-2">
-                  Nom *
+                  Last Name *
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -199,7 +214,7 @@ const Register = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Votre nom"
+                    placeholder="Your lastname"
                   />
                 </div>
               </div>
@@ -208,7 +223,7 @@ const Register = () => {
             {/* Username */}
             <div className="group">
               <label htmlFor="username" className="block text-sm font-bold text-gray-700 mb-2">
-                Nom d'utilisateur *
+                Username *
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -220,7 +235,7 @@ const Register = () => {
                   value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="Choisissez un nom d'utilisateur"
+                  placeholder="Choose a username"
                 />
               </div>
             </div>
@@ -228,7 +243,7 @@ const Register = () => {
             {/* Registration Number */}
             <div className="group">
               <label htmlFor="registrationNumber" className="block text-sm font-bold text-gray-700 mb-2">
-                Numéro d'inscription *
+                Registration Number *
               </label>
               <div className="relative">
                 <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -240,7 +255,7 @@ const Register = () => {
                   value={formData.registrationNumber}
                   onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="Votre numéro d'inscription"
+                  placeholder="Your registration number"
                 />
               </div>
             </div>
@@ -249,7 +264,7 @@ const Register = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="group">
                 <label htmlFor="program" className="block text-sm font-bold text-gray-700 mb-2">
-                  Programme *
+                  Program *
                 </label>
                 <div className="relative">
                   <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors pointer-events-none z-10" />
@@ -261,7 +276,7 @@ const Register = () => {
                     onChange={handleChange}
                     className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
                   >
-                    <option value="">Sélectionner un programme</option>
+                    <option value="">Select Program</option>
                     <option value="Common Core">Common Core</option>
                     <option value="Artificial Intelligence">Intelligence Artificielle</option>
                     <option value="Network Administration">Administration Réseau</option>
@@ -277,7 +292,7 @@ const Register = () => {
 
               <div className="group">
                 <label htmlFor="classLevel" className="block text-sm font-bold text-gray-700 mb-2">
-                  Niveau *
+                  Class Level *
                 </label>
                 <div className="relative">
                   <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors pointer-events-none z-10" />
@@ -289,7 +304,7 @@ const Register = () => {
                     onChange={handleChange}
                     className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
                   >
-                    <option value="">Sélectionner un niveau</option>
+                    <option value="">Select Level</option>
                     <option value="L1">L1</option>
                     <option value="L2">L2</option>
                     <option value="L3">L3</option>
@@ -308,7 +323,7 @@ const Register = () => {
             {/* Profile Photo */}
             <div>
               <label htmlFor="photo" className="block text-sm font-bold text-gray-700 mb-2">
-                Photo de profil
+                Profile Photo
               </label>
               <div className="flex items-center gap-6">
                 {photoPreview && (
@@ -326,9 +341,9 @@ const Register = () => {
                       <div className="flex flex-col items-center">
                         <Image className="w-8 h-8 text-gray-400 mb-2" />
                         <span className="text-sm text-gray-600 font-medium">
-                          {formData.photo ? formData.photo.name : 'Cliquez pour télécharger'}
+                          {formData.photo ? formData.photo.name : 'Upload Profile Photo'}
                         </span>
-                        <span className="text-xs text-gray-500 mt-1">PNG, JPG jusqu'à 10MB</span>
+                        <span className="text-xs text-gray-500 mt-1">PNG, JPG 10MB</span>
                       </div>
                       <input
                         id="photo"
@@ -348,7 +363,7 @@ const Register = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="group">
                 <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2">
-                  Mot de passe *
+                  Password *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -367,7 +382,7 @@ const Register = () => {
 
               <div className="group">
                 <label htmlFor="passwordConfirm" className="block text-sm font-bold text-gray-700 mb-2">
-                  Confirmer le mot de passe *
+                  Confirm Password *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -398,12 +413,12 @@ const Register = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Traitement en cours...
+                    Processing...
                   </div>
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5 mr-2" />
-                    Créer mon compte
+                    Create Account
                   </>
                 )}
               </button>
@@ -413,12 +428,12 @@ const Register = () => {
           {/* Login Link */}
           <div className="mt-8 text-center">
             <p className="text-gray-600">
-              Vous avez déjà un compte ?{' '}
+              Already have an account ?{' '}
               <button
                 onClick={handleLoginRedirect}
                 className="font-bold text-blue-600 hover:text-purple-600 transition-colors duration-200 underline-offset-4 hover:underline"
               >
-                Se connecter
+                Go to login
               </button>
             </p>
           </div>

@@ -129,7 +129,7 @@ export default function LoginForm() {
                   value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="Votre matricule"
+                  placeholder="Your registration number"
                 />
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function LoginForm() {
             {/* Password */}
             <div className="group">
               <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2">
-                Mot de passe *
+                Password *
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
@@ -167,12 +167,12 @@ export default function LoginForm() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Connexion...
+                    Loading...
                   </div>
                 ) : (
                   <>
                     <LogIn className="w-5 h-5 mr-2" />
-                    Se connecter
+                    Sign in
                   </>
                 )}
               </button>
@@ -182,12 +182,12 @@ export default function LoginForm() {
           {/* Register Link */}
           <div className="mt-8 text-center">
             <p className="text-gray-600">
-              pas de compte ?{' '}
+              Don't hava an account ?{' '}
               <button
                 onClick={handleRegisterRedirect}
                 className="font-bold text-blue-600 hover:text-purple-600 transition-colors duration-200 underline-offset-4 hover:underline"
               >
-                veuillez contacter un membre du staff
+                Please contact the staff member
               </button>
             </p>
           </div>
