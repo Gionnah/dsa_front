@@ -65,10 +65,10 @@ export default function HomeLayout({children}: any) {
 
         <div className="nav-item relative group">
           <button className="w-12 h-12 rounded-xl bg-linear-to-br from-teal-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg hover:scale-110 transition">
-            {userDetais?.stat && userDetais?.stat?.user ? userDetais?.stat?.user?.nom && userDetais?.stat?.user?.prenom ? <>{userDetais.stat?.user?.nom[0]} {userDetais?.stat?.user?.prenom[0]}</> : userDetais?.stat?.user?.username[0].toUpperCase()  : 'A'}
+            {userDetais?.stat && userDetais?.stat?.user ? userDetais?.stat?.user?.nom && userDetais?.stat?.user?.prenom ? <>{userDetais?.stat?.user?.prenom[0]?.toUpperCase()}{userDetais.stat?.user?.nom[0]?.toUpperCase()}</> : userDetais?.stat?.user?.username[0].toUpperCase()  : 'U'}
           </button>
           <div className="tooltip absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-neutral-700 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg">
-            Giovanni Jonah
+            {userDetais?.stat && userDetais?.stat?.user ? userDetais?.stat?.user?.nom && userDetais?.stat?.user?.prenom ? <>{userDetais?.stat?.user?.prenom?.split()[0]} {userDetais.stat?.user?.nom}</> : userDetais?.stat?.user?.username.toUpperCase()  : 'User'}
             <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-neutral-700"></div>
           </div>
         </div>
@@ -84,9 +84,9 @@ export default function HomeLayout({children}: any) {
                 </div> */}
             </div>
             <div className="flex items-center space-x-4">
-                <button className="relative text-gray-400 hover:text-white transition">
-                    <Bell className='cursor-pointer'/>
-                    <span className="cursor-pointer absolute top-0 right-0 w-2 h-2 bg-teal-500 rounded-full"></span>
+                <button className="relative disabled cursor-not-allowed text-gray-400 transition">
+                    <Bell className=''/>
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-teal-500 rounded-full"></span>
                 </button>
                 <button onClick={logout} className={`relative text-gray-400 hover:text-white transition cursor-pointer`}>
                     <LogOut className='w-4 h-4' />
