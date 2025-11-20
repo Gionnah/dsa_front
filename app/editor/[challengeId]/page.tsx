@@ -21,9 +21,28 @@ export default function page() {
     const [activeMode, setActiveMode] = useState<'code' | 'test'>('code');
     const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
     const [loadingSave, setLoadingSave] = useState<boolean>(false);
+    const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
 
+    const submitCode = async (code: string, id: string) => {
+        setLoadingSubmit(true);
+        try{
+            const res = await fetch(`/api/challenges/${challengeId}/submit`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({code})
+                }
+            )
+            if (res.ok)
+                window.location.href = `/challenges`
+        }
+        catch (error){
+            console.log(error)
+        }finally {
+            setLoadingSubmit(false);
+        }
+    }
 
     // Gestionnaire pour Ctrl+S
     useEffect(() => {
@@ -223,6 +242,8 @@ export default function page() {
         editor.focus();
     }
 
+    
+
     // Styles pour les différents types de popup
     const getPopupStyles = (type: string) => {
         switch (type) {
@@ -295,6 +316,8 @@ export default function page() {
                     loading={loading} 
                     setLanguage={setLanguage} 
                     setValue={setCode}
+                    id={challengeId}
+                    code={code}
                     challengeData={challengeData}
                     runSingleTest={runSingleTest}
                     runAllTest={runAllTest}
@@ -302,6 +325,8 @@ export default function page() {
                     activeMode={activeMode}
                     onSave={handleSave}
                     loadingSave={loadingSave}
+                    submitCode={submitCode}
+                    loadingSubmit={loadingSubmit}
                 />
             </div>
         </div>

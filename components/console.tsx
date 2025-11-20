@@ -4,10 +4,14 @@ import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
 import { useState, useEffect } from 'react';
 
-export default function Console({error, output, loading, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave, }: {
+export default function Console({error, code, id, output, loading, loadingSubmit, submitCode, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave, }: {
     error: string, 
+    submitCode: (code: string, id: string) => void,
     output: string, 
+    id: string
     loading: boolean, 
+    loadingSubmit: boolean,
+    code: string,
     runCode: () => void,
     setLanguage: (lang: string) => void, 
     setValue: (code: string) => void, 
@@ -88,12 +92,14 @@ export default function Console({error, output, loading, runCode, setLanguage, s
 
     const handleFinishClick = () => {
         showPopup('Finalisation en cours...', 'info');
+        submitCode(code, id);
     };
 
     const handleRunAllTest = () => {
         showPopup('Execution en cours...', 'info');
         runAllTest();
     };
+
 
     const renderTestResults = () => {
         if (!resTest) return null;
@@ -295,9 +301,9 @@ export default function Console({error, output, loading, runCode, setLanguage, s
             </button>
             <button 
                 onClick={handleFinishClick}
-                className='mt-2 cursor-pointer bg-amber-600 hover:bg-amber-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'
+                className={`mt-2 transition-all duration-300 ease-in-out ${loadingSubmit ? 'bg-amber-800 disabled cursor-not-allowed' : 'bg-amber-600 cursor-pointer hover:bg-amber-700'} transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center`}
             >
-                Finish
+                {loadingSubmit ? <>Loading submit...</>: <>Set as finished</>}
             </button>
         </div>
     </div>

@@ -38,153 +38,171 @@ export default function OneChallenge() {
     if (challengeData?.details) {   
         return (
         <HomeLayout>
-            <div>404</div>
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="text-center">
+                    <h1 className="text-6xl font-bold text-gray-300">404</h1>
+                    <p className="text-gray-600 mt-2">Challenge not found</p>
+                </div>
+            </div>
         </HomeLayout>
         );
     }
 
-    const   getDifficultyIcon = (difficulty: string) => {
+    const getDifficultyIcon = (difficulty: string) => {
         const icon = (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
             </svg>
         );
 
         switch(difficulty) {
             case "easy":
-                return <div className="flex gap-1">{icon}</div>;
+                return <div className="flex gap-0.5">{icon}</div>;
             case "medium":
-                return <div className="flex gap-1">{icon}{icon}</div>;
+                return <div className="flex gap-0.5">{icon}{icon}</div>;
             case "hard":
-                return <div className="flex gap-1">{icon}{icon}{icon}</div>;
+                return <div className="flex gap-0.5">{icon}{icon}{icon}</div>;
             default:
-                return <div className="flex gap-1">{icon}</div>;
+                return <div className="flex gap-0.5">{icon}</div>;
+        }
+    };
+
+    const getDifficultyColor = (difficulty: string) => {
+        switch(difficulty) {
+            case "easy":
+                return "text-emerald-600 bg-emerald-50 border-emerald-200";
+            case "medium":
+                return "text-amber-600 bg-amber-50 border-amber-200";
+            case "hard":
+                return "text-rose-600 bg-rose-50 border-rose-200";
+            default:
+                return "text-gray-600 bg-gray-50 border-gray-200";
         }
     };
 
     return (
-        <div>
+        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
             <HomeLayout>
                 {/* Header Section */}
-                <div className={`flex items-center justify-between w-full px-4 py-6 bg-linear-to-b ${
-                    challengeData.difficulty === "easy" ? "from-cyan-900" 
-                    : challengeData.difficulty === "medium" ? "from-amber-900" 
-                    : "from-red-900"
-                } to-black shadow-2xl`}>
-                    <section className="relative flex rounded-sm px-8 mb-4 overflow-hidden animate-slide-in">
-                        <div className="relative w-full z-10 flex items-center justify-between">
-                            <div className="flex items-center space-x-6">
-                                <div className="w-24 h-24 rounded-2xl bg-white/20 backdrop-blur-lg flex items-center justify-center border-2 border-white/30 shadow-lg">
-                                    <div className="text-4xl font-bold text-white">
-                                        <div className="flex items-center justify-between">
-                                            <div className='relative w-20 h-20'>
-                                                <div className="absolute top-0 right-0 w-full h-full">
-                                                    <img className="h-full w-full object-cover object-center" src="/golden_challenge.png" alt="Challenge Icon"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                <div className="bg-white border-b border-gray-200 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-6 py-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                                {/* Icon */}
+                                <div className="w-20 h-20 rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                    <img 
+                                        className="w-12 h-12 object-contain" 
+                                        src="/golden_challenge.png" 
+                                        alt="Challenge Icon"
+                                    />
                                 </div>
-                                <div className="flex-1">
-                                    <h3 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">{challengeData?.title}</h3>
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`text-sm font-semibold ${
-                                                challengeData.difficulty === "easy" ? "text-cyan-300" 
-                                                : challengeData.difficulty === "medium" ? "text-amber-300" 
-                                                : "text-red-300"
-                                            }`}>
-                                                {getDifficultyIcon(challengeData.difficulty)}
-                                            </div>
-                                            <span className="text-white/70 text-sm capitalize">{challengeData.difficulty}</span>
+                                
+                                {/* Info */}
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                        {challengeData?.title}
+                                    </h1>
+                                    <div className="flex items-center gap-4">
+                                        {/* Difficulty Badge */}
+                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${getDifficultyColor(challengeData.difficulty)}`}>
+                                            {getDifficultyIcon(challengeData.difficulty)}
+                                            <span className="capitalize">{challengeData.difficulty}</span>
                                         </div>
-                                        <span className="text-white/50">•</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-white/90 font-semibold">{challengeData?.xp_reward} XP</span>
-                                            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                                        
+                                        {/* XP Reward */}
+                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-sm font-medium border border-amber-200">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                            <span>{challengeData?.xp_reward} XP</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Action Button */}
+                            <div>
+                                {challengeData && challengeData?.join ? (
+                                    <Link 
+                                        href={`/editor/${challengeData.id}`} 
+                                        className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                        </svg>
+                                        Go to editor
+                                    </Link>
+                                ) : (
+                                    <button 
+                                        onClick={joinChallenge} 
+                                        className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Join challenge
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </section>
-                    <div className="button">
-                        {challengeData && challengeData?.join ? (
-                             <Link href={`/editor/${challengeData.id}`} className="mt-2 px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
-                                <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
-                                    Go to editor
-                                </span>
-                            </Link>
-                        ) : (
-                            <button onClick={joinChallenge} className="mt-2 cursor-pointer px-4 py-2 text-sm rounded-lg hover:scale-105 transition inline-block font-semibold text-white shadow-lg">
-                                <span className="inline-flex items-center rounded-lg bg-gray-400/10 px-4 py-2 text-sm font-medium text-gray-100 inset-ring inset-ring-gray-400/20">
-                                    Join challenge
-                                </span>
-                            </button>
-                        )}
-                       
                     </div>
                 </div>
 
                 {/* Content Section */}
-                <div className="m-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left Column - Description & Tests */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Tab Navigation */}
-                        <div className="rounded-lg py-2 px-2 shadow-lg">
-                            <div className="flex space-x-2 p-1 bg-black/30 rounded-md">
-                                <button
-                                    onClick={() => setActiveTab('description')}
-                                    className={`flex-1 py-2 px-2 rounded-md text-center font-semibold transition-all duration-200 ${
-                                        activeTab === 'description' 
-                                        ? 'bg-linear-to-r from-neutral-600 to-gray-600 text-white shadow-lg' 
-                                        : 'text-gray-300 hover:text-white hover:bg-neutral-700'
-                                    }`}
-                                >
-                                    Description
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('tests')}
-                                    className={`flex-1 py-2 px-2 rounded-md text-center font-semibold transition-all duration-200 ${
-                                        activeTab === 'tests' 
-                                        ? 'bg-linear-to-r from-gray-600 to-neutral-600 text-white shadow-lg' 
-                                        : 'text-gray-300 hover:text-white hover:bg-neutral-700'
-                                    }`}
-                                >
-                                    Tests
-                                </button>
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column - Description & Tests */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Tab Navigation */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setActiveTab('description')}
+                                        className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                                            activeTab === 'description' 
+                                            ? 'bg-indigo-600 text-white shadow-sm' 
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        Description
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('tests')}
+                                        className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                                            activeTab === 'tests' 
+                                            ? 'bg-indigo-600 text-white shadow-sm' 
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        Tests
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Content based on active tab */}
-                        {activeTab === 'description' ? (
-                            <div className="bg-neutral-800 shadow-2xl shadow-black rounded-lg p-6 border border-white/10">
-                                <div className="mb-6">
-                                    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="bg-neutral-400 bg-clip-text text-transparent">
-                                            Description
-                                        </span>
+                            {/* Content based on active tab */}
+                            {activeTab === 'description' ? (
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                        Description
                                     </h2>
-                                    <div className="prose prose-invert max-w-none">
-                                        <div className="text-gray-300 whitespace-pre-line leading-relaxed text-lg">
+                                    <div className="prose prose-gray max-w-none">
+                                        <div className="text-gray-700 leading-relaxed space-y-4">
                                             {challengeData?.description?.split('##').map((section: string, index: number) => {
                                                 if (index === 0) return (
-                                                    <p key={index} className="text-white text-xl mb-6 font-light">
+                                                    <p key={index} className="text-gray-800 text-lg">
                                                         {section.trim()}
                                                     </p>
                                                 );
                                                 
                                                 const [title, ...content] = section.split('\n');
                                                 return (
-                                                    <div key={index} className="mb-6">
-                                                        <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
-                                                            <span className="bg-linear-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
-                                                                {title.trim()}
-                                                            </span>
+                                                    <div key={index} className="mt-6">
+                                                        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                                                            {title.trim()}
                                                         </h3>
-                                                        <div className="bg-neutral-700/50 rounded-lg p-4 border-l-4 border-green-500">
+                                                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500">
                                                             {content.map((line, lineIndex) => (
-                                                                <p key={lineIndex} className="text-gray-200 mb-2 last:mb-0">
+                                                                <p key={lineIndex} className="text-gray-700 mb-2 last:mb-0">
                                                                     {line.trim()}
                                                                 </p>
                                                             ))}
@@ -195,94 +213,105 @@ export default function OneChallenge() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="bg-neutral-800 shadow-2xl shadow-black rounded-lg p-6 border border-white/10">
-                                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                                    <span className="bg-neutral-400 bg-clip-text text-transparent">
-                                        Test
-                                    </span>
-                                </h2>
-                                
-                                <div className="space-y-4">
-                                    {challengeData?.test_cases?.map((testCase: any, index: number) => (
-                                        <div key={testCase.id} className="bg-neutral-700/50 rounded-lg p-4 border border-white/10 hover:border-white/20 transition-all duration-200">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h4 className="font-semibold text-white flex items-center gap-2">
-                                                    <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs">
-                                                        {index + 1}
-                                                    </span>
-                                                    Test Case {index + 1}
-                                                </h4>
-                                                {testCase.is_sample && (
-                                                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full border border-yellow-500/30">
-                                                        Example
-                                                    </span>
-                                                )}
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                                                        📥 Input
-                                                    </label>
-                                                    <div className="bg-black/50 whitespace-pre rounded p-3 font-mono text-sm text-gray-200 min-h-[60px] border border-white/10">
-                                                        {testCase.input_content || "Aucune donnée d'entrée"}
-                                                    </div>
+                            ) : (
+                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                        Test Cases
+                                    </h2>
+                                    
+                                    <div className="space-y-4">
+                                        {challengeData?.test_cases?.map((testCase: any, index: number) => (
+                                            <div 
+                                                key={testCase.id} 
+                                                className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all duration-200"
+                                            >
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                                                        <span className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                            {index + 1}
+                                                        </span>
+                                                        Test Case {index + 1}
+                                                    </h4>
+                                                    {testCase.is_sample && (
+                                                        <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full border border-amber-200">
+                                                            Example
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 
-                                                <div className="space-y-2">
-                                                    <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
-                                                        📤 Output
-                                                    </label>
-                                                    <div className="bg-black/50 whitespace-pre rounded p-3 font-mono text-sm text-gray-200 min-h-[60px] border border-white/10">
-                                                        {testCase.output_content || "Aucune donnée de sortie"}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                                            <span className="text-lg">📥</span> Input
+                                                        </label>
+                                                        <div className="bg-white rounded-md p-3 font-mono text-sm text-gray-800 min-h-[60px] border border-gray-200 whitespace-pre-wrap">
+                                                            {testCase.input_content || "No input data"}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                                            <span className="text-lg">📤</span> Expected Output
+                                                        </label>
+                                                        <div className="bg-white rounded-md p-3 font-mono text-sm text-gray-800 min-h-[60px] border border-gray-200 whitespace-pre-wrap">
+                                                            {testCase.output_content || "No output data"}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
 
-                    {/* Right Column - Template & Input */}
-                    <div className="space-y-6">
-                        {/* Code Template */}
-                        <div className="bg-neutral-800 rounded-lg p-6 shadow-2xl shadow-black border border-white/10">
-                            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                <span className="bg-linear-to-r text-sm from-gray-100 to-neutral-300 bg-clip-text text-transparent">
-                                    Number of challenger:
-                                </span>
-                            </h3>
-                            <div className="bg-black/20 rounded-lg p-4 border border-orange-500/30">
-                                <div className="space-y-4">
-                                    {/* Participant List */}
-                                    <div className="">
-                                        <p>
-                                            {challengeData?.participants_count}
-                                        </p>
+                        {/* Right Column - Stats */}
+                        <div className="space-y-6">
+                            {/* Participants Card */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
                                     </div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        Participants
+                                    </h3>
+                                </div>
+                                <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-100">
+                                    <p className="text-3xl font-bold text-indigo-600">
+                                        {challengeData?.participants_count || 0}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        challengers enrolled
+                                    </p>
                                 </div>
                             </div>
-                            <h3 className="text-xl mt-4 font-bold text-white mb-4 flex items-center gap-2">
-                                <span className="bg-linear-to-r text-sm from-gray-100 to-neutral-300 bg-clip-text text-transparent">
-                                    Created at:
-                                </span>
-                            </h3>
-                            <div className="bg-black/20 rounded-lg p-4 border border-orange-500/30">
-                                <div className="space-y-4">
-                                    {/* Participant List */}
-                                    <div className="">
-                                        <p>
-                                            {new Date(challengeData?.created_at).toLocaleDateString('fr-FR')}
-                                        </p>
+                            
+                            {/* Created At Card */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
                                     </div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        Created
+                                    </h3>
+                                </div>
+                                <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-100">
+                                    <p className="text-xl font-semibold text-emerald-700">
+                                        {new Date(challengeData?.created_at).toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        })}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </HomeLayout>

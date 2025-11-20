@@ -6,7 +6,7 @@ export default function Users() {
   return (
     <div>
         <HomeLayout>
-            <div className="m-4 bg-white shadow-2xl rounded-lg">
+            <div className="m-4 shadow-2xl rounded-lg">
                 <UsersPage />
             </div>
         </HomeLayout>
