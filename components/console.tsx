@@ -268,13 +268,13 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                 </button>
                 <button 
                     onClick={handleSubjectClick}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 disabled cursor-not-allowed hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
                 >
                     Instructions <File className='w-6 h-6'/>
                 </button>
                 <button 
                     onClick={handleInputClick}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
+                    className='flex items-center disabled cursor-not-allowed gap-2 rounded-lg px-3 py-2 hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
                 >
                     Input(s) <ArrowBigDownDash className='w-4 h-4'/>
                 </button>

@@ -24,6 +24,8 @@ export default function page() {
     const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
+    const [timeElapsed, setTimeElapsed] = useState<string>("00:00:00");
+    const [challengeStarted, setChallengeStarted] = useState<boolean>(false);
 
     const submitCode = async (code: string, id: string) => {
         setLoadingSubmit(true);
@@ -43,6 +45,42 @@ export default function page() {
             setLoadingSubmit(false);
         }
     }
+
+    // Calculate time elapsed since challenge started
+    const calculateTimeElapsed = (startedAt: string) => {
+        const startTime = new Date(startedAt).getTime();
+        const now = new Date().getTime();
+        const elapsedMs = now - startTime;
+        
+        // Convert to hours, minutes, seconds
+        const hours = Math.floor(elapsedMs / (1000 * 60 * 60));
+        const minutes = Math.floor((elapsedMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((elapsedMs % (1000 * 60)) / 1000);
+        
+        return {
+            hours: hours.toString().padStart(2, '0'),
+            minutes: minutes.toString().padStart(2, '0'),
+            seconds: seconds.toString().padStart(2, '0'),
+            totalMs: elapsedMs
+        };
+    };
+
+    // Update timer every second
+    useEffect(() => {
+        if (challengeData?.started_at) {
+            setChallengeStarted(true);
+            
+            const timer = setInterval(() => {
+                const time = calculateTimeElapsed(challengeData.started_at);
+                setTimeElapsed(`${time.hours}:${time.minutes}:${time.seconds}`);
+            }, 1000);
+
+            return () => clearInterval(timer);
+        } else {
+            setChallengeStarted(false);
+            setTimeElapsed("00:00:00");
+        }
+    }, [challengeData?.started_at]);
 
     // Gestionnaire pour Ctrl+S
     useEffect(() => {
@@ -90,12 +128,12 @@ export default function page() {
             });
             
             if (response.ok) {
-                showPopup('Code sauvegardé avec succès !', 'success');
+                showPopup('Code saved successfully!', 'success');
             } else {
-                showPopup('Erreur lors de la sauvegarde', 'error');
+                showPopup('Error saving code', 'error');
             }
         } catch (error) {
-            showPopup('Erreur lors de la sauvegarde', 'error');
+            showPopup('Error saving code', 'error');
         } finally {
             setLoadingSave(false);
         }
@@ -123,9 +161,9 @@ export default function page() {
         } catch (error) {
             setResponseTest({
                 success: false,
-                message: "Erreur lors de l'exécution du test"
+                message: "Error running test"
             });
-            showPopup("Erreur lors de l'exécution du test", 'error');
+            showPopup("Error running test", 'error');
         } finally {
             setLoading(false);
         }
@@ -154,9 +192,9 @@ export default function page() {
             console.error("Error running all test:", error);
             setResponseTest({
                 success: false,
-                message: "Erreur lors de l'exécution du test"
+                message: "Error running test"
             });
-            showPopup("Erreur lors de l'exécution des tests", 'error');
+            showPopup("Error running tests", 'error');
         } finally {
             setLoading(false);
         }
@@ -173,9 +211,15 @@ export default function page() {
             const data = await response.json();
             setChallengesData(data);
             setCode(data?.saved_code || CODE_SNIPPETS["python"]);
+            
+            // Initialize timer if challenge has started
+            if (data?.started_at) {
+                const time = calculateTimeElapsed(data.started_at);
+                setTimeElapsed(`${time.hours}:${time.minutes}:${time.seconds}`);
+            }
         } catch (error) {
             console.error("Error fetching challenge:", error);
-            showPopup('Erreur lors du chargement du défi', 'error');
+            showPopup('Error loading challenge', 'error');
         }
     }
 
@@ -223,15 +267,15 @@ export default function page() {
             setError(result.error || "");
             
             if (result.error) {
-                showPopup('Erreur lors de l\'exécution du code', 'error');
+                showPopup('Error executing code', 'error');
             } else {
-                showPopup('Code exécuté avec succès', 'success');
+                showPopup('Code executed successfully', 'success');
             }
         } catch (err) {
             const endTime = Date.now();
             setExecutionTime(endTime - startTime);
-            setError("Erreur lors de l'exécution du code");
-            showPopup('Erreur lors de l\'exécution du code', 'error');
+            setError("Error executing code");
+            showPopup('Error executing code', 'error');
         } finally {
             setLoading(false);
         }
@@ -241,8 +285,6 @@ export default function page() {
         editorRef.current = editor;
         editor.focus();
     }
-
-    
 
     // Styles pour les différents types de popup
     const getPopupStyles = (type: string) => {
@@ -274,6 +316,9 @@ export default function page() {
                     <div className="flex justify-between items-center mb-2">
                         <div>
                             <h1 className="text-2xl font-bold">Code Editor</h1>
+                            {challengeData?.title && (
+                                <p className="text-sm text-gray-300 mt-1">{challengeData.title}</p>
+                            )}
                         </div>
                         <div className="text-sm text-gray-300">
                             {currentTime}
@@ -281,24 +326,52 @@ export default function page() {
                     </div>
                     
                     {/* Mini Stats Grid */}
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
                         <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Caracteres</div>
+                            <div className="text-xs text-gray-300">Characters</div>
                             <div className="font-bold text-blue-400">{charCount}</div>
                         </div>
                         <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Time of execution</div>
+                            <div className="text-xs text-gray-300">Execution Time</div>
                             <div className="font-bold text-yellow-400">
                                 {executionTime > 0 ? `${executionTime}ms` : 'N/A'}
                             </div>
                         </div>
+                        <div className="bg-white/5 p-2 rounded text-center">
+                            <div className="text-xs text-gray-300">Time Elapsed</div>
+                            <div className={`font-bold ${challengeStarted ? 'text-green-400' : 'text-gray-400'}`}>
+                                {timeElapsed}
+                            </div>
+                        </div>
                         <button 
                             onClick={handleSave}
-                            className={`${loadingSave ? 'bg-teal-700/50 cursor-not-allowed' : 'bg-teal-700/40'}  flex items-center justify-center gap-2 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center`}
+                            className={`${loadingSave ? 'bg-teal-700/50 cursor-not-allowed' : 'bg-teal-700/40'} flex items-center justify-center gap-2 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center`}
                         >
                             {loadingSave ? <>Saving..</> :<>Save <CloudCheck className="w-4 h-4" /> </>}
                         </button>
                     </div>
+                    
+                    {/* Challenge Status */}
+                    {challengeData?.status && (
+                        <div className="mt-3 flex items-center gap-2 text-sm">
+                            <span className="text-gray-300">Status:</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                challengeData.status === 'in_progress' 
+                                    ? 'bg-blue-500 text-white' 
+                                    : challengeData.status === 'completed'
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-gray-500 text-white'
+                            }`}>
+                                {challengeData.status === 'in_progress' ? 'In Progress' : 
+                                 challengeData.status === 'completed' ? 'Completed' : 'Not Started'}
+                            </span>
+                            {challengeData?.started_at && (
+                                <span className="text-gray-400 text-xs">
+                                    Started: {new Date(challengeData.started_at).toLocaleString('en-US')}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <EditorComponent 
                     value={challengeData?.saved_code || code} 

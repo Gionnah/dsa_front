@@ -288,7 +288,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
       {showGradients && (
         <>
           <div
-            className="absolute min-h-full top-0 left-0 right-0 h-[50px] bg-linear-to-b from-black to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute min-h-full top-0 left-0 right-0 h-[50px] bg-linear-to-b from-black/30 to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: topGradientOpacity }}
           />
           <div
