@@ -25,13 +25,14 @@ export default function Console({error, code, id, output, loading, loadingSubmit
 }) {
     const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
     const [selectedTestIndex, setSelectedTestIndex] = useState<number>(-1);
+    const [showPopupSubmit, setShowPopupSubmit] = useState<boolean>(false);
 
     // Gestionnaire de popup éphémère
     useEffect(() => {
         if (popup) {
             const timer = setTimeout(() => {
                 setPopup(null);
-            }, 3000); // Disparaît après 3 secondes
+            }, 3000);
 
             return () => clearTimeout(timer);
         }
@@ -222,6 +223,20 @@ export default function Console({error, code, id, output, loading, loadingSubmit
             </div>
         )}
         
+        {showPopupSubmit && <div className='fixed top-0 left-0 h-screen w-full bg-black/60 z-40'>
+            <div className="w-full h-full flex items-center justify-center">
+                <div className="bg-white popup text-neutral-800 text-sm max-w-lg rounded-xl shadow-black shadow-2xl p-4">
+                    <h1 className='text-amber-500 text-lg text-center font-semibold'>Warning !</h1>
+                    <p className='text-center'>This action will end the challenge and award you points according to the validated tests, you can retry it later</p> 
+                    <p><span className='font-bold text-black text-lg'>Note:</span> You will only be awarded points if you pass a certain number of tests.</p>
+                    <div className="flex w-full items-center gap-2 mt-3">
+                        <button onClick={() => setShowPopupSubmit(!showPopupSubmit)} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg border border-gray-200'> cancel </button>    
+                        <button onClick={handleFinishClick} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-teal-500  hover:bg-teal-600 rounded-lg border border-gray-200'> Submit</button>    
+                    </div>                
+                </div>
+            </div>
+        </div>}
+
         <div className="p-2 rounded-t-lg bg-blue-900/15 &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]">
             <div className="option flex items-end justify-between">
                 <div className="select text-white pb-2">
@@ -300,7 +315,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                 Run all Test
             </button>
             <button 
-                onClick={handleFinishClick}
+                onClick={() => setShowPopupSubmit(!showPopupSubmit)}
                 className={`mt-2 transition-all duration-300 ease-in-out ${loadingSubmit ? 'bg-amber-800 disabled cursor-not-allowed' : 'bg-amber-600 cursor-pointer hover:bg-amber-700'} transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center`}
             >
                 {loadingSubmit ? <>Loading submit...</>: <>Set as finished</>}

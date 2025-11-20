@@ -43,3 +43,17 @@
 .animate-fade-in {
     animation: fade-in 0.3s ease-out;
 }
+
+.popup {
+  animation: popup-animation .2s ease-in-out;
+}
+
+@keyframes popup-animation {
+      from {
+        scale: 0.90;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
