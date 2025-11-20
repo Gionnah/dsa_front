@@ -94,21 +94,21 @@ const Register = () => {
             formDataToSend.append('classLevel', formData.classLevel)
             
             if (tokenFromUrl) {
-            formDataToSend.append('token', tokenFromUrl)
+              formDataToSend.append('token', tokenFromUrl)
             }
             
             if (formData.photo) {
-            formDataToSend.append('photo', formData.photo)
+              formDataToSend.append('photo', formData.photo)
             }
 
             const response = await fetch('/api/register', {
-            method: 'POST',
-            body: formDataToSend,
+              method: 'POST',
+              body: formDataToSend,
             })
 
             if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.error || 'Registration failed')
+              const errorData = await response.json()
+              throw new Error(errorData.error || 'Registration failed')
             }
 
             const data = await response.json()
@@ -116,7 +116,7 @@ const Register = () => {
             showNotification('Inscription réussie ! Redirection...', 'success')
 
             setTimeout(() => {
-            router.push('/login')
+              router.push('/login')
             }, 1500)
 
         } catch (error: any) {

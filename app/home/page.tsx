@@ -54,8 +54,8 @@ export default function Dashboard() {
 
     return (
         <HomeLayout>
-            <div className="min-h-screen bg-indigo-50 rounded-lg">
-                <div className="max-w-7xl space-y-6">
+            <div className="min-h-screen bg-indigo-50 rounded-lg w-full">
+                <div className="space-y-2">
                     {/* Header Compact */}
                     <div className="bg-[url(/background.jpeg)] bg-cover relative shadow-sm p-6">
                         <div className="flex items-center justify-between">
@@ -113,7 +113,7 @@ export default function Dashboard() {
                     {/* Main Content - 2 columns */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-3">
                         {/* Main column - Current challenge */}
-                        <div className="lg:col-span-2 space-y-6">
+                        <div className="lg:col-span-2 space-y-2">
                             {/* Current challenge */}
                             <div className="bg-white rounded-xl shadow-sm border border-slate-200">
                                 <div className="border-b border-slate-200 px-6 py-4">
