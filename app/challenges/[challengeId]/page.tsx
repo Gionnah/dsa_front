@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 export default function OneChallenge() {
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
+    const [isJoin, setIsJoin] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<'description' | 'tests'>('description');
 
     const getChallenges = async () => {
@@ -18,6 +19,7 @@ export default function OneChallenge() {
         });
         const data = await response.json();
         setChallengesData(data);
+        setIsJoin(data.join || false);
     }
 
     const joinChallenge = async () => {
@@ -28,12 +30,12 @@ export default function OneChallenge() {
             },
         });
         const data = await response.json();
-        setChallengesData(data);
+        setIsJoin(data.message || false)
     }
 
     useEffect(() => {
         getChallenges();
-    }, [])
+    }, [isJoin])
     
     if (challengeData?.details) {   
         return (
@@ -122,7 +124,7 @@ export default function OneChallenge() {
 
                             {/* Action Button */}
                             <div>
-                                {challengeData && challengeData?.join ? (
+                                {isJoin ? (
                                     <Link 
                                         href={`/editor/${challengeData.id}`} 
                                         className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
