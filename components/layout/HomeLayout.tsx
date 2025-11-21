@@ -39,10 +39,10 @@ export default function HomeLayout({children}: any) {
 
         <nav className="flex-1 flex flex-col space-y-2 w-full px-2">
           {[
-            { link: "/home", label: "Home", icon: <Home className='w-5 h-5'/> },
-            { link: "/users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
-            { link: "/challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
-            { link: "/event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
+            { link: "/members/home", label: "Home", icon: <Home className='w-5 h-5'/> },
+            { link: "/members/users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
+            { link: "/members/challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
+            { link: "/members/event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
           ].map((item, i) => (
             <div key={i} className="nav-item relative group">
               <Link

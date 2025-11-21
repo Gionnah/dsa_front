@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server'
 
-const protectedRoutes = ['/home', '/editor', '/challenges', '/invitation', '/users']
+const protectedRoutes = ['/members', ]
 const publicRoutes = ['/login', '/register', '/']
 const authRoutes = ['/login', '/register']
 
@@ -68,7 +68,7 @@ export async function middleware(req: NextRequest) {
   // === 6. GESTION DES ROUTES D'AUTH (login/register) ===
   if (isAuthRoute && hasValidTokens) {
     // Si déjà authentifié, redirection vers home
-    const homeUrl = new URL('/home', origin)
+    const homeUrl = new URL('/members/home', origin)
     console.log(`[AUTH] User already authenticated, redirecting to home`)
     return NextResponse.redirect(homeUrl)
   }
@@ -100,7 +100,7 @@ function getClientIP(req: NextRequest): string {
 
 function isRateLimitRoute(pathname: string): boolean {
   // Appliquer le rate limiting seulement sur les routes sensibles
-  const rateLimitRoutes = ['/api/auth/', '/login', '/register']
+  const rateLimitRoutes = ['/api/', '/login', '/register', '/members']
   return rateLimitRoutes.some(route => pathname.startsWith(route))
 }
 

@@ -143,7 +143,7 @@ export default function ChallengesPage() {
         {filteredChallenges && filteredChallenges.length > 0 ? (
           filteredChallenges.map((challenge) => (
             <Link 
-              href={`/challenges/${challenge.id}`}
+              href={`/members/challenges/${challenge.id}`}
               key={challenge.id}
               className="bg-white border border-neutral-300 rounded-xl p-6 flex flex-col justify-between card-hover hover:border-blue-500 transition shadow-sm hover:shadow-md"
             >

@@ -10,7 +10,7 @@ export default function Login() {
       setLoading(true);
       const res = await fetch('/api/is-loged');
       if (res.ok) 
-        window.location.href = '/home';
+        window.location.href = '/members/home';
       else
         setIsLoged(false);
       setLoading(false);

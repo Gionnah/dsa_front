@@ -6,10 +6,10 @@ import React, { useEffect, useState } from 'react'
 
 
 const navItems = [
-  { link: "home", label: "Home", icon: <Home className='w-5 h-5'/> },
-  { link: "users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
-  { link: "challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
-  { link: "event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
+  { link: "/members/home", label: "Home", icon: <Home className='w-5 h-5'/> },
+  { link: "/members/users", label: "Users", icon: <UserRound className='w-5 h-5'/> },
+  { link: "/members/challenges", label: "Challenges", icon: <Trophy className='w-5 h-5'/>},
+  { link: "/members/event", label: "Event", icon: <CalendarDays className='w-5 h-5'/> },
 ];
 
 export default function Header() {

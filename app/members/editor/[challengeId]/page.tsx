@@ -37,7 +37,7 @@ export default function page() {
                 }
             )
             if (res.ok)
-                window.location.href = `/challenges`
+                window.location.href = `/members/challenges`
         }
         catch (error){
             console.log(error)
