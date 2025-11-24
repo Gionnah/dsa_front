@@ -5,6 +5,7 @@ services:
     image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups/database:/backups  # Sauvegarde dans le projet
     environment:
       POSTGRES_DB: dsa_website
       POSTGRES_USER: dsa_website
@@ -20,6 +21,7 @@ services:
     volumes:
       - media_volume:/app/media
       - static_volume:/app/staticfiles
+      - ./backups/media:/app/backup_media  # Double sauvegarde médias
     env_file:
       - ./.env.production
     environment:
