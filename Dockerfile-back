@@ -11,7 +11,6 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-RUN python manage.py collectstatic --noinput
 
 # Copy the Django application code
 COPY . .
@@ -20,4 +19,4 @@ COPY . .
 EXPOSE 8888
 
 # Define the command to run the application
-CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "--timeout", "120", "monprojet.wsgi:application"]
+CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8888", "backend.wsgi:application"]
