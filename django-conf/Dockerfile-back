@@ -1,21 +1,15 @@
-FROM python:3.11-slim
+FROM python:3.13
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the requirements file
 COPY requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+RUN pip install-r requirements.txt
 
-# Copy the Django application code
 COPY . .
 
-# Expose the port the app runs on
 EXPOSE 8888
 
-# Run migrations + create superuser + start gunicorn
 CMD ["sh", "-c", "\
     python manage.py migrate && \
     python manage.py shell < create_superuser.py && \
