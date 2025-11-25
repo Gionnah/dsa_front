@@ -24,6 +24,9 @@ services:
     environment:
       - DATABASE_URL=postgresql://dsa_website:dsa_website_password@db:5432/dsa_website
       - DEBUG=False
+      - DJANGO_SUPERUSER_USERNAME: dsa-admin
+      - DJANGO_SUPERUSER_EMAIL: dsa.insi.platform@gmail.com
+      - DJANGO_SUPERUSER_PASSWORD: admin-dsa-password
     depends_on:
       - db
     restart: unless-stopped
