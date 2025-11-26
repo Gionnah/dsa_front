@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
         },
     });
     const data = await response.json();

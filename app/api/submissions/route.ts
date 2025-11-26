@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
         },
         body: JSON.stringify({
           code: body.source_code,

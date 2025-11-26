@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-RapidAPI-Key": "votre-clef-si-necessaire", // Optionnel selon votre config
+          "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
         },
         body: JSON.stringify({
           source_code: body.source_code,

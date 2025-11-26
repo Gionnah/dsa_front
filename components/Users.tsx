@@ -48,7 +48,7 @@ export default function UsersPage() {
     
     const token1 = generateToken();
     const token2 = generateToken();
-    const url = `/invitation/${token1}/${token2}`;
+    const url = `/members/invitation/${token1}/${token2}`;
     setInvitationUrl(url);
   };
 
