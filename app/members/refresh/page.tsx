@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Refresh() {
+export function Refresh() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -15,5 +15,5 @@ export default function Refresh() {
     check();
   }, [router])
 
-  return { loading }
+  return  loading;
 }
