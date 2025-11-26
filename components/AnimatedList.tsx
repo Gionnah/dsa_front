@@ -229,7 +229,7 @@ const AnimatedList: React.FC<AnimatedListProps> = ({
 
   return (
     <div 
-      className={`relative w-[380px] min-h-full ${className}`}
+      className={`relative w-full min-h-full ${className}`}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={() => setIsHovering(true)}
     >
