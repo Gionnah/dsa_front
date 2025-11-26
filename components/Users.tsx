@@ -263,7 +263,7 @@ export default function UsersPage() {
                                 e.preventDefault();
                                 // Créer une modal pour l'agrandissement
                                 const modal = document.createElement('div');
-                                modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                                modal.className = 'fixed inset-0 bg-black/20 flex items-center justify-center z-50';
                                 modal.onclick = () => document.body.removeChild(modal);
                                 
                                 const img = document.createElement('img');
@@ -279,7 +279,7 @@ export default function UsersPage() {
                               }}
                               onContextMenu={(e) => e.preventDefault()}
                             />
-                            <div className="absolute inset-0 rounded-xl bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
+                            <div className="absolute inset-0 rounded-xl bg-black/20 transition-all duration-200 flex items-center justify-center">
                               <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-70 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
                               </svg>
@@ -340,7 +340,7 @@ export default function UsersPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-right">
-                      <button className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors">
+                      <button className="inline-flex cursor-not-allowed items-center gap-1 text-indigo-600 hover:text-indigo-400 text-sm font-medium transition-colors">
                         <span>View profile</span>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
