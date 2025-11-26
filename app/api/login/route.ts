@@ -23,23 +23,24 @@ export async function POST(req: NextRequest) {
             name: 'Access',
             value: data.access,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 2,
+            secure: true,
+            sameSite: 'none',
+            domain: 'dsa.insi.mg',
             path: '/',
+            maxAge: 60 * 60 * 2,
         });
 
-        console.log(data.access)
-        
         response.cookies.set({
             name: 'Refresh',
             value: data.refresh,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7, // 7 jours
+            secure: true,
+            sameSite: 'none',
+            domain: 'dsa.insi.mg',
             path: '/',
+            maxAge: 60 * 60 * 24 * 7,
         });
+
         return response;
         
     } catch (error) {
