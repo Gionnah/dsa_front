@@ -1,7 +1,6 @@
 // /api/submissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -51,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: Request, Request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
@@ -68,7 +67,7 @@ export async function GET(req: Request, Request: NextRequest) {
       {
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${Request.cookies.get('Access')?.value || ''}`,
+          "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
         },
       }
     );
