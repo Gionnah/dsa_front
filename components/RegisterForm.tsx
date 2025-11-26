@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, ChangeEvent } from 'react'
+import { useState, FormEvent, ChangeEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User, Lock, Mail, Image, GraduationCap, Hash, CheckCircle2, AlertCircle } from 'lucide-react'
 
@@ -16,7 +16,8 @@ interface FormData {
   photo: File | null
 }
 
-const Register = () => {
+// Composant interne qui utilise useSearchParams
+function RegisterContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -69,62 +70,62 @@ const Register = () => {
     }
   }
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setIsLoading(true)
-    
-        if (formData.password !== formData.passwordConfirm) {
-            showNotification('Les mots de passe ne correspondent pas', 'error')
-            setIsLoading(false)
-            return
-        }
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-        try {
-            const formDataToSend = new FormData()
-            
-            // Ajouter tous les champs au FormData
-            formDataToSend.append('firstName', formData.firstName)
-            formDataToSend.append('lastName', formData.lastName)
-            formDataToSend.append('username', formData.username)
-            formDataToSend.append('password', formData.password)
-            formDataToSend.append('passwordConfirm', formData.passwordConfirm)
-            formDataToSend.append('registrationNumber', formData.registrationNumber)
-            formDataToSend.append('program', formData.program)
-            formDataToSend.append('classLevel', formData.classLevel)
-            
-            if (tokenFromUrl) {
-              formDataToSend.append('token', tokenFromUrl)
-            }
-            
-            if (formData.photo) {
-              formDataToSend.append('photo', formData.photo)
-            }
-
-            const response = await fetch('/api/register', {
-              method: 'POST',
-              body: formDataToSend,
-            })
-
-            if (!response.ok) {
-              const errorData = await response.json()
-              throw new Error(errorData.error || 'Registration failed')
-            }
-
-            const data = await response.json()
-            console.log('Registration successful:', data)
-            showNotification('Inscription réussie ! Redirection...', 'success')
-
-            setTimeout(() => {
-              window.location.href = '/login'
-            }, 1000)
-
-        } catch (error: any) {
-            console.error(error)
-            showNotification(error?.message || 'Une erreur est survenue lors de l\'inscription', 'error')
-        } finally {
-            setIsLoading(false)
-        }
+    if (formData.password !== formData.passwordConfirm) {
+      showNotification('Les mots de passe ne correspondent pas', 'error')
+      setIsLoading(false)
+      return
     }
+
+    try {
+      const formDataToSend = new FormData()
+      
+      // Ajouter tous les champs au FormData
+      formDataToSend.append('firstName', formData.firstName)
+      formDataToSend.append('lastName', formData.lastName)
+      formDataToSend.append('username', formData.username)
+      formDataToSend.append('password', formData.password)
+      formDataToSend.append('passwordConfirm', formData.passwordConfirm)
+      formDataToSend.append('registrationNumber', formData.registrationNumber)
+      formDataToSend.append('program', formData.program)
+      formDataToSend.append('classLevel', formData.classLevel)
+      
+      if (tokenFromUrl) {
+        formDataToSend.append('token', tokenFromUrl)
+      }
+      
+      if (formData.photo) {
+        formDataToSend.append('photo', formData.photo)
+      }
+
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        body: formDataToSend,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Registration failed')
+      }
+
+      const data = await response.json()
+      console.log('Registration successful:', data)
+      showNotification('Inscription réussie ! Redirection...', 'success')
+
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1000)
+
+    } catch (error: any) {
+      console.error(error)
+      showNotification(error?.message || 'Une erreur est survenue lors de l\'inscription', 'error')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleLoginRedirect = () => {
     window.location.href = '/members/home'
@@ -465,6 +466,19 @@ const Register = () => {
         }
       `}</style>
     </div>
+  )
+}
+
+// Composant principal avec Suspense
+const Register = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   )
 }
 
