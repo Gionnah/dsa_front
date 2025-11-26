@@ -10,5 +10,5 @@ export async function GET(req: NextRequest)
 
     if (access && refresh)
         return NextResponse.json({ok: 'ok'}, {status: 200})
-    return NextResponse.json({ok: ''}, {status: 200})
+    return NextResponse.json({ok: ''}, {status: 400})
 }
