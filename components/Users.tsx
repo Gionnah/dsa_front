@@ -253,13 +253,47 @@ export default function UsersPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div
-                          className={`w-12 h-12 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-lg`}
-                        >
-                          {user.prenom?.charAt(0) && user.nom?.charAt(0) 
-                            ? `${user.prenom.charAt(0)}${user.nom.charAt(0)}` 
-                            : user.username.charAt(0).toUpperCase()}
-                        </div>
+                        {user.photo ? (
+                          <div className="relative group">
+                            <img
+                              src={user.photo}
+                              alt={`${user.prenom} ${user.nom}`}
+                              className="w-12 h-12 rounded-xl object-cover cursor-pointer border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-105"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                // Créer une modal pour l'agrandissement
+                                const modal = document.createElement('div');
+                                modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                                modal.onclick = () => document.body.removeChild(modal);
+                                
+                                const img = document.createElement('img');
+                                img.src = user.photo;
+                                img.className = 'max-w-4xl max-h-[90vh] object-contain rounded-lg';
+                                img.onclick = (e) => e.stopPropagation();
+                                
+                                // Empêcher le téléchargement via le menu contextuel
+                                img.oncontextmenu = (e) => e.preventDefault();
+                                
+                                modal.appendChild(img);
+                                document.body.appendChild(modal);
+                              }}
+                              onContextMenu={(e) => e.preventDefault()}
+                            />
+                            <div className="absolute inset-0 rounded-xl bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-70 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                              </svg>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`w-12 h-12 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-lg`}
+                          >
+                            {user.prenom?.charAt(0) && user.nom?.charAt(0) 
+                              ? `${user.prenom.charAt(0)}${user.nom.charAt(0)}` 
+                              : user.username.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div>
                           <p className="font-semibold text-gray-900">
                             {user.prenom} {user.nom}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Trophy, Target, TrendingUp, Award, Clock, Zap, ChevronRight, Calendar, BarChart3 } from "lucide-react";
 import HomeLayout from "@/components/layout/HomeLayout";
+import Link from "next/link";
 
 export default function Dashboard() {
     const [userDetails, setUserDetails] = useState<any>(null);
@@ -196,9 +197,9 @@ export default function Dashboard() {
                                             <p className="text-slate-600 mb-6 max-w-md mx-auto">
                                                 You don't have any active challenges at the moment. Start a new challenge to earn experience and improve your ranking!
                                             </p>
-                                            <button className="px-8 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                                            <Link href={`/members/challenges`} className="px-8 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
                                                 Discover available challenges
-                                            </button>
+                                            </Link>
                                         </div>
                                     )}
                                 </div>
