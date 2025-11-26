@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 
-const JUDGE0_URL = "http://localhost:8000/api";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -15,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await fetch(
-      `${JUDGE0_URL}/execute/`,
+      `${process.env.API_URL}/execute/`,
       {
         method: "POST",
         headers: { 
@@ -52,7 +51,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: Request, Request: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
@@ -65,7 +64,13 @@ export async function GET(req: Request) {
     }
 
     const result = await fetch(
-      `${JUDGE0_URL}/submissions/${token}?base64_encoded=false`
+      `${process.env.API_URL}/submissions/${token}?base64_encoded=false`,
+      {
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Request.cookies.get('Access')?.value || ''}`,
+        },
+      }
     );
 
     if (!result.ok) {
