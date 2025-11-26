@@ -1,7 +1,7 @@
 // /api/challenges/[slug]/test/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const { code } = await req.json();
     const res = await fetch(`${process.env.API_URL}/challenges/${slug}/test/`,
