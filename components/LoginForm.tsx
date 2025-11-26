@@ -54,7 +54,7 @@ export default function LoginForm() {
             const redirectUrl = decodeURIComponent(redirect)
             window.location.href = redirectUrl
           } else {
-            window.location.href = '/members/members/members/members/members/members/members/home'
+            window.location.href = '/members/home'
           }
         }, 1500)
       } else {

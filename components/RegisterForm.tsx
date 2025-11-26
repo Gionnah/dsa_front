@@ -58,7 +58,6 @@ const Register = () => {
       photo: file,
     }))
 
-    // Créer un aperçu de l'image
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -116,8 +115,8 @@ const Register = () => {
             showNotification('Inscription réussie ! Redirection...', 'success')
 
             setTimeout(() => {
-              router.push('/login')
-            }, 1500)
+              window.location.href = '/login'
+            }, 1000)
 
         } catch (error: any) {
             console.error(error)
@@ -128,7 +127,7 @@ const Register = () => {
     }
 
   const handleLoginRedirect = () => {
-    router.push('/login')
+    window.location.href = '/members/home'
   }
 
   return (
