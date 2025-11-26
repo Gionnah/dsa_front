@@ -55,6 +55,7 @@ export default function UsersPage() {
   // Copie l'URL d'invitation dans le presse-papier
   const copyInvitationUrl = () => {
     const fullUrl = `${window.location.origin}${invitationUrl}`;
+    window.location.href = fullUrl;
     navigator.clipboard.writeText(fullUrl);
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
