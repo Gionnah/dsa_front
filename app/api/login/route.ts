@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
             sameSite: 'lax',
             maxAge: 60 * 60 * 2,
             path: '/',
+            domain: 'dsa.insi.mg'
         });
         
         response.cookies.set({
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 jours
             path: '/',
+            domain: 'dsa.insi.mg'
         });
         return response;
         
