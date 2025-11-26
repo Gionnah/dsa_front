@@ -27,8 +27,9 @@ export async function POST(req: NextRequest) {
             sameSite: 'lax',
             maxAge: 60 * 60 * 2,
             path: '/',
-            domain: 'dsa.insi.mg'
         });
+
+        console.log(data.access)
         
         response.cookies.set({
             name: 'Refresh',
@@ -38,7 +39,6 @@ export async function POST(req: NextRequest) {
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 jours
             path: '/',
-            domain: 'dsa.insi.mg'
         });
         return response;
         
