@@ -15,5 +15,7 @@ export function Refresh() {
     check();
   }, [router])
 
-  return  loading;
+  // return  loading;
+  return (<>
+  </>)
 }
