@@ -5,13 +5,12 @@ import { Trophy, Target, TrendingUp, Award, Clock, Zap, ChevronRight, Calendar, 
 import HomeLayout from "@/components/layout/HomeLayout";
 import Link from "next/link";
 
-// Composant Modal pour l'image agrandie
+// Modal component for scall images
 function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   useEffect(() => {
-    // Désactiver le scroll du body quand la modal est ouverte
     document.body.style.overflow = 'hidden';
     
-    // Fermer avec la touche Escape
+    // exit with Escape touch
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -54,7 +53,7 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
           />
           
           {/* Légende */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-6">
             <p className="text-white text-lg font-semibold text-center">{alt}</p>
           </div>
         </div>
@@ -112,7 +111,6 @@ export default function Dashboard() {
         ? userDetails.challenges.slice(0, 5) 
         : [];
 
-    // Fonction pour obtenir l'URL de la photo ou générer un avatar avec initiales
     const getUserAvatar = () => {
         if (userDetails?.stat?.user?.photo) {
             return userDetails.stat.user.photo;
