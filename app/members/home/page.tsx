@@ -183,7 +183,7 @@ export default function Dashboard() {
                                                 </div>
                                             </div>
 
-                                            <button onClick={() => {}} className="w-full cursor-pointer px-6 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 ease-in-out duration-300 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 group">
+                                            <button onClick={() => {}} className="w-full hover:bg-indigo-300 cursor-not-allowed px-6 py-3.5 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 ease-in-out duration-300 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 group">
                                                 Continue this challenge
                                                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                             </button>

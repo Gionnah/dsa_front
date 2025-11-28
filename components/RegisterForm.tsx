@@ -243,7 +243,7 @@ function RegisterContent() {
             {/* Registration Number */}
             <div className="group">
               <label htmlFor="registrationNumber" className="block text-sm font-bold text-gray-700 mb-2">
-                Registration Number *
+                Registration Number (matricule)*
               </label>
               <div className="relative">
                 <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />

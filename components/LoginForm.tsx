@@ -129,7 +129,7 @@ export default function LoginForm() {
                   value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="Your registration number"
+                  placeholder="Your username"
                 />
               </div>
             </div>
