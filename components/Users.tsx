@@ -58,7 +58,7 @@ export default function UsersPage() {
   };
 
   const copyInvitationUrl = () => {
-    const fullUrl = `${window.location.origin}${invitationUrl}`;
+    const fullUrl = `${invitationUrl}`;
     navigator.clipboard.writeText(fullUrl);
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
