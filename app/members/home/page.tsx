@@ -5,8 +5,67 @@ import { Trophy, Target, TrendingUp, Award, Clock, Zap, ChevronRight, Calendar, 
 import HomeLayout from "@/components/layout/HomeLayout";
 import Link from "next/link";
 
+// Composant Modal pour l'image agrandie
+function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    // Désactiver le scroll du body quand la modal est ouverte
+    document.body.style.overflow = 'hidden';
+    
+    // Fermer avec la touche Escape
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      style={{ zIndex: 9999 }}
+      onClick={onClose}
+    >
+      <div 
+        className="relative max-w-5xl w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Bouton de fermeture */}
+        <button
+          onClick={onClose}
+          className="absolute -top-14 right-0 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-sm transition-all duration-200 border border-white/20 hover:scale-110"
+          aria-label="Close"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Image agrandie */}
+        <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <img
+            src={src}
+            alt={alt}
+            className="w-full max-h-[85vh] object-contain"
+          />
+          
+          {/* Légende */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <p className="text-white text-lg font-semibold text-center">{alt}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
     const [userDetails, setUserDetails] = useState<any>(null);
+    const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
 
     const getUserDetails = async () => {
         try {
@@ -53,22 +112,70 @@ export default function Dashboard() {
         ? userDetails.challenges.slice(0, 5) 
         : [];
 
+    // Fonction pour obtenir l'URL de la photo ou générer un avatar avec initiales
+    const getUserAvatar = () => {
+        if (userDetails?.stat?.user?.photo) {
+            return userDetails.stat.user.photo;
+        }
+        return null;
+    };
+
+    const getUserInitials = () => {
+        return userDetails?.stat?.user?.username?.charAt(0)?.toUpperCase() || 'U';
+    };
+
+    const getUserFullName = () => {
+        if (userDetails?.stat?.user?.prenom && userDetails?.stat?.user?.nom) {
+            return `${userDetails.stat.user.prenom} ${userDetails.stat.user.nom}`;
+        }
+        return userDetails?.stat?.user?.username || 'User';
+    };
+
     return (
         <HomeLayout>
             <div className="min-h-screen bg-indigo-50 rounded-lg w-full">
+                {/* Modal pour l'image agrandie */}
+                {selectedImage && (
+                    <ImageModal
+                        src={selectedImage.src}
+                        alt={selectedImage.alt}
+                        onClose={() => setSelectedImage(null)}
+                    />
+                )}
+
                 <div className="space-y-2">
                     {/* Header Compact */}
                     <div className="bg-[url(/background.jpeg)] bg-cover relative shadow-sm p-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="w-26 h-26 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-md">
-                                    {userDetails?.stat?.user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                                </div>
+                                {getUserAvatar() ? (
+                                    <div 
+                                        className="relative group cursor-pointer"
+                                        onClick={() => setSelectedImage({ 
+                                            src: getUserAvatar()!, 
+                                            alt: getUserFullName()
+                                        })}
+                                    >
+                                        <img
+                                            src={getUserAvatar()!}
+                                            alt={getUserFullName()}
+                                            className="w-26 h-26 rounded-full object-cover border-4 border-white shadow-md transition-transform duration-200 group-hover:scale-110"
+                                            onContextMenu={(e) => e.preventDefault()}
+                                        />
+                                        <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                                            <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="w-26 h-26 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-md">
+                                        {getUserInitials()}
+                                    </div>
+                                )}
                                 <div>
                                     <h1 className="text-xl font-bold text-white">
-                                        {userDetails?.stat?.user?.prenom && userDetails?.stat?.user?.nom 
-                                            ? `${userDetails.stat.user.prenom} ${userDetails.stat.user.nom}`
-                                            : userDetails?.stat?.user?.username || 'User'}
+                                        {getUserFullName()}
                                     </h1>
                                     <p className="text-slate-300 text-sm">@{userDetails?.stat?.user?.username || 'username'}</p>
                                 </div>
