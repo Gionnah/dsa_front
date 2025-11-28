@@ -8,49 +8,52 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
     // Désactiver le scroll du body quand la modal est ouverte
     document.body.style.overflow = 'hidden';
     
-    return () => {
-      // Réactiver le scroll quand la modal est fermée
-      document.body.style.overflow = 'auto';
+    // Fermer avec la touche Escape
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
     };
-  }, []);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
-    }
-  };
+    
+    window.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
 
   return (
     <div 
-      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      style={{ zIndex: 9999 }}
       onClick={onClose}
-      onKeyDown={handleKeyDown}
     >
       <div 
-        className="relative max-w-4xl max-h-[90vh] w-full"
+        className="relative max-w-5xl w-full"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Bouton de fermeture */}
         <button
           onClick={onClose}
-          className="absolute -top-12 right-0 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm transition-all duration-200 z-10 border border-white/30"
+          className="absolute -top-14 right-0 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-sm transition-all duration-200 border border-white/20 hover:scale-110"
+          aria-label="Close"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Image agrandie */}
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-full object-contain rounded-lg shadow-2xl max-h-[80vh]"
-          onContextMenu={(e) => e.preventDefault()}
-        />
-
-        {/* Légende */}
-        <div className="absolute bottom-4 left-4 right-4 bg-black/50 text-white p-3 rounded-lg backdrop-blur-sm">
-          <p className="text-sm font-medium text-center">{alt}</p>
+        <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <img
+            src={src}
+            alt={alt}
+            className="w-full max-h-[85vh] object-contain"
+          />
+          
+          {/* Légende */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <p className="text-white text-lg font-semibold text-center">{alt}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -134,7 +137,7 @@ export default function UsersPage() {
     "from-orange-500 to-red-600",
   ];
 
-  const getUserColor = (userId: any) => {
+  const getUserColor = (userId: number) => {
     return colorGradients[userId % colorGradients.length];
   };
 
@@ -156,7 +159,7 @@ export default function UsersPage() {
   });
 
   // Sort logic
-  const sortedUsers = [...filteredUsers].sort((a: any, b: any) => {
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
     switch (sortBy) {
       case "Most recent":
         return b.id - a.id;
@@ -186,7 +189,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl px-8 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl px-8 py-10">
       {/* Modal pour l'image agrandie */}
       {selectedImage && (
         <ImageModal
@@ -247,7 +250,7 @@ export default function UsersPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <svg className="absolute left-3 top-3 w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -319,26 +322,28 @@ export default function UsersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         {user.photo ? (
-                          <div className="relative group">
+                          <div 
+                            className="relative group cursor-pointer"
+                            onClick={() => setSelectedImage({ 
+                              src: user.photo, 
+                              alt: `${user.prenom} ${user.nom}` 
+                            })}
+                          >
                             <img
                               src={user.photo}
                               alt={`${user.prenom} ${user.nom}`}
-                              className="w-12 h-12 rounded-xl object-cover cursor-pointer border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-105"
-                              onClick={() => setSelectedImage({ 
-                                src: user.photo, 
-                                alt: `${user.prenom} ${user.nom}` 
-                              })}
+                              className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110"
                               onContextMenu={(e) => e.preventDefault()}
                             />
-                            <div className="absolute inset-0 rounded-xl bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
+                            <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                               </svg>
                             </div>
                           </div>
                         ) : (
                           <div
-                            className={`w-12 h-12 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-lg`}
+                            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-lg`}
                           >
                             {user.prenom?.charAt(0) && user.nom?.charAt(0) 
                               ? `${user.prenom.charAt(0)}${user.nom.charAt(0)}` 
@@ -384,7 +389,7 @@ export default function UsersPage() {
                         <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
-                        <span className="text-sm font-bold flex text-amber-600">
+                        <span className="text-sm font-bold text-amber-600">
                           {user.total_xp.toLocaleString()} XP
                         </span>
                       </div>
