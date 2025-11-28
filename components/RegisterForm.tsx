@@ -255,7 +255,7 @@ function RegisterContent() {
                   value={formData.registrationNumber}
                   onChange={handleChange}
                   className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="Your registration number"
+                  placeholder="ex: 00/LA/21-22"
                 />
               </div>
             </div>
@@ -278,9 +278,9 @@ function RegisterContent() {
                   >
                     <option value="">Select Program</option>
                     <option value="Common Core">Common Core</option>
-                    <option value="Artificial Intelligence">Intelligence Artificielle</option>
-                    <option value="Network Administration">Administration Réseau</option>
-                    <option value="Software Engineering">Génie Logiciel</option>
+                    <option value="Artificial Intelligence">Artificial Intelligence</option>
+                    <option value="Network Administration">Administration Network</option>
+                    <option value="Software Engineering">Software Engineering</option>
                   </select>
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
