@@ -2,12 +2,68 @@
 
 import { useEffect, useState } from "react";
 
+// Composant Modal pour l'image agrandie
+function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    // Désactiver le scroll du body quand la modal est ouverte
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      // Réactiver le scroll quand la modal est fermée
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+    >
+      <div 
+        className="relative max-w-4xl max-h-[90vh] w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Bouton de fermeture */}
+        <button
+          onClick={onClose}
+          className="absolute -top-12 right-0 bg-white/20 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm transition-all duration-200 z-10 border border-white/30"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Image agrandie */}
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-contain rounded-lg shadow-2xl max-h-[80vh]"
+          onContextMenu={(e) => e.preventDefault()}
+        />
+
+        {/* Légende */}
+        <div className="absolute bottom-4 left-4 right-4 bg-black/50 text-white p-3 rounded-lg backdrop-blur-sm">
+          <p className="text-sm font-medium text-center">{alt}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UsersPage() {
   const [usersData, setUsersData] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [invitationUrl, setInvitationUrl] = useState("");
   const [showCopied, setShowCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
   
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,6 +187,15 @@ export default function UsersPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl px-8 py-10">
+      {/* Modal pour l'image agrandie */}
+      {selectedImage && (
+        <ImageModal
+          src={selectedImage.src}
+          alt={selectedImage.alt}
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
@@ -256,58 +321,17 @@ export default function UsersPage() {
                         {user.photo ? (
                           <div className="relative group">
                             <img
-                                src={user.photo}
-                                alt={`${user.prenom} ${user.nom}`}
-                                className="w-12 h-12 rounded-xl object-cover cursor-pointer border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-105"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  
-                                  // Créer la modal
-                                  const modal = document.createElement('div');
-                                  modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm';
-                                  modal.onclick = () => {
-                                    document.body.removeChild(modal);
-                                    document.body.style.overflow = 'auto'; // Réactiver le scroll
-                                  };
-                                  
-                                  // Créer le conteneur de l'image
-                                  const imageContainer = document.createElement('div');
-                                  imageContainer.className = 'relative max-w-4xl max-h-[90vh] p-4';
-                                  imageContainer.onclick = (e) => e.stopPropagation();
-                                  
-                                  // Créer l'image agrandie
-                                  const img = document.createElement('img');
-                                  img.src = user.photo;
-                                  img.alt = `${user.prenom} ${user.nom}`;
-                                  img.className = 'w-full h-full object-contain rounded-lg shadow-2xl';
-                                  img.oncontextmenu = (e) => e.preventDefault();
-                                  
-                                  // Bouton de fermeture
-                                  const closeButton = document.createElement('button');
-                                  closeButton.className = 'absolute -top-2 -right-2 bg-white hover:bg-gray-100 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-colors';
-                                  closeButton.innerHTML = `
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  `;
-                                  closeButton.onclick = () => {
-                                    document.body.removeChild(modal);
-                                    document.body.style.overflow = 'auto';
-                                  };
-                                  
-                                  // Empêcher le scroll du body quand la modal est ouverte
-                                  document.body.style.overflow = 'hidden';
-                                  
-                                  imageContainer.appendChild(img);
-                                  imageContainer.appendChild(closeButton);
-                                  modal.appendChild(imageContainer);
-                                  document.body.appendChild(modal);
-                                }}
-                                onContextMenu={(e) => e.preventDefault()}
-                              />
-                            <div className="absolute inset-0 rounded-xl bg-black/20 transition-all duration-200 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-70 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              src={user.photo}
+                              alt={`${user.prenom} ${user.nom}`}
+                              className="w-12 h-12 rounded-xl object-cover cursor-pointer border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-105"
+                              onClick={() => setSelectedImage({ 
+                                src: user.photo, 
+                                alt: `${user.prenom} ${user.nom}` 
+                              })}
+                              onContextMenu={(e) => e.preventDefault()}
+                            />
+                            <div className="absolute inset-0 rounded-xl bg-black/20 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3-3H7" />
                               </svg>
                             </div>
