@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, ChangeEvent, Suspense } from 'react'
+import { useState, FormEvent, ChangeEvent, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User, Lock, Mail, Image, GraduationCap, Hash, CheckCircle2, AlertCircle } from 'lucide-react'
 
@@ -14,6 +14,32 @@ interface FormData {
   program: string
   classLevel: string
   photo: File | null
+}
+
+// Fonction pour obtenir l'année universitaire courante
+const getCurrentAcademicYear = (): string => {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1 // Janvier = 1
+  
+  // Une année universitaire va d'octobre (mois 10) à septembre (mois 9)
+  if (currentMonth >= 10) {
+    // Si on est entre octobre et décembre, année universitaire = année courante - année suivante
+    return `${currentYear}-${currentYear + 1}`
+  } else {
+    // Si on est entre janvier et septembre, année universitaire = année précédente - année courante
+    return `${currentYear - 1}-${currentYear}`
+  }
+}
+
+// Fonction pour générer le matricule complet
+const generateRegistrationNumber = (number: string, classLevel: string): string => {
+  if (!number || !classLevel) return ''
+  
+  const academicYear = getCurrentAcademicYear()
+  const prefix = classLevel.startsWith('L') ? 'LA' : 'MA'
+  
+  return `${number}/${prefix}/${academicYear}`
 }
 
 // Composant interne qui utilise useSearchParams
@@ -38,6 +64,26 @@ function RegisterContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [matriculeNumber, setMatriculeNumber] = useState('')
+  const [showFullMatricule, setShowFullMatricule] = useState(false)
+
+  // Effet pour mettre à jour le matricule complet quand le numéro ou le niveau change
+  useEffect(() => {
+    if (matriculeNumber && formData.classLevel) {
+      const fullMatricule = generateRegistrationNumber(matriculeNumber, formData.classLevel)
+      setFormData(prev => ({
+        ...prev,
+        registrationNumber: fullMatricule
+      }))
+      setShowFullMatricule(true)
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        registrationNumber: ''
+      }))
+      setShowFullMatricule(false)
+    }
+  }, [matriculeNumber, formData.classLevel])
 
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ message, type })
@@ -49,6 +95,23 @@ function RegisterContent() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }))
+  }
+
+  const handleMatriculeNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    
+    // Ne permettre que les chiffres
+    if (value === '' || /^\d+$/.test(value)) {
+      setMatriculeNumber(value)
+    }
+  }
+
+  const handleClassLevelChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    setFormData((prev) => ({
+      ...prev,
+      classLevel: value,
     }))
   }
 
@@ -73,6 +136,13 @@ function RegisterContent() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+
+    // Validation du matricule
+    if (!matriculeNumber || !formData.classLevel) {
+      showNotification('Veuillez remplir le numéro de matricule et sélectionner votre niveau', 'error')
+      setIsLoading(false)
+      return
+    }
 
     if (formData.password !== formData.passwordConfirm) {
       showNotification('Les mots de passe ne correspondent pas', 'error')
@@ -240,56 +310,8 @@ function RegisterContent() {
               </div>
             </div>
 
-            {/* Registration Number */}
-            <div className="group">
-              <label htmlFor="registrationNumber" className="block text-sm font-bold text-gray-700 mb-2">
-                Registration Number (matricule)*
-              </label>
-              <div className="relative">
-                <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-                <input
-                  id="registrationNumber"
-                  name="registrationNumber"
-                  type="text"
-                  required
-                  value={formData.registrationNumber}
-                  onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                  placeholder="ex: 00/LA/21-22"
-                />
-              </div>
-            </div>
-
-            {/* Program and Class Level */}
+            {/* Class Level and Registration Number */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="group">
-                <label htmlFor="program" className="block text-sm font-bold text-gray-700 mb-2">
-                  Program *
-                </label>
-                <div className="relative">
-                  <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors pointer-events-none z-10" />
-                  <select
-                    id="program"
-                    name="program"
-                    required
-                    value={formData.program}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
-                  >
-                    <option value="">Select Program</option>
-                    <option value="Common Core">Common Core</option>
-                    <option value="Artificial Intelligence">Artificial Intelligence</option>
-                    <option value="Network Administration">Administration Network</option>
-                    <option value="Software Engineering">Software Engineering</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
               <div className="group">
                 <label htmlFor="classLevel" className="block text-sm font-bold text-gray-700 mb-2">
                   Class Level *
@@ -301,7 +323,7 @@ function RegisterContent() {
                     name="classLevel"
                     required
                     value={formData.classLevel}
-                    onChange={handleChange}
+                    onChange={handleClassLevelChange}
                     className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
                   >
                     <option value="">Select Level</option>
@@ -316,6 +338,66 @@ function RegisterContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
+                </div>
+              </div>
+
+              <div className="group">
+                <label htmlFor="matriculeNumber" className="block text-sm font-bold text-gray-700 mb-2">
+                  Registration Number (matricule)*
+                </label>
+                <div className="relative">
+                  <Hash className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    id="matriculeNumber"
+                    name="matriculeNumber"
+                    type="text"
+                    required
+                    value={matriculeNumber}
+                    onChange={handleMatriculeNumberChange}
+                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    placeholder="Enter numbers only (ex: 90)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {showFullMatricule && (
+              <div className="mt-2 px-3 py-2 bg-indigo-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-neurtal-400 font-medium">
+                Your registration number : <span className="font-bold">{formData.registrationNumber}</span>
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Format: {formData.classLevel.startsWith('L') ? 'LA' : 'MA'} for {formData.classLevel}
+                </p>
+              </div>
+            )}
+            {/* Program */}
+            <div className="group">
+              <label htmlFor="program" className="block text-sm font-bold text-gray-700 mb-2">
+                Program *
+              </label>
+              <div className="relative">
+                <GraduationCap className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors pointer-events-none z-10" />
+                <select
+                  id="program"
+                  name="program"
+                  required
+                  value={formData.program}
+                  onChange={handleChange}
+                  className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white appearance-none cursor-pointer"
+                >
+                  <option value="">Select Program</option>
+                  <option value="Common Core">Common Core</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Network Administration">Administration Network</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                </select>
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
             </div>
