@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -114,6 +115,9 @@ export default function ChallengesPage() {
           <h1 className="text-3xl font-bold text-blue-950 mb-2">Challenges List</h1>
           <p className="text-gray-600">Test your skills with these coding challenges</p>
         </div> 
+        <div className="">
+          <Link href={'/members/leaderBoard'} className="font-semibold mt-3 lg:mt-0 text-white py-2 px-4  text-xs flex gap-2 items-center border rounded-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg hover:shadow transition-all duration-300"> View the leaderboard <Star className="w-4 h-4 text-amber-400"/></Link>
+        </div>
       </div>
 
       {/* Filters */}
