@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server'
 
 const protectedRoutes = ['/members', ]
-const publicRoutes = ['/login', '/register', '/']
-const authRoutes = ['/login', '/register']
+const publicRoutes = ['/login', '/register', '/', '/reset-password']
+const authRoutes = ['/login', '/register', '/reset-password']
 
 // Rate limiting simple
 const rateLimitMap = new Map()
