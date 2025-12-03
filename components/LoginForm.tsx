@@ -181,14 +181,13 @@ export default function LoginForm() {
 
           {/* Register Link */}
           <div className="mt-8 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-600 flex flex-col">
               Don't hava an account ?{' '}
-              <button
-                onClick={handleRegisterRedirect}
-                className="font-bold text-blue-600 hover:text-purple-600 transition-colors duration-200 underline-offset-4 hover:underline"
+              <span
+                className="font-bold text-blue-600"
               >
                 Please contact the staff member
-              </button>
+              </span>
             </p>
           </div>
         </div>
