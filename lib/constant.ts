@@ -1,12 +1,12 @@
 import { Jacquard_12 } from "next/font/google";
 
 export const Languages_version = {
-    javascript: "18.15.0",
+    // javascript: "18.15.0",
     python: "3.11.5",
-    java: "21",
-    php: "8.2",
-    c: "11",
-    r: "4.3.1",
+    // java: "21",
+    // php: "8.2",
+    // c: "11",
+    // r: "4.3.1",
 }
 
 export const CODE_SNIPPETS: Record<string, string> = {

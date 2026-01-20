@@ -247,12 +247,12 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                         </SelectTrigger>
                         <SelectContent className="text-white">
                             <SelectGroup className="bg-gray-800">
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="javascript">Javascript</SelectItem>
+                                {/* <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="javascript">Javascript</SelectItem> */}
                                 <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="python">python 3</SelectItem>
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="java">Java</SelectItem>
+                                {/* <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="java">Java</SelectItem>
                                 <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="php">Php</SelectItem>
                                 <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="c">C</SelectItem>
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="r">R</SelectItem>
+                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="r">R</SelectItem> */}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
