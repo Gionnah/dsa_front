@@ -142,7 +142,23 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
 
     const handleInviteMember = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Inviting member:", memberEmail);
+        if (memberEmail)
+        {
+            const data  = fetch('/api/contests/' + details.id + '/teams/' + listTeam?.team_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    user_email: memberEmail,
+                })
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("ok:", data);
+                setMemberEmail('');
+            })
+            .catch((error) => {
+                console.error("Error invitation:", error);
+            });
+        }
     };
 
     const showChallenges = details.is_ongoing || details.is_finished;
@@ -171,7 +187,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     };
 
     const deleteTeam = async () => {
-        const del = await fetch('/api/contests/' + details.id + '/teams', {
+        const del = await fetch('/api/contests/' + details.id + '/teams/' + listTeam?.team_id, {
             method: "DELETE",
             body: JSON.stringify({
                 id: details.id
