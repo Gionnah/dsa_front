@@ -66,6 +66,7 @@ function formatDuration(ms: number) {
 export default function ContestPage({ contestData, teamData }: { contestData: ContestData, teamData: any }) {
     const { details, challenges, leaderboard } = contestData;
     const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+    const [showPopupDelete, setShowPopupDelete] = useState(false);
     const [showManageTeam, setShowManageTeam] = useState(false);
     const [teamName, setTeamName] = useState<string>("");
     const [memberEmail, setMemberEmail] = useState<string>("");
@@ -294,7 +295,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                             <div className="sticky top-0 bg-linear-to-r from-emerald-600 to-teal-600 text-white p-6 shadow-lg">
                                 <button 
                                     onClick={toggleManageTeam}
-                                    className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                                    className="absolute cursor-pointer top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -330,7 +331,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                                             </div>
                                             <button 
                                                 onClick={handleInviteMember}
-                                                className="w-full py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                                                className={`${memberEmail ? 'cursor-pointer' : 'cursor-not-allowed'} w-full py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all`}
                                             >
                                                 Send Invitation
                                             </button>
@@ -352,7 +353,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                                                 <div key={member.id} className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                          <div
-                                                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-linear-to-br ${getUserColor(member.id)} flex items-center justify-center font-bold text-white shadow-sm text-base md:text-lg flex-shrink-0`}
+                                                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-linear-to-br ${getUserColor(member.id)} flex items-center justify-center font-bold text-white shadow-sm text-base md:text-lg shrink-0`}
                                                         >
                                                             {member.prenom?.charAt(0) && member.nom?.charAt(0) 
                                                             ? `${member.prenom.charAt(0)}${member.nom.charAt(0)}` 
@@ -380,7 +381,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                             {/* Action Buttons */}
                             { teamData?.dataTeam?.is_captain ?
                                 <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex gap-3">
-                                    <button onClick={deleteTeam} className="flex-1 py-3 bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <button onClick={() => setShowPopupDelete(true)} className="flex-1 py-3 bg-linear-to-r cursor-pointer from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
                                         <Trash2 className="w-4 h-4" />
                                         Delete
                                     </button>
@@ -390,7 +391,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                                     </button>
                                 </div> :
                                 <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex gap-3">
-                                    <button className="flex-1 py-3 bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <button className="flex-1 py-3 cursor-not-allowed bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
                                         <X className="w-4 h-4" />
                                         Leave this team
                                     </button>
@@ -400,13 +401,28 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                         </div>
                     </div>
                 )}
+                
+                 {showPopupDelete && <div className='fixed top-0 left-0 h-screen w-full bg-black/60 z-50'>
+                    <div className="w-full h-full flex items-center justify-center">
+                        <div className="bg-white popup text-neutral-800 text-sm max-w-lg rounded-xl shadow-black shadow-2xl p-4">
+                            <h1 className='text-amber-500 text-lg text-center font-semibold'>Warning !</h1>
+                            <p className='text-center'>This action will unregister you from the contest as well as all the team members.</p> 
+                            <p><span className='font-bold text-black text-lg'>Note:</span> You can create a new team or join an existing team only before the contest starts.</p>
+                            <div className="flex w-full items-center gap-2 mt-3">
+                                <button onClick={() => setShowPopupDelete(!showPopupDelete)} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg border border-gray-200'>No, cancel </button>    
+                                <button onClick={deleteTeam} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-teal-500  hover:bg-teal-600 rounded-lg border border-gray-200'>Yes, delete</button>    
+                            </div>                
+                        </div>
+                    </div>
+                </div>}
+
 
                 {/* Action Button */}
                 <div className="flex justify-end">
                     {!teamData?.dataTeam?.is_member  ? (
                         <button 
                             onClick={toggleCreateTeamModal} 
-                            className="py-3 px-6 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                            className="py-3 px-6 cursor-pointer bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
                         >
                             <Users className="w-5 h-5" />
                             Create Team
@@ -414,7 +430,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                     ) : (
                         <button 
                             onClick={toggleManageTeam} 
-                            className="py-3 px-6 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                            className="py-3 px-6 cursor-pointer bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
                         >
                             <Users className="w-5 h-5" />
                             {!teamData?.dataTeam?.is_captain ? 'Manage Team': 'View Team'}
