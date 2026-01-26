@@ -7,7 +7,7 @@ const authRoutes = ['/login', '/register', '/reset-password']
 // Rate limiting simple
 const rateLimitMap = new Map()
 const RATE_LIMIT = {
-  max: 100, // 100 requêtes
+  max: 10000000000, // 100 requêtes
   window: 900000, // 15 minutes
 }
 
