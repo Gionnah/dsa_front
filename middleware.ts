@@ -18,12 +18,12 @@ export async function middleware(req: NextRequest) {
   const ip = getClientIP(req)
   
   // === 2. RATE LIMITING (seulement pour les routes critiques) ===
-  if (isRateLimitRoute(pathname)) {
-    if (!await checkRateLimit(ip)) {
-      console.log(`[RATE LIMIT] IP: ${ip} - Path: ${pathname}`)
-      return new Response('Too Many Requests', { status: 429 })
-    }
-  }
+  // if (isRateLimitRoute(pathname)) {
+  //   if (!await checkRateLimit(ip)) {
+  //     console.log(`[RATE LIMIT] IP: ${ip} - Path: ${pathname}`)
+  //     return new Response('Too Many Requests', { status: 429 })
+  //   }
+  // }
 
   // === 3. SÉCURITÉ HEADERS ===
   const response = NextResponse.next()
