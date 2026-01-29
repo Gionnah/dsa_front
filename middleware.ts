@@ -121,7 +121,7 @@ async function checkRateLimit(ip: string): Promise<boolean> {
   }
 
   validRequests.push(now)
-  return true
+  return false
 }
 
 function redirectToLogin(req: NextRequest, originalPath: string): NextResponse {
