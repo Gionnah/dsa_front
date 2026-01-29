@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
     const dataChallenge = await resChallenge.json();
 
-    if (dataChallenge.in_contest === "MULTI_FILE") {
+    if (dataChallenge.in_contest) {
         const res = await fetch(`${process.env.API_URL}/challenges/${slug}/submit/`, {
             method: "POST",
             headers: {
