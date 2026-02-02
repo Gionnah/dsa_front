@@ -113,7 +113,7 @@ export default function Dashboard() {
 
     const getUserAvatar = () => {
         if (userDetails?.stat?.user?.photo) {
-            return userDetails.stat.user.photo;
+            return `${userDetails.api_url}${userDetails.stat.user.photo}`;
         }
         return null;
     };

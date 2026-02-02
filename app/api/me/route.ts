@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ok: ''}, {status: 500})
     const stat = await result.json();
     const challenges = await challengesList.json();
-    return NextResponse.json({ok: 'ok', stat, challenges}, {status: 200});
+    return NextResponse.json({ok: 'ok', stat, challenges, api_url: process.env.API_URL?.split('/api')[0] || ''}, {status: 200});
 }

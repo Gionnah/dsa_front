@@ -69,6 +69,7 @@ export default function GetUserPage() {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+    const [apiUrl, setApiUrl] = useState<string>('');
 
     const getUserData = async () => {
         try {
@@ -76,7 +77,8 @@ export default function GetUserPage() {
                 method: 'GET'
             });
             const data = await response.json();
-            setUserData(data);
+            setUserData(data.data);
+            setApiUrl(data.api_url);
         } catch (error) {
             console.error('Error fetching user data:', error);
         } finally {
@@ -162,12 +164,12 @@ export default function GetUserPage() {
                                     <div 
                                         className="relative group cursor-pointer"
                                         onClick={() => setSelectedImage({ 
-                                            src: user.photo, 
+                                            src: `${apiUrl}${user.photo}`, 
                                             alt: getUserFullName()
                                         })}
                                     >
                                         <img
-                                            src={user.photo}
+                                            src={`${apiUrl}${user.photo}`}
                                             alt={getUserFullName()}
                                             className="w-16 h-16 md:w-26 md:h-26 rounded-full object-cover border-4 border-white shadow-md transition-transform duration-200 group-hover:scale-110"
                                             onContextMenu={(e) => e.preventDefault()}

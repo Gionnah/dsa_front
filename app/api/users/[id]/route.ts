@@ -18,5 +18,5 @@ export async function GET(
     });
     
     const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json({data, api_url: process.env.API_URL?.split('/api')[0] || ''});
 }

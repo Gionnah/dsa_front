@@ -334,7 +334,7 @@ export default function UsersPage() {
                             })}
                           >
                             <img
-                              src={user.photo}
+                              src={`${apiUrl}${user.photo}`}
                               alt={`${user.prenom} ${user.nom}`}
                               className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110"
                               onContextMenu={(e) => e.preventDefault()}
