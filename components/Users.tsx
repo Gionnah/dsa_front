@@ -65,6 +65,7 @@ export default function UsersPage() {
   const [usersData, setUsersData] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [invitationUrl, setInvitationUrl] = useState("");
+  const [apiUrl, setApiUrl] = useState("");
   const [showCopied, setShowCopied] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
@@ -94,7 +95,8 @@ export default function UsersPage() {
     try {
       const response = await fetch("/api/users");
       const data = await response.json();
-      setUsersData(data);
+      setUsersData(data?.data);
+      setApiUrl(data?.api_url);
     } catch (error) {
       console.error("Error loading users:", error);
     } finally {
@@ -327,7 +329,7 @@ export default function UsersPage() {
                           <div 
                             className="relative group cursor-pointer flex-shrink-0"
                             onClick={() => setSelectedImage({ 
-                              src: user.photo, 
+                              src: `${apiUrl}${user.photo}`, 
                               alt: `${user.prenom} ${user.nom}` 
                             })}
                           >

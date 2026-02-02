@@ -1,4 +1,4 @@
-// /api/submit/route.ts
+// /api/challenges/[slug]/submit/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,7 +19,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
     const dataChallenge = await resChallenge.json();
 
-    console.log(dataChallenge)
     if (!dataChallenge.in_contest) {
         const res = await fetch(`${process.env.API_URL}/challenges/${slug}/submit/`, {
             method: "POST",

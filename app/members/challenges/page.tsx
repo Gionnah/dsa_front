@@ -6,7 +6,7 @@ export default function Challenges() {
   return (
     <div>
         <HomeLayout>
-            <div className="m-4 bg-white shadow-2xl rounded-lg">
+            <div className="m-4">
                 <ChallengesPage />
             </div>
         </HomeLayout>

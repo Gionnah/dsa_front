@@ -89,7 +89,7 @@ const CodingEventsPage = ({ events }: any) => {
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`px-6 py-2.5 font-bold transition-all text-sm rounded-lg ${
+                  className={`px-6 py-2.5 font-bold transition-all text-sm rounded-lg cursor-pointer ${
                     filterStatus === status
                       ? 'bg-white text-blue-600 shadow-lg scale-105'
                       : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
@@ -104,19 +104,19 @@ const CodingEventsPage = ({ events }: any) => {
       </div>
 
       {/* Events Timeline */}
-      <div className="w-full p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="w-full p-4 md:p-6">
+        <div className="mx-auto">
           {/* Timeline Container */}
           <div className="relative">
             {/* Timeline Vertical Line */}
-            <div className="absolute left-8 top-0 bottom-0 w-1 bg-linear-to-b from-blue-400 via-purple-400 to-pink-400 rounded-full"></div>
+            <div className="absolute left-4 top-0 bottom-0 w-1 bg-linear-to-b from-blue-400 via-purple-400 to-pink-400 rounded-full"></div>
             
             {/* Events List */}
             <div className="space-y-8">
               {sortedEvents.map((event, index) => (
                 <div key={event.id} className="relative">
                   {/* Timeline Marker */}
-                  <div className={`absolute left-8 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white shadow-lg z-10 ${
+                  <div className={`absolute left-4 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white shadow-lg z-10 ${
                     event.statut === 'upcoming' 
                       ? 'bg-linear-to-br from-blue-500 to-blue-600' 
                       : event.statut === 'ongoing'
@@ -125,8 +125,8 @@ const CodingEventsPage = ({ events }: any) => {
                   }`}></div>
 
                   {/* Event Card */}
-                  <div className="ml-20">
-                    <div className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                  <div className="ml-12">
+                    <div className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 hover:-translate-y-1">
                       <div className="md:flex">
                         {/* Image on Left */}
                         <div className="md:w-1/3 relative">
@@ -162,7 +162,7 @@ const CodingEventsPage = ({ events }: any) => {
                         </div>
 
                         {/* Content on Right */}
-                        <div className="md:w-2/3 p-6">
+                        <div className="md:w-2/3 p-4">
                           <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                             {event.title}
                           </h3>
