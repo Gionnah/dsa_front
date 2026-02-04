@@ -11,7 +11,6 @@ export default function ChallengesPage() {
   const [difficultyFilter, setDifficultyFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
-  const [activeDifficulty, setActiveDifficulty] = useState<string | null>(null);
 
   const getChallenges = async () => {
     try {
@@ -255,7 +254,7 @@ export default function ChallengesPage() {
                   <Link 
                     href={`/members/challenges/${challenge.id}`}
                     key={challenge.id}
-                    className={`group relative bg-linear-to-br from-white to-gray-50  ${getCardBorder(challenge.difficulty)} rounded-md p-6 hover:-translate-y-2 transition-all duration-300 shadow-sm hover:shadow-xl`}
+                    className={`relative bg-linear-to-br from-white to-gray-50  ${getCardBorder(challenge.difficulty)} rounded-md p-6 hover:scale-101 transition-all duration-300 shadow-sm hover:shadow-xl`}
                   >
                     {/* Card Glow Effect */}
                     <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/0 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -274,7 +273,7 @@ export default function ChallengesPage() {
                               challenge.difficulty === "medium" ? "🔥" : "⚡"}
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                              <h3 className="text-xl font-bold text-gray-900">
                                 {challenge.title}
                               </h3>
                               <div className="flex items-center gap-3 mt-1">

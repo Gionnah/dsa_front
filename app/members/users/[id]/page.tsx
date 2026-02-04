@@ -164,12 +164,12 @@ export default function GetUserPage() {
                                     <div 
                                         className="relative group cursor-pointer"
                                         onClick={() => setSelectedImage({ 
-                                            src: `${apiUrl}${user.photo}`, 
+                                            src: `${user.photo}`, 
                                             alt: getUserFullName()
                                         })}
                                     >
                                         <img
-                                            src={`${apiUrl}${user.photo}`}
+                                            src={`${user.photo}`}
                                             alt={getUserFullName()}
                                             className="w-16 h-16 md:w-26 md:h-26 rounded-full object-cover border-4 border-white shadow-md transition-transform duration-200 group-hover:scale-110"
                                             onContextMenu={(e) => e.preventDefault()}
