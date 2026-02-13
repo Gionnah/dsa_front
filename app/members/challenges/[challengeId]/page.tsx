@@ -1,62 +1,163 @@
 "use client"
 import HomeLayout from '@/components/layout/HomeLayout'
 import Link from 'next/link'
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
+import { Loader2, FileText, Users, Calendar, Trophy, Code, CheckCircle, Clock, Download, ExternalLink, Zap, Target, Award, ArrowRight, Play } from 'lucide-react';
 
 export default function OneChallenge() {
+    const router = useRouter();
     const { challengeId } = useParams<{challengeId: string}>();
     const [challengeData, setChallengesData] = useState<any>([]);
     const [isJoin, setIsJoin] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<'description' | 'tests'>('description');
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isJoining, setIsJoining] = useState<boolean>(false);
+    const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+    const [hasPDF, setHasPDF] = useState<boolean>(false);
+    const [pdfUrl, setPdfUrl] = useState<string>('');
 
     const getChallenges = async () => {
-        const response = await fetch(`/api/challenges/${challengeId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = await response.json();
-        setChallengesData(data);
-        setIsJoin(data.join || false);
+        try {
+            setIsLoading(true);
+            const response = await fetch(`/api/challenges/${challengeId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            setChallengesData(data);
+            setIsJoin(data.join || false);
+            
+            // Check if there's a PDF file
+            if (data.pdf_url) {
+                setHasPDF(true);
+                setPdfUrl(data.pdf_url);
+            }
+        } catch (error) {
+            console.error('Error fetching challenge:', error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const joinChallenge = async () => {
-        const response = await fetch(`/api/challenges/${challengeId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = await response.json();
-        setIsJoin(data.message || false)
+        try {
+            setIsJoining(true);
+            const response = await fetch(`/api/challenges/${challengeId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await response.json();
+            setIsJoin(data.message || false);
+        } catch (error) {
+            console.error('Error joining challenge:', error);
+        } finally {
+            setIsJoining(false);
+        }
+    }
+
+    const handleGoToEditor = () => {
+        setIsRedirecting(true);
+        setTimeout(() => {
+            router.push(`/members/editor/${challengeData.id}`);
+        }, 500);
     }
 
     useEffect(() => {
         getChallenges();
-    }, [isJoin])
+    }, [])
+
+    // Redirecting Loader
+    if (isRedirecting) {
+        return (
+            <HomeLayout>
+                <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                    <div className="text-center">
+                        <div className="relative mb-8">
+                            <div className="w-32 h-32 rounded-full bg-indigo-100 animate-pulse mx-auto"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="relative">
+                                    <Loader2 className="w-16 h-16 animate-spin text-indigo-600" />
+                                    <Code className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-indigo-700" />
+                                </div>
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                            Opening Editor
+                        </h2>
+                        <p className="text-gray-600 mb-6">Preparing your coding environment...</p>
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                        <div className="w-64 h-1.5 bg-gray-200 rounded-full overflow-hidden mx-auto">
+                            <div className="h-full bg-indigo-600 rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
+                        </div>
+                    </div>
+                </div>
+            </HomeLayout>
+        );
+    }
     
+    // Initial Loading
+    if (isLoading) {
+        return (
+            <HomeLayout>
+                <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                    <div className="text-center">
+                        <div className="relative mb-8">
+                            <div className="w-24 h-24 rounded-full bg-indigo-100 animate-pulse mx-auto"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+                            </div>
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Challenge</h2>
+                        <p className="text-gray-600 text-sm">Please wait...</p>
+                        <div className="w-48 h-1.5 bg-gray-200 rounded-full mt-6 overflow-hidden mx-auto">
+                            <div className="h-full bg-indigo-600 rounded-full animate-[loading_2s_ease-in-out_infinite]"></div>
+                        </div>
+                    </div>
+                </div>
+            </HomeLayout>
+        );
+    }
+
+    // 404 Error
     if (challengeData?.details) {   
         return (
-        <HomeLayout>
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-center">
-                    <h1 className="text-6xl font-bold text-gray-300">404</h1>
-                    <p className="text-gray-600 mt-2">Challenge not found</p>
+            <HomeLayout>
+                <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                    <div className="text-center bg-white rounded-2xl shadow-lg border border-gray-200 p-12 max-w-md">
+                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-5xl font-bold text-gray-400 mb-2">404</h1>
+                        <p className="text-gray-900 text-lg font-medium mb-2">Challenge not found</p>
+                        <p className="text-gray-500 text-sm mb-8">The challenge you're looking for doesn't exist or has been removed.</p>
+                        <Link 
+                            href="/members/challenges" 
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors duration-200"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back to Challenges
+                        </Link>
+                    </div>
                 </div>
-            </div>
-        </HomeLayout>
+            </HomeLayout>
         );
     }
 
     const getDifficultyIcon = (difficulty: string) => {
-        const icon = (
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
-            </svg>
-        );
-
+        const icon = <Zap className="w-4 h-4" />;
         switch(difficulty) {
             case "easy":
                 return <div className="flex gap-0.5">{icon}</div>;
@@ -72,77 +173,91 @@ export default function OneChallenge() {
     const getDifficultyColor = (difficulty: string) => {
         switch(difficulty) {
             case "easy":
-                return "text-emerald-600 bg-emerald-50 border-emerald-200";
+                return "text-emerald-700 bg-emerald-50 border-emerald-200";
             case "medium":
-                return "text-amber-600 bg-amber-50 border-amber-200";
+                return "text-amber-700 bg-amber-50 border-amber-200";
             case "hard":
-                return "text-rose-600 bg-rose-50 border-rose-200";
+                return "text-rose-700 bg-rose-50 border-rose-200";
             default:
-                return "text-gray-600 bg-gray-50 border-gray-200";
+                return "text-gray-700 bg-gray-50 border-gray-200";
         }
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen bg-gray-50">
             <HomeLayout>
                 {/* Header Section */}
-                <div className="bg-white border-b border-gray-200 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-6 py-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-6">
+                <div className="bg-white border-b border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                            <div className="flex items-start gap-6">
                                 {/* Icon */}
-                                <div className="w-20 h-20 rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <div className="w-16 h-16 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
                                     <img 
-                                        className="w-12 h-12 object-contain" 
+                                        className="w-10 h-10 object-contain" 
                                         src="/golden_challenge.png" 
                                         alt="Challenge Icon"
                                     />
                                 </div>
                                 
                                 {/* Info */}
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                <div className="flex-1">
+                                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
                                         {challengeData?.title}
                                     </h1>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-wrap items-center gap-3">
                                         {/* Difficulty Badge */}
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${getDifficultyColor(challengeData.difficulty)}`}>
+                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border ${getDifficultyColor(challengeData.difficulty)}`}>
                                             {getDifficultyIcon(challengeData.difficulty)}
                                             <span className="capitalize">{challengeData.difficulty}</span>
                                         </div>
                                         
                                         {/* XP Reward */}
-                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-sm font-medium border border-amber-200">
-                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            <span>{challengeData?.xp_reward} XP</span>
+                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm font-semibold border border-amber-200">
+                                            <Trophy className="w-4 h-4" />
+                                            <span>{challengeData?.xp_reward || 100} XP</span>
                                         </div>
+
+                                        {/* Status Badge if joined */}
+                                        {isJoin && (
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold border border-emerald-200">
+                                                <CheckCircle className="w-4 h-4" />
+                                                <span>Enrolled</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Action Button */}
-                            <div>
+                            <div className="flex-shrink-0">
                                 {isJoin ? (
-                                    <Link 
-                                        href={`/members/editor/${challengeData.id}`} 
-                                        className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                    <button 
+                                        onClick={handleGoToEditor}
+                                        disabled={isRedirecting}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                                        </svg>
-                                        Go to editor
-                                    </Link>
+                                        <Code className="w-5 h-5" />
+                                        <span>Go to Editor</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
                                 ) : (
                                     <button 
-                                        onClick={joinChallenge} 
-                                        className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                        onClick={joinChallenge}
+                                        disabled={isJoining}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                        Join challenge
+                                        {isJoining ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <span>Joining...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Target className="w-5 h-5" />
+                                                <span>Join Challenge</span>
+                                            </>
+                                        )}
                                     </button>
                                 )}
                             </div>
@@ -151,111 +266,155 @@ export default function OneChallenge() {
                 </div>
 
                 {/* Content Section */}
-                <div className="max-w-7xl mx-auto px-6 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column - Description & Tests */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Tab Navigation */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => setActiveTab('description')}
-                                        className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
                                             activeTab === 'description' 
                                             ? 'bg-indigo-600 text-white shadow-sm' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                         }`}
                                     >
-                                        Description
+                                        <div className="flex items-center justify-center gap-2">
+                                            <FileText className="w-4 h-4" />
+                                            Description
+                                        </div>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('tests')}
-                                        className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
                                             activeTab === 'tests' 
                                             ? 'bg-indigo-600 text-white shadow-sm' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                         }`}
                                     >
-                                        Tests
+                                        <div className="flex items-center justify-center gap-2">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Tests ({challengeData?.test_cases?.length || 0})
+                                        </div>
                                     </button>
                                 </div>
                             </div>
 
                             {/* Content based on active tab */}
                             {activeTab === 'description' ? (
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                                        Description
-                                    </h2>
-                                    <div className="prose prose-gray max-w-none">
-                                        <div className="text-gray-700 leading-relaxed space-y-4">
-                                            {challengeData?.description?.split('##').map((section: string, index: number) => {
-                                                if (index === 0) return (
-                                                    <p key={index} className="text-gray-800 text-lg">
-                                                        {section.trim()}
-                                                    </p>
-                                                );
-                                                
-                                                const [title, ...content] = section.split('\n');
-                                                return (
-                                                    <div key={index} className="mt-6">
-                                                        <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                                                            {title.trim()}
-                                                        </h3>
-                                                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500">
-                                                            {content.map((line, lineIndex) => (
-                                                                <p key={lineIndex} className="text-gray-700 mb-2 last:mb-0">
-                                                                    {line.trim()}
-                                                                </p>
-                                                            ))}
+                                <div className="space-y-6">
+                                    {/* PDF Viewer if available */}
+                                    {hasPDF && (
+                                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                                        <FileText className="w-5 h-5 text-indigo-600" />
+                                                        Challenge Document
+                                                    </h3>
+                                                    <a 
+                                                        href={pdfUrl} 
+                                                        download 
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200"
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                        Download PDF
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-gray-50">
+                                                <iframe
+                                                    src={pdfUrl}
+                                                    className="w-full h-[700px] rounded-lg border border-gray-300"
+                                                    title="Challenge PDF"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Description */}
+                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                                        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                                <FileText className="w-5 h-5 text-indigo-600" />
+                                            </div>
+                                            Description
+                                        </h2>
+                                        <div className="prose prose-gray max-w-none">
+                                            <div className="text-gray-700 leading-relaxed space-y-6">
+                                                {challengeData?.description?.split('##').map((section: string, index: number) => {
+                                                    if (index === 0) return (
+                                                        <p key={index} className="text-gray-800 text-lg leading-relaxed">
+                                                            {section.trim()}
+                                                        </p>
+                                                    );
+                                                    
+                                                    const [title, ...content] = section.split('\n');
+                                                    return (
+                                                        <div key={index} className="mt-8">
+                                                            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                                                                {title.trim()}
+                                                            </h3>
+                                                            <div className="bg-gray-50 rounded-lg p-5 border-l-4 border-indigo-600">
+                                                                {content.map((line, lineIndex) => (
+                                                                    <p key={lineIndex} className="text-gray-700 mb-3 last:mb-0 leading-relaxed">
+                                                                        {line.trim()}
+                                                                    </p>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                            <CheckCircle className="w-5 h-5 text-emerald-600" />
+                                        </div>
                                         Test Cases
                                     </h2>
                                     
-                                    <div className="space-y-4">
+                                    <div className="space-y-5">
                                         {challengeData?.test_cases?.map((testCase: any, index: number) => (
                                             <div 
                                                 key={testCase.id} 
-                                                className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all duration-200"
+                                                className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
                                             >
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                                                        <span className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                <div className="flex items-center justify-between mb-5">
+                                                    <h4 className="font-semibold text-gray-900 flex items-center gap-3">
+                                                        <span className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm font-bold">
                                                             {index + 1}
                                                         </span>
-                                                        Test Case {index + 1}
+                                                        <span className="text-lg">Test Case {index + 1}</span>
                                                     </h4>
                                                     {testCase.is_sample && (
-                                                        <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full border border-amber-200">
+                                                        <span className="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-lg border border-amber-200">
                                                             Example
                                                         </span>
                                                     )}
                                                 </div>
                                                 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                                            <span className="text-lg">📥</span> Input
+                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                            <span className="text-base">📥</span> Input
                                                         </label>
-                                                        <div className="bg-white rounded-md p-3 font-mono text-sm text-gray-800 min-h-[60px] border border-gray-200 whitespace-pre-wrap">
+                                                        <div className="bg-white rounded-lg p-4 font-mono text-sm text-gray-800 min-h-[80px] border border-gray-200 whitespace-pre-wrap">
                                                             {testCase.input_content || "No input data"}
                                                         </div>
                                                     </div>
                                                     
                                                     <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                                                            <span className="text-lg">📤</span> Expected Output
+                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                            <span className="text-base">📤</span> Expected Output
                                                         </label>
-                                                        <div className="bg-white rounded-md p-3 font-mono text-sm text-gray-800 min-h-[60px] border border-gray-200 whitespace-pre-wrap">
+                                                        <div className="bg-white rounded-lg p-4 font-mono text-sm text-gray-800 min-h-[80px] border border-gray-200 whitespace-pre-wrap">
                                                             {testCase.output_content || "No output data"}
                                                         </div>
                                                     </div>
@@ -270,53 +429,86 @@ export default function OneChallenge() {
                         {/* Right Column - Stats */}
                         <div className="space-y-6">
                             {/* Participants Card */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
+                                        <Users className="w-5 h-5 text-indigo-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-gray-900">
                                         Participants
                                     </h3>
                                 </div>
-                                <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-100">
-                                    <p className="text-3xl font-bold text-indigo-600">
+                                <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-100">
+                                    <p className="text-4xl font-bold text-indigo-600">
                                         {challengeData?.participants_count || 0}
                                     </p>
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-gray-600 mt-2 font-medium">
                                         challengers enrolled
                                     </p>
                                 </div>
                             </div>
                             
                             {/* Created At Card */}
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
+                                        <Calendar className="w-5 h-5 text-emerald-600" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-gray-900">
                                         Created
                                     </h3>
                                 </div>
-                                <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-100">
-                                    <p className="text-xl font-semibold text-emerald-700">
+                                <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100">
+                                    <p className="text-lg font-semibold text-emerald-700">
                                         {new Date(challengeData?.created_at).toLocaleDateString('en-US', { 
                                             year: 'numeric', 
                                             month: 'long', 
                                             day: 'numeric' 
                                         })}
                                     </p>
+                                    <p className="text-sm text-gray-600 mt-2 font-medium flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        {new Date(challengeData?.created_at).toLocaleTimeString('en-US', { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                        })}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Stats Summary Card */}
+                            <div className="bg-indigo-600 rounded-xl shadow-lg p-6 text-white">
+                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Trophy className="w-5 h-5" />
+                                    Quick Stats
+                                </h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+                                        <span className="text-sm font-medium">Difficulty</span>
+                                        <span className="text-sm font-semibold capitalize">{challengeData?.difficulty}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+                                        <span className="text-sm font-medium">Test Cases</span>
+                                        <span className="text-sm font-semibold">{challengeData?.test_cases?.length || 0}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+                                        <span className="text-sm font-medium">XP Reward</span>
+                                        <span className="text-sm font-semibold">{challengeData?.xp_reward || 100} XP</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </HomeLayout>
+
+            <style jsx>{`
+                @keyframes loading {
+                    0% { width: 0%; }
+                    50% { width: 100%; }
+                    100% { width: 0%; }
+                }
+            `}</style>
         </div>
     )
 }
