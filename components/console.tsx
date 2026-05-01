@@ -1,331 +1,358 @@
-import { ArrowBigDownDash, CloudCheck, File, Play } from 'lucide-react'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+"use client"
+import { useState, useEffect, useRef } from 'react';
 import { CODE_SNIPPETS } from '@/lib/constant';
-import AnimatedList from './AnimatedList';
-import { useState, useEffect } from 'react';
 import InstructionsDrawer from './InstructionsDrawer';
 
-export default function Console({error, code, id, output, loading, loadingSubmit, submitCode, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave, }: {
-    error: string, 
-    submitCode: (code: string, id: string) => void,
-    output: string, 
-    id: string
-    loading: boolean, 
-    loadingSubmit: boolean,
-    code: string,
-    runCode: () => void,
-    setLanguage: (lang: string) => void, 
-    setValue: (code: string) => void, 
-    challengeData: any, 
-    runSingleTest: (id: number) => void, 
-    runAllTest: () => void, 
-    resTest: any,
-    activeMode: 'code' | 'test',
-    onSave: () => void,
-    loadingSave: boolean,
+// ─── tiny icon helpers ────────────────────────────────────────────────────────
+const Icon = ({ d, size = 13, stroke = '#555', fill = 'none', sw = 1.5 }: { d: string; size?: number; stroke?: string; fill?: string; sw?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+        <path d={d} />
+    </svg>
+);
+
+const PlayIcon = ({ color = '#555' }) => (
+    <svg width={12} height={12} viewBox="0 0 24 24" fill={color} stroke="none"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+);
+
+// Console color palette (distinct from editor's #161b22 blue-dark)
+const C = {
+    bg:         '#0f1117',   // console bg — warmer, slightly lighter than editor
+    surface:    '#171c26',   // panels, rows
+    border:     '#252d3d',
+    borderSoft: '#1e2535',
+    text:       '#8892a4',
+    textDim:    '#3d4a60',
+    textFaint:  '#2a3347',
+    teal:       '#2dd4bf',
+    tealDim:    '#134e4a',
+    amber:      '#f59e0b',
+    amberDim:   '#78350f',
+    green:      '#22c55e',
+    red:        '#ef4444',
+};
+
+// ─── Test row ─────────────────────────────────────────────────────────────────
+function TestRow({ index, item, isSelected, onClick, result }: {
+    index: number; item: number; isSelected: boolean;
+    onClick: () => void; result: any;
 }) {
-    const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
-    const [selectedTestIndex, setSelectedTestIndex] = useState<number>(-1);
-    const [showPopupSubmit, setShowPopupSubmit] = useState<boolean>(false);
-    const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-
-    // Gestionnaire de popup éphémère
-    useEffect(() => {
-        if (popup) {
-            const timer = setTimeout(() => {
-                setPopup(null);
-            }, 3000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [popup]);
-
-    const showPopup = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-        setPopup({ message, type });
-    };
-
-    // Styles pour les différents types de popup
-    const getPopupStyles = (type: string) => {
-        switch (type) {
-            case 'success':
-                return 'bg-green-500 border-green-600';
-            case 'error':
-                return 'bg-red-500 border-red-600';
-            case 'info':
-                return 'bg-blue-500 border-blue-600';
-            default:
-                return 'bg-blue-500 border-blue-600';
-        }
-    };
-
-    const handleRunCode = () => {
-        if (loading) return;
-        showPopup('Exécution du code en cours...', 'info');
-        runCode();
-    };
-
-    const handleRunSingleTest = (id: number) => {
-        showPopup(`Lancement du test ${id}...`, 'info');
-        runSingleTest(id);
-    };
-
-    // Nouveau gestionnaire pour la sélection dans la liste
-    const handleTestSelect = (item: number, index: number) => {
-        setSelectedTestIndex(index);
-        handleRunSingleTest(item);
-    };
-
-    const handleSave = () => {
-        onSave();
-    };
-
-    const handleLanguageChange = (value: string) => {
-        setLanguage(value);
-        setValue(CODE_SNIPPETS[value]);
-        showPopup(`Langage changé en ${value}`, 'info');
-    };
-
-    const handleSubjectClick = () => {
-        setDrawerOpen(true);
-    };
-
-    const handleInputClick = () => {
-        showPopup('Téléchargement des inputs...', 'info');
-    };
-
-    const handleFinishClick = () => {
-        showPopup('Finalisation en cours...', 'info');
-        submitCode(code, id);
-    };
-
-    const handleRunAllTest = () => {
-        showPopup('Execution en cours...', 'info');
-        runAllTest();
-    };
-
-
-    const renderTestResults = () => {
-        if (!resTest) return null;
-
-        const { data } = resTest;
-        
-        if (!data) {
-            return (
-                <>
-                    <p className='my-1 text-red-500'>Erreur</p>
-                    <div className='text-red-600 text-xs whitespace-pre'>{resTest.message || "Une erreur est survenue"}</div>
-                </>
-            );
-        }
-
-        const { success, passed_tests, total_tests, results, message } = data;
-
-        if (success) {
-            return (
-                <>
-                    <p className='my-1 text-green-500'>✅ Tous les tests sont passés!</p>
-                    <div className='text-green-400 text-xs'>
-                        Tests réussis: {passed_tests}/{total_tests}
-                    </div>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <p className='my-1 text-red-500'>❌ Échec sur certains tests</p>
-                    <div className='text-red-400 text-xs mb-2'>
-                        Tests réussis: {passed_tests}/{total_tests}
-                    </div>
-                    
-                    {results && results.map((result: any, index: number) => (
-                        <div key={index} className="mb-3 p-2 bg-red-950/20 rounded border border-red-800/30">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-red-400 text-xs font-semibold">
-                                    Test {result.test_number}
-                                </span>
-                                <span className={`text-xs px-2 py-1 rounded ${result.passed ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-                                    {result.passed ? 'PASSED' : 'FAILED'}
-                                </span>
-                            </div>
-                            
-                            {!result.passed && (
-                                <div className="space-y-2 text-xs">
-                                    <div>
-                                        <span className="text-gray-400">Expected:</span>
-                                        <div className="text-green-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
-                                            {result.expected_output}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-400">Your output:</span>
-                                        <div className="text-red-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
-                                            {result.user_output}
-                                        </div>
-                                    </div>
-                                    {result.error && (
-                                        <div>
-                                            <span className="text-gray-400">Error:</span>
-                                            <div className="text-orange-400 font-mono bg-black/30 p-1 rounded mt-1 whitespace-pre-wrap">
-                                                {result.error}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {result.execution_time && (
-                                        <div className="text-gray-500 text-xs">
-                                            Execution time: {result.execution_time}s
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                    
-                    {message && (
-                        <div className='text-orange-400 text-xs mt-2 p-2 bg-orange-950/20 rounded border border-orange-800/30'>
-                            {message}
-                        </div>
-                    )}
-                </>
-            );
-        }
-    };
-
-    const renderOutput = () => {
-        if (activeMode === 'test' && resTest) {
-            return renderTestResults();
-        } else {
-            return (
-                <>
-                    <p className='my-1 text-gray-200'>{!output && !error ? "Output:" : ""}</p>
-                    {output && output !== "No output" && (
-                        <>
-                            <p className='my-1 text-green-500'>Ok :D</p>
-                            <div className='text-gray-300 text-xs whitespace-pre'>{output}</div>
-                        </>
-                    )}
-                    {error && (
-                        <>
-                            <p className='my-1 text-red-500'>Error: </p>
-                            <div className='text-red-600 text-xs whitespace-pre'>{error}</div>
-                        </>
-                    )}
-                </>
-            );
-        }
-    };
+    const passed = result?.passed;
+    const hasResult = result !== null && result !== undefined;
+    const accentColor = isSelected ? C.teal : hasResult ? (passed ? C.green : C.red) : C.borderSoft;
 
     return (
-    <div className='w-full px-4 relative [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]'>
-        {/* Popup éphémère */}
-        {popup && (
-            <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
-                <div className="flex items-center">
-                    <span>{popup.message}</span>
-                </div>
+        <div onClick={onClick} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 16px',
+            borderBottom: `1px solid ${C.borderSoft}`,
+            cursor: 'pointer',
+            background: isSelected ? C.surface : 'transparent',
+            borderLeft: `2px solid ${accentColor}`,
+            transition: 'background 0.12s',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ color: C.textFaint, fontSize: 10, fontVariantNumeric: 'tabular-nums', width: 18 }}>
+                    {String(index + 1).padStart(2, '0')}
+                </span>
+                <span style={{ color: C.text, fontSize: 11, letterSpacing: '0.04em' }}>test_{item}</span>
             </div>
-        )}
-
-        {/* Instructions Drawer */}
-        <InstructionsDrawer
-            open={drawerOpen}
-            onClose={() => setDrawerOpen(false)}
-            challengeData={challengeData}
-            cloudinaryBase={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`}
-        />
-        
-        {showPopupSubmit && <div className='fixed top-0 left-0 h-screen w-full bg-black/60 z-40'>
-            <div className="w-full h-full flex items-center justify-center">
-                <div className="bg-white popup text-neutral-800 text-sm max-w-lg rounded-xl shadow-black shadow-2xl p-4">
-                    <h1 className='text-amber-500 text-lg text-center font-semibold'>Warning !</h1>
-                    <p className='text-center'>This action will end the challenge and award you points according to the validated tests, you can retry it later</p> 
-                    <p><span className='font-bold text-black text-lg'>Note:</span> You will only be awarded points if you pass a certain number of tests.</p>
-                    <div className="flex w-full items-center gap-2 mt-3">
-                        <button onClick={() => setShowPopupSubmit(!showPopupSubmit)} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg border border-gray-200'> cancel </button>    
-                        <button onClick={handleFinishClick} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-teal-500  hover:bg-teal-600 rounded-lg border border-gray-200'> Submit</button>    
-                    </div>                
-                </div>
-            </div>
-        </div>}
-
-        <div className="p-2 rounded-t-lg bg-blue-900/15 [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]">
-            <div className="option flex items-end justify-between">
-                <div className="select text-white pb-2">
-                    <p className="text-gray-600 py-2">Language: </p>
-                    <Select onValueChange={handleLanguageChange}>
-                        <SelectTrigger className="w-[120px] text-white bg-gray-800">
-                            <SelectValue placeholder="python 3" />
-                        </SelectTrigger>
-                        <SelectContent className="text-white">
-                            <SelectGroup className="bg-gray-800">
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="python">python 3</SelectItem>
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-            <div className="header grid lg:grid-cols-3 gap-3 items-center text-sm">
-                <button 
-                    onClick={handleRunCode} 
-                    disabled={loading}
-                    className='flex items-center justify-center gap-2 rounded-lg px-3 py-2 cursor-pointer border text-teal-500 hover:bg-teal-600/10 transition-all duration-200 hover:shadow-lg hover:scale-105 border-teal-500 border-dashed disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                    {loading ? "Running..." : <>Run <Play className='w-4 h-4'/></>}
-                </button>
-                <button 
-                    onClick={handleSubjectClick}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-blue-600/10 hover:border-blue-500/50 border border-transparent transition-all duration-200 text-gray-300 hover:text-blue-300 hover:shadow-lg'
-                >
-                    Instructions <File className='w-6 h-6'/>
-                </button>
-                <button 
-                    onClick={handleInputClick}
-                    className='flex items-center disabled cursor-not-allowed gap-2 rounded-lg px-3 py-2 hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
-                >
-                    Input(s) <ArrowBigDownDash className='w-4 h-4'/>
-                </button>
-            </div>
+            <span style={{
+                fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: hasResult ? (passed ? C.green : C.red) : C.textFaint,
+            }}>
+                {hasResult ? (passed ? 'pass' : 'fail') : 'idle'}
+            </span>
         </div>
-        
-        {/* Output Section */}
-        <div className={`h-[30vh] w-full shadow-inner border ${
-            activeMode === 'test' && resTest ? 
-                (resTest.data?.success ? "border-green-900 bg-neutral-800 shadow-black" : "border-red-950 bg-neutral-800 shadow-red-950") :
-            output && output !== "No output" ? "border-green-900 bg-neutral-800 shadow-black" : 
-            error ? "border-red-950 bg-neutral-800 shadow-red-950" : 
-            "border-gray-900 shadow-black bg-neutral-800"
-        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]`}>
-            
-            {renderOutput()}
-        </div>
+    );
+}
 
-        {/* Test Cases List */}
-        <div className="h-[30vh] border border-neutral-800 w-full mt-2 rounded-sm text-sm text-green-400 font-mono overflow-hidden">
-            <AnimatedList
-                items={challengeData?.test_cases?.map((test: any) => test?.id) || []}
-                onItemSelect={handleTestSelect}
-                selectedIndex={selectedTestIndex}
-                onSelectedIndexChange={setSelectedTestIndex}
-                showGradients={true}
-                enableArrowNavigation={true}
-                displayScrollbar={true}
-                data={resTest?.data}
+// ─── Output panel ─────────────────────────────────────────────────────────────
+function OutputPanel({ output, error, resTest, activeMode, loading }: {
+    output: string; error: string; resTest: any; activeMode: 'code' | 'test'; loading: boolean;
+}) {
+    if (loading) return (
+        <div style={{ padding: 16, color: C.teal, fontSize: 11, letterSpacing: '0.1em', opacity: 0.5 }}>
+            running…
+        </div>
+    );
+
+    if (activeMode === 'test' && resTest) {
+        const { data } = resTest;
+        if (!data) return (
+            <div style={{ padding: 16, color: C.red, fontSize: 11 }}>{resTest.message || 'Error'}</div>
+        );
+        const { success, passed_tests, total_tests, results, message } = data;
+        return (
+            <div style={{ padding: 16, fontFamily: "'IBM Plex Mono', monospace" }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                    <span style={{ color: success ? C.green : C.red, fontSize: 12, letterSpacing: '0.04em' }}>
+                        {success ? '✓ all passed' : '✗ some failed'}
+                    </span>
+                    <span style={{ color: C.textDim, fontSize: 10 }}>{passed_tests}/{total_tests}</span>
+                </div>
+                {results?.filter((r: any) => !r.passed).map((r: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 14, borderLeft: `1px solid ${C.border}`, paddingLeft: 12 }}>
+                        <div style={{ color: C.textDim, fontSize: 10, marginBottom: 8, letterSpacing: '0.06em' }}>test_{r.test_number}</div>
+                        <div style={{ marginBottom: 6 }}>
+                            <div style={{ color: C.textFaint, fontSize: 9, letterSpacing: '0.08em', marginBottom: 3 }}>EXPECTED</div>
+                            <pre style={{ color: '#4ade80', fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{r.expected_output}</pre>
+                        </div>
+                        <div style={{ marginBottom: 6 }}>
+                            <div style={{ color: C.textFaint, fontSize: 9, letterSpacing: '0.08em', marginBottom: 3 }}>GOT</div>
+                            <pre style={{ color: '#f87171', fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{r.user_output}</pre>
+                        </div>
+                        {r.error && <pre style={{ color: C.amber, fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{r.error}</pre>}
+                        {r.execution_time && <div style={{ color: C.textFaint, fontSize: 10, marginTop: 4 }}>{r.execution_time}s</div>}
+                    </div>
+                ))}
+                {message && <div style={{ color: C.text, fontSize: 10, marginTop: 8 }}>{message}</div>}
+            </div>
+        );
+    }
+
+    if (!output && !error) return (
+        <div style={{ padding: 16, color: C.textFaint, fontSize: 11, letterSpacing: '0.08em' }}>no output yet</div>
+    );
+
+    return (
+        <div style={{ padding: 16, fontFamily: "'IBM Plex Mono', monospace" }}>
+            {output && output !== 'No output' && (
+                <pre style={{ color: '#a3e4d7', fontSize: 12, margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{output}</pre>
+            )}
+            {error && (
+                <pre style={{ color: '#f87171', fontSize: 12, margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{error}</pre>
+            )}
+        </div>
+    );
+}
+
+// ─── Main Console ─────────────────────────────────────────────────────────────
+export default function Console({
+    error, code, id, output, loading, loadingSubmit, submitCode,
+    runCode, setLanguage, setValue, runSingleTest, runAllTest,
+    challengeData, resTest, activeMode, onSave, loadingSave, executionTime,
+}: {
+    error: string; submitCode: (code: string, id: string) => void;
+    output: string; id: string; loading: boolean; loadingSubmit: boolean;
+    code: string; runCode: () => void; setLanguage: (lang: string) => void;
+    setValue: (code: string) => void; challengeData: any;
+    runSingleTest: (id: number) => void; runAllTest: () => void; resTest: any;
+    activeMode: 'code' | 'test'; onSave: () => void; loadingSave: boolean;
+    executionTime?: number;
+}) {
+    const [selectedTestIndex, setSelectedTestIndex] = useState(-1);
+    const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [activePanel, setActivePanel] = useState<'output' | 'tests'>('output');
+
+    const getTestResult = (index: number) => {
+        if (!resTest?.data?.results) return null;
+        return resTest.data.results.find((r: any) => r.test_number === index + 1) ?? null;
+    };
+
+    const testCases = challengeData?.test_cases ?? [];
+    const passCount = resTest?.data?.passed_tests;
+    const totalCount = resTest?.data?.total_tests;
+
+    const Btn = ({ children, onClick, disabled = false, style = {} }: any) => (
+        <button onClick={onClick} disabled={disabled} style={{
+            background: 'none', border: '1px solid #1e1e1e', borderRadius: 3,
+            color: disabled ? '#2a2a2a' : '#555', fontSize: 11, letterSpacing: '0.05em',
+            padding: '6px 14px', cursor: disabled ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s', fontFamily: "'IBM Plex Mono', monospace",
+            display: 'flex', alignItems: 'center', gap: 6,
+            ...style,
+        }}>{children}</button>
+    );
+
+    return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', height: '100%',
+            background: '#080808', fontFamily: "'IBM Plex Mono', monospace",
+            overflow: 'hidden',
+        }}>
+            {/* ── Instructions Drawer ── */}
+            <InstructionsDrawer
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                challengeData={challengeData}
+                cloudinaryBase={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`}
             />
+
+            {/* ── Submit confirm modal ── */}
+            {showSubmitConfirm && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: '#000000cc',
+                    zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <div style={{
+                        background: '#0d0d0d', border: '1px solid #1e1e1e',
+                        borderRadius: 6, padding: 28, maxWidth: 380, width: '90%',
+                    }}>
+                        <div style={{ color: '#888', fontSize: 12, marginBottom: 8, letterSpacing: '0.06em' }}>SUBMIT CHALLENGE</div>
+                        <p style={{ color: '#444', fontSize: 11, lineHeight: 1.6, marginBottom: 6 }}>
+                            This will end the challenge and lock your submission. Points are awarded based on passing tests.
+                        </p>
+                        <p style={{ color: '#333', fontSize: 11, lineHeight: 1.6, marginBottom: 20 }}>
+                            You can retry later, but this attempt will be scored.
+                        </p>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => setShowSubmitConfirm(false)} style={{
+                                flex: 1, background: 'none', border: '1px solid #1e1e1e',
+                                color: '#444', fontSize: 11, padding: '8px 0', borderRadius: 3,
+                                cursor: 'pointer', letterSpacing: '0.05em',
+                            }}>cancel</button>
+                            <button onClick={() => { submitCode(code, id); setShowSubmitConfirm(false); }} style={{
+                                flex: 1, background: '#1a1a1a', border: '1px solid #2a2a2a',
+                                color: '#888', fontSize: 11, padding: '8px 0', borderRadius: 3,
+                                cursor: 'pointer', letterSpacing: '0.05em',
+                            }}>submit →</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Action bar ── */}
+            <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px 12px',
+                borderBottom: '1px solid #141414',
+                background: '#060606',
+                flexShrink: 0, gap: 8,
+            }}>
+                {/* Run */}
+                <button
+                    onClick={runCode}
+                    disabled={loading}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        background: loading ? 'transparent' : '#111',
+                        border: '1px solid #1e1e1e',
+                        color: loading ? '#2a2a2a' : '#888',
+                        fontSize: 11, padding: '6px 14px', borderRadius: 3,
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        letterSpacing: '0.05em', transition: 'all 0.15s',
+                        fontFamily: "'IBM Plex Mono', monospace",
+                    }}
+                >
+                    <PlayIcon color={loading ? '#2a2a2a' : '#888'} />
+                    {loading ? 'running…' : 'run'}
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {/* Instructions */}
+                    <Btn onClick={() => setDrawerOpen(true)}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        instructions
+                    </Btn>
+
+                    {/* Run all tests */}
+                    <Btn onClick={runAllTest} disabled={loading}>
+                        run all tests
+                    </Btn>
+
+                    {/* Submit */}
+                    <button
+                        onClick={() => setShowSubmitConfirm(true)}
+                        disabled={loadingSubmit}
+                        style={{
+                            background: '#0f0f0f', border: '1px solid #2a2a2a',
+                            color: loadingSubmit ? '#2a2a2a' : '#666', fontSize: 11,
+                            padding: '6px 14px', borderRadius: 3,
+                            cursor: loadingSubmit ? 'not-allowed' : 'pointer',
+                            letterSpacing: '0.05em', fontFamily: "'IBM Plex Mono', monospace",
+                        }}
+                    >
+                        {loadingSubmit ? 'submitting…' : 'submit'}
+                    </button>
+                </div>
+            </div>
+
+            {/* ── Panel tabs ── */}
+            <div style={{
+                display: 'flex', alignItems: 'center',
+                borderBottom: '1px solid #111',
+                background: '#060606',
+                flexShrink: 0,
+            }}>
+                {(['output', 'tests'] as const).map(tab => (
+                    <button key={tab} onClick={() => setActivePanel(tab)} style={{
+                        background: 'none', border: 'none',
+                        borderBottom: `1px solid ${activePanel === tab ? '#333' : 'transparent'}`,
+                        color: activePanel === tab ? '#555' : '#2a2a2a',
+                        fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                        padding: '8px 14px', cursor: 'pointer',
+                        transition: 'all 0.15s', fontFamily: "'IBM Plex Mono', monospace",
+                        marginBottom: -1,
+                    }}>
+                        {tab}
+                        {tab === 'tests' && totalCount != null && (
+                            <span style={{ marginLeft: 6, color: '#2a2a2a' }}>{passCount}/{totalCount}</span>
+                        )}
+                    </button>
+                ))}
+
+                {/* Execution time */}
+                {executionTime != null && executionTime > 0 && (
+                    <span style={{ marginLeft: 'auto', paddingRight: 12, color: '#222', fontSize: 10, letterSpacing: '0.06em' }}>
+                        {executionTime}ms
+                    </span>
+                )}
+            </div>
+
+            {/* ── Output panel ── */}
+            {activePanel === 'output' && (
+                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1a1a1a #080808' }}>
+                    <OutputPanel output={output} error={error} resTest={resTest} activeMode={activeMode} loading={loading} />
+                </div>
+            )}
+
+            {/* ── Tests panel ── */}
+            {activePanel === 'tests' && (
+                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1a1a1a #080808' }}>
+                    {testCases.length === 0 ? (
+                        <div style={{ padding: 16, color: '#1e1e1e', fontSize: 11, letterSpacing: '0.08em' }}>no test cases</div>
+                    ) : (
+                        testCases.map((tc: any, i: number) => (
+                            <TestRow
+                                key={tc.id}
+                                index={i}
+                                item={tc.id}
+                                isSelected={selectedTestIndex === i}
+                                result={getTestResult(i)}
+                                onClick={() => {
+                                    setSelectedTestIndex(i);
+                                    runSingleTest(tc.id);
+                                    setActivePanel('output');
+                                }}
+                            />
+                        ))
+                    )}
+                </div>
+            )}
+
+            {/* ── Bottom meta ── */}
+            <div style={{
+                borderTop: '1px solid #111',
+                padding: '6px 14px',
+                background: '#050505',
+                flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+                <span style={{ color: '#1e1e1e', fontSize: 10, letterSpacing: '0.06em' }}>
+                    {testCases.length} test{testCases.length !== 1 ? 's' : ''}
+                </span>
+                {resTest?.data && (
+                    <span style={{
+                        fontSize: 10, letterSpacing: '0.06em',
+                        color: resTest.data.success ? '#16a34a' : '#dc2626',
+                    }}>
+                        {resTest.data.passed_tests}/{resTest.data.total_tests} passed
+                    </span>
+                )}
+            </div>
         </div>
-        
-        <div className="mt-2 flex gap-2">
-            <button 
-                onClick={handleRunAllTest}
-                className='mt-2 cursor-pointer bg-teal-600 hover:bg-teal-700 transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center'
-            >
-                Run all Test
-            </button>
-            <button 
-                onClick={() => setShowPopupSubmit(!showPopupSubmit)}
-                className={`mt-2 transition-all duration-300 ease-in-out ${loadingSubmit ? 'bg-amber-800 disabled cursor-not-allowed' : 'bg-amber-600 cursor-pointer hover:bg-amber-700'} transition-all ease-in-out duration-200 rounded-lg w-full py-2 px-4 text-center`}
-            >
-                {loadingSubmit ? <>Loading submit...</>: <>Set as finished</>}
-            </button>
-        </div>
-    </div>
-  )
+    );
 }

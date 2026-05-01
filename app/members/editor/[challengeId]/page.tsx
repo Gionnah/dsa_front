@@ -2,11 +2,10 @@
 import Console from '@/components/console'
 import EditorComponent from '@/components/editor'
 import { CODE_SNIPPETS } from '@/lib/constant';
-import { CloudCheck } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 
-export default function page() {
+export default function ChallengePage() {
     const editorRef = useRef(null);
     const [code, setCode] = useState<string>("");
     const [responseTest, setResponseTest] = useState<any>(null);
@@ -14,395 +13,256 @@ export default function page() {
     const [output, setOutput] = useState<string>("");
     const [error, setError] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
-    const [currentTime, setCurrentTime] = useState<string>("");
-    const [charCount, setCharCount] = useState<number>(0);
-    const [lineCount, setLineCount] = useState<number>(0);
     const [executionTime, setExecutionTime] = useState<number>(0);
     const [activeMode, setActiveMode] = useState<'code' | 'test'>('code');
-    const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
     const [loadingSave, setLoadingSave] = useState<boolean>(false);
     const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
-    const { challengeId } = useParams<{challengeId: string}>();
-    const [challengeData, setChallengesData] = useState<any>([]);
+    const { challengeId } = useParams<{ challengeId: string }>();
+    const [challengeData, setChallengesData] = useState<any>(null);
     const [timeElapsed, setTimeElapsed] = useState<string>("00:00:00");
     const [challengeStarted, setChallengeStarted] = useState<boolean>(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-    const submitCode = async (code: string, id: string) => {
-        setLoadingSubmit(true);
-        try{
-            const res = await fetch(`/api/challenges/${challengeId}/submit`,
-                {
-                    method: "POST",
-                    body: JSON.stringify({code})
-                }
-            )
-            const data = await res.json();
-            if (res.ok)
-                window.location.href = data.redirect || `/members/challenges`;
-        }
-        catch (error){
-            console.log(error)
-        }finally {
-            setLoadingSubmit(false);
-        }
-    }
-
-    // Calculate time elapsed since challenge started
-    const calculateTimeElapsed = (startedAt: string) => {
-        const startTime = new Date(startedAt).getTime();
-        const now = new Date().getTime();
-        const elapsedMs = now - startTime;
-        
-        // Convert to hours, minutes, seconds
-        const hours = Math.floor(elapsedMs / (1000 * 60 * 60));
-        const minutes = Math.floor((elapsedMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((elapsedMs % (1000 * 60)) / 1000);
-        
-        return {
-            hours: hours.toString().padStart(2, '0'),
-            minutes: minutes.toString().padStart(2, '0'),
-            seconds: seconds.toString().padStart(2, '0'),
-            totalMs: elapsedMs
-        };
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
     };
 
-    // Update timer every second
-    useEffect(() => {
-        if (challengeData?.started_at) {
-            setChallengeStarted(true);
-            
-            const timer = setInterval(() => {
-                const time = calculateTimeElapsed(challengeData.started_at);
-                setTimeElapsed(`${time.hours}:${time.minutes}:${time.seconds}`);
-            }, 1000);
+    const calculateTimeElapsed = (startedAt: string) => {
+        const elapsedMs = Date.now() - new Date(startedAt).getTime();
+        const h = Math.floor(elapsedMs / 3600000);
+        const m = Math.floor((elapsedMs % 3600000) / 60000);
+        const s = Math.floor((elapsedMs % 60000) / 1000);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
 
-            return () => clearInterval(timer);
-        } else {
-            setChallengeStarted(false);
-            setTimeElapsed("00:00:00");
-        }
+    useEffect(() => {
+        if (!challengeData?.started_at) { setChallengeStarted(false); return; }
+        setChallengeStarted(true);
+        const timer = setInterval(() => setTimeElapsed(calculateTimeElapsed(challengeData.started_at)), 1000);
+        return () => clearInterval(timer);
     }, [challengeData?.started_at]);
 
-    // Gestionnaire pour Ctrl+S
+    // Ctrl+S
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                event.preventDefault();
-                handleSave();
-            }
+        const handler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSave(); }
         };
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        // Nettoie l'écouteur lors du démontage du composant
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [code, challengeData]);
-
-    // Gestionnaire de popup éphémère
-    useEffect(() => {
-        if (popup) {
-            const timer = setTimeout(() => {
-                setPopup(null);
-            }, 3000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [popup]);
-
-    const showPopup = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-        setPopup({ message, type });
-    };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [code]);
 
     const handleSave = async () => {
         setLoadingSave(true);
         try {
-            const response = await fetch(`/api/challenges/${challengeId}/save-code`, {
+            const res = await fetch(`/api/challenges/${challengeId}/save-code`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    code: code,
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
             });
-            
-            if (response.ok) {
-                showPopup('Code saved successfully!', 'success');
-            } else {
-                showPopup('Error saving code', 'error');
-            }
-        } catch (error) {
-            showPopup('Error saving code', 'error');
-        } finally {
-            setLoadingSave(false);
-        }
+            showToast(res.ok ? 'Saved' : 'Save failed', res.ok ? 'success' : 'error');
+        } catch { showToast('Save failed', 'error'); }
+        finally { setLoadingSave(false); }
+    };
+
+    const submitCode = async (code: string) => {
+        setLoadingSubmit(true);
+        try {
+            const res = await fetch(`/api/challenges/${challengeId}/submit`, {
+                method: 'POST', body: JSON.stringify({ code }),
+            });
+            const data = await res.json();
+            if (res.ok) window.location.href = data.redirect || `/members/challenges`;
+        } catch { showToast('Submit failed', 'error'); }
+        finally { setLoadingSubmit(false); }
     };
 
     const runSingleTest = async (id: number) => {
-        setActiveMode('test');
-        setLoading(true);
-        setResponseTest(null);
-        setOutput("");
-        setError("");
-        
+        setActiveMode('test'); setLoading(true); setResponseTest(null); setOutput(""); setError("");
         try {
-            const res = await fetch(`/api/challenges/${challengeData?.id}/test/${id}`,
-                {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ code })
-                }
-            )
-            const data = await res.json();
-            setResponseTest(data);
-        } catch (error) {
-            setResponseTest({
-                success: false,
-                message: "Error running test"
+            const res = await fetch(`/api/challenges/${challengeData?.id}/test/${id}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
             });
-            showPopup("Error running test", 'error');
-        } finally {
-            setLoading(false);
-        }
-    }
+            setResponseTest(await res.json());
+        } catch { setResponseTest({ success: false, message: "Error running test" }); }
+        finally { setLoading(false); }
+    };
 
     const runAllTest = async () => {
-        setActiveMode('test');
-        setLoading(true);
-        setResponseTest(null);
-        setOutput("");
-        setError("");
-        
+        setActiveMode('test'); setLoading(true); setResponseTest(null); setOutput(""); setError("");
         try {
-            const res = await fetch(`/api/challenges/${challengeData?.id}/test`,
-                {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ code })
-                }
-            )
-            const data = await res.json();
-            setResponseTest(data);
-        } catch (error) {
-            console.error("Error running all test:", error);
-            setResponseTest({
-                success: false,
-                message: "Error running test"
+            const res = await fetch(`/api/challenges/${challengeData?.id}/test`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
             });
-            showPopup("Error running tests", 'error');
-        } finally {
-            setLoading(false);
-        }
-    }
+            setResponseTest(await res.json());
+        } catch { setResponseTest({ success: false, message: "Error running tests" }); }
+        finally { setLoading(false); }
+    };
+
+    const runCode = async () => {
+        setActiveMode('code'); setLoading(true); setOutput(""); setError(""); setResponseTest(null);
+        const t0 = Date.now();
+        try {
+            const res = await fetch("/api/submissions", {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ source_code: code, language_id: 71 }),
+            });
+            const result = await res.json();
+            setExecutionTime(Date.now() - t0);
+            setOutput(result.output || "No output");
+            setError(result.error || "");
+            showToast(result.error ? 'Runtime error' : 'Executed', result.error ? 'error' : 'success');
+        } catch {
+            setExecutionTime(Date.now() - t0);
+            setError("Network error");
+            showToast('Execution failed', 'error');
+        } finally { setLoading(false); }
+    };
 
     const getChallenges = async () => {
         try {
-            const response = await fetch(`/api/challenges/${challengeId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
+            const res = await fetch(`/api/challenges/${challengeId}`, { headers: { 'Content-Type': 'application/json' } });
+            const data = await res.json();
             setChallengesData(data);
             setCode(data?.saved_code || CODE_SNIPPETS["python"]);
-            
-            // Initialize timer if challenge has started
-            if (data?.started_at) {
-                const time = calculateTimeElapsed(data.started_at);
-                setTimeElapsed(`${time.hours}:${time.minutes}:${time.seconds}`);
-            }
-        } catch (error) {
-            console.error("Error fetching challenge:", error);
-            showPopup('Error loading challenge', 'error');
-        }
-    }
-
-    useEffect(() => {
-        getChallenges();
-    }, [])
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date().toLocaleTimeString());
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    // Calcul des statistiques du code
-    useEffect(() => {
-        setCharCount(code.length);
-        setLineCount(code.split('\n').length);
-    }, [code]);
-
-    const runCode = async () => {
-        setActiveMode('code');
-        setLoading(true);
-        setOutput("");
-        setError("");
-        setResponseTest(null);
-        const startTime = Date.now();
-        
-        try {
-            const res = await fetch("/api/submissions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    source_code: code,
-                    language_id: 71, // Python 3
-                }),
-            });
-
-            const result = await res.json();
-            const endTime = Date.now();
-            setExecutionTime(endTime - startTime);
-
-            setOutput(result.output || "No output");
-            setError(result.error || "");
-            
-            if (result.error) {
-                showPopup('Error executing code', 'error');
-            } else {
-                showPopup('Code executed successfully', 'success');
-            }
-        } catch (err) {
-            const endTime = Date.now();
-            setExecutionTime(endTime - startTime);
-            setError("Error executing code");
-            showPopup('Error executing code', 'error');
-        } finally {
-            setLoading(false);
-        }
+            if (data?.started_at) setTimeElapsed(calculateTimeElapsed(data.started_at));
+        } catch { showToast('Failed to load challenge', 'error'); }
     };
 
-    const onMount = (editor: any) => {
-        editorRef.current = editor;
-        editor.focus();
-    }
+    useEffect(() => { getChallenges(); }, []);
 
-    // Styles pour les différents types de popup
-    const getPopupStyles = (type: string) => {
-        switch (type) {
-            case 'success':
-                return 'bg-green-500 border-green-600';
-            case 'error':
-                return 'bg-red-500 border-red-600';
-            case 'info':
-                return 'bg-blue-500 border-blue-600';
-            default:
-                return 'bg-blue-500 border-blue-600';
-        }
-    };
+    const onMount = (editor: any) => { editorRef.current = editor; editor.focus(); };
+
+    const toastColors = { success: '#22c55e', error: '#ef4444', info: '#3b82f6' };
 
     return (
-        <div className="bg-neutral-900 flex flex-col lg:flex-row text-white h-screen w-full p-4">
-            {/* Popup éphémère */}
-            {popup && (
-                <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
-                    <div className="flex items-center">
-                        <span>{popup.message}</span>
-                    </div>
+        <div style={{ background: '#080808', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'IBM Plex Mono', monospace" }}>
+
+            {/* ── Toast ── */}
+            {toast && (
+                <div style={{
+                    position: 'fixed', top: 20, right: 20, zIndex: 9999,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: '#111', border: `1px solid ${toastColors[toast.type]}22`,
+                    borderLeft: `3px solid ${toastColors[toast.type]}`,
+                    padding: '10px 16px', borderRadius: 6,
+                    color: '#e0e0e0', fontSize: 12, letterSpacing: '0.03em',
+                    boxShadow: `0 8px 32px #000a`,
+                }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: toastColors[toast.type], flexShrink: 0 }} />
+                    {toast.message}
                 </div>
             )}
-            
-            <div className="w-full lg:w-4/6">
-                <div className="current-stat px-4 py-2 bg-blue-950/40 rounded-lg mb-5">
-                    <div className="flex justify-between items-center mb-2">
-                        <div>
-                            <h1 className="text-2xl font-bold">Code Editor</h1>
-                            {challengeData?.title && (
-                                <p className="text-sm text-gray-300 mt-1">{challengeData.title}</p>
-                            )}
+
+            {/* ── Top bar ── */}
+            <header style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0 24px', height: 44,
+                borderBottom: '1px solid #1a1a1a',
+                background: '#0a0a0a',
+                flexShrink: 0,
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    {/* Logo mark */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 20, height: 20, border: '1.5px solid #333', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ width: 8, height: 8, background: '#fff', borderRadius: 1 }} />
                         </div>
-                        <div className="text-sm text-gray-300">
-                            {currentTime}
-                        </div>
+                        <span style={{ color: '#444', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>challenger</span>
                     </div>
-                    
-                    {/* Mini Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4 text-sm">
-                        <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Characters</div>
-                            <div className="font-bold text-blue-400">{charCount}</div>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Execution Time</div>
-                            <div className="font-bold text-yellow-400">
-                                {executionTime > 0 ? `${executionTime}ms` : 'N/A'}
-                            </div>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded text-center">
-                            <div className="text-xs text-gray-300">Time Elapsed</div>
-                            <div className={`font-bold ${challengeStarted ? 'text-green-400' : 'text-gray-400'}`}>
-                                {timeElapsed}
-                            </div>
-                        </div>
-                        <button 
-                            onClick={handleSave}
-                            className={`${loadingSave ? 'bg-teal-700/50 cursor-not-allowed' : 'bg-teal-700/40'} flex items-center justify-center gap-2 cursor-pointer hover:bg-teal-700/50 transition-all ease-in-out duration-300 shadow-lg p-2 rounded text-center`}
-                        >
-                            {loadingSave ? <>Saving..</> :<>Save <CloudCheck className="w-4 h-4" /> </>}
-                        </button>
+
+                    {/* Breadcrumb */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#333', fontSize: 11 }}>
+                        <span>challenges</span>
+                        <span>/</span>
+                        <span style={{ color: '#888' }}>{challengeData?.title || '...'}</span>
                     </div>
-                    
-                    {/* Challenge Status */}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    {/* Difficulty */}
+                    {challengeData?.difficulty && (
+                        <span style={{
+                            fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+                            color: challengeData.difficulty === 'easy' ? '#22c55e' : challengeData.difficulty === 'medium' ? '#f59e0b' : '#ef4444',
+                            border: `1px solid currentColor`, borderRadius: 3,
+                            padding: '2px 8px', opacity: 0.8,
+                        }}>{challengeData.difficulty}</span>
+                    )}
+
+                    {/* Timer */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: challengeStarted ? '#22c55e' : '#333', boxShadow: challengeStarted ? '0 0 6px #22c55e' : 'none' }} />
+                        <span style={{ color: '#555', fontSize: 12, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.08em' }}>{timeElapsed}</span>
+                    </div>
+
+                    {/* Status */}
                     {challengeData?.status && (
-                        <div className="mt-3 flex items-center gap-2 text-sm">
-                            <span className="text-gray-300">Status:</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                challengeData.status === 'in_progress' 
-                                    ? 'bg-blue-500 text-white' 
-                                    : challengeData.status === 'completed'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-gray-500 text-white'
-                            }`}>
-                                {challengeData.status === 'in_progress' ? 'In Progress' : 
-                                 challengeData.status === 'completed' ? 'Completed' : 'Not Started'}
-                            </span>
-                            {challengeData?.started_at && (
-                                <span className="text-gray-400 text-xs">
-                                    Started: {new Date(challengeData.started_at).toLocaleString('en-US')}
-                                </span>
-                            )}
-                        </div>
+                        <span style={{ fontSize: 11, color: '#444', letterSpacing: '0.05em' }}>
+                            {challengeData.status === 'in_progress' ? 'in progress' : challengeData.status === 'completed' ? 'completed' : 'not started'}
+                        </span>
+                    )}
+
+                    {/* Save */}
+                    <button
+                        onClick={handleSave}
+                        disabled={loadingSave}
+                        style={{
+                            background: 'none', border: '1px solid #222', borderRadius: 4,
+                            color: loadingSave ? '#444' : '#888', fontSize: 11,
+                            padding: '4px 12px', cursor: loadingSave ? 'not-allowed' : 'pointer',
+                            letterSpacing: '0.05em', transition: 'all 0.15s',
+                        }}
+                    >
+                        {loadingSave ? 'saving…' : 'save'}
+                    </button>
+
+                    {/* XP */}
+                    {challengeData?.xp_reward && (
+                        <span style={{ fontSize: 11, color: '#f59e0b', letterSpacing: '0.05em' }}>+{challengeData.xp_reward} xp</span>
                     )}
                 </div>
-                <EditorComponent 
-                    value={challengeData?.saved_code || code} 
-                    setValue={setCode} 
-                    onMount={onMount} 
-                    Language={Language} 
-                    setLanguage={setLanguage}
-                />
-            </div>
-            <div className="w-full lg:w-2/6">
-                <Console 
-                    error={error} 
-                    output={output} 
-                    runCode={runCode} 
-                    loading={loading} 
-                    setLanguage={setLanguage} 
-                    setValue={setCode}
-                    id={challengeId}
-                    code={code}
-                    challengeData={challengeData}
-                    runSingleTest={runSingleTest}
-                    runAllTest={runAllTest}
-                    resTest={responseTest}
-                    activeMode={activeMode}
-                    onSave={handleSave}
-                    loadingSave={loadingSave}
-                    submitCode={submitCode}
-                    loadingSubmit={loadingSubmit}
-                />
-            </div>
+            </header>
+
+            {/* ── Main ── */}
+            <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+                {/* Editor panel — 60% */}
+                <div style={{ flex: '0 0 60%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #141414' }}>
+                    <EditorComponent
+                        value={code}
+                        setValue={setCode}
+                        onMount={onMount}
+                        Language={Language}
+                        setLanguage={setLanguage}
+                    />
+                </div>
+
+                {/* Right panel — 40% */}
+                <div style={{ flex: '0 0 40%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <Console
+                        error={error}
+                        output={output}
+                        runCode={runCode}
+                        loading={loading}
+                        setLanguage={setLanguage}
+                        setValue={setCode}
+                        id={challengeId}
+                        code={code}
+                        challengeData={challengeData}
+                        runSingleTest={runSingleTest}
+                        runAllTest={runAllTest}
+                        resTest={responseTest}
+                        activeMode={activeMode}
+                        onSave={handleSave}
+                        loadingSave={loadingSave}
+                        submitCode={submitCode}
+                        loadingSubmit={loadingSubmit}
+                        executionTime={executionTime}
+                    />
+                </div>
+            </main>
         </div>
-    )
+    );
 }
