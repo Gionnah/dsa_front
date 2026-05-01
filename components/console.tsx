@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { CODE_SNIPPETS } from '@/lib/constant';
 import AnimatedList from './AnimatedList';
 import { useState, useEffect } from 'react';
+import InstructionsDrawer from './InstructionsDrawer';
 
 export default function Console({error, code, id, output, loading, loadingSubmit, submitCode, runCode, setLanguage, setValue, runSingleTest, runAllTest, challengeData, resTest, activeMode, onSave, loadingSave, }: {
     error: string, 
@@ -26,6 +27,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
     const [popup, setPopup] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
     const [selectedTestIndex, setSelectedTestIndex] = useState<number>(-1);
     const [showPopupSubmit, setShowPopupSubmit] = useState<boolean>(false);
+    const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
     // Gestionnaire de popup éphémère
     useEffect(() => {
@@ -84,7 +86,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
     };
 
     const handleSubjectClick = () => {
-        showPopup('Ouverture du sujet...', 'info');
+        setDrawerOpen(true);
     };
 
     const handleInputClick = () => {
@@ -213,7 +215,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
     };
 
     return (
-    <div className='w-full px-4 relative &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]'>
+    <div className='w-full px-4 relative [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]'>
         {/* Popup éphémère */}
         {popup && (
             <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${getPopupStyles(popup.type)} text-white transition-all duration-300 transform translate-x-0 animate-fade-in`}>
@@ -222,6 +224,14 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                 </div>
             </div>
         )}
+
+        {/* Instructions Drawer */}
+        <InstructionsDrawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            challengeData={challengeData}
+            cloudinaryBase={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`}
+        />
         
         {showPopupSubmit && <div className='fixed top-0 left-0 h-screen w-full bg-black/60 z-40'>
             <div className="w-full h-full flex items-center justify-center">
@@ -237,7 +247,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
             </div>
         </div>}
 
-        <div className="p-2 rounded-t-lg bg-blue-900/15 &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]">
+        <div className="p-2 rounded-t-lg bg-blue-900/15 [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]">
             <div className="option flex items-end justify-between">
                 <div className="select text-white pb-2">
                     <p className="text-gray-600 py-2">Language: </p>
@@ -247,12 +257,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                         </SelectTrigger>
                         <SelectContent className="text-white">
                             <SelectGroup className="bg-gray-800">
-                                {/* <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="javascript">Javascript</SelectItem> */}
                                 <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="python">python 3</SelectItem>
-                                {/* <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="java">Java</SelectItem>
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="php">Php</SelectItem>
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="c">C</SelectItem>
-                                <SelectItem className="hover:bg-gray-800 hover:text-cyan-600" value="r">R</SelectItem> */}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
@@ -268,7 +273,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
                 </button>
                 <button 
                     onClick={handleSubjectClick}
-                    className='flex items-center gap-2 rounded-lg px-3 py-2 disabled cursor-not-allowed hover:bg-gray-600/15 transition-all duration-200 text-gray-300 hover:shadow-lg'
+                    className='flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer hover:bg-blue-600/10 hover:border-blue-500/50 border border-transparent transition-all duration-200 text-gray-300 hover:text-blue-300 hover:shadow-lg'
                 >
                     Instructions <File className='w-6 h-6'/>
                 </button>
@@ -288,7 +293,7 @@ export default function Console({error, code, id, output, loading, loadingSubmit
             output && output !== "No output" ? "border-green-900 bg-neutral-800 shadow-black" : 
             error ? "border-red-950 bg-neutral-800 shadow-red-950" : 
             "border-gray-900 shadow-black bg-neutral-800"
-        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto &::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]`}>
+        } mt-2 rounded-b-lg p-4 text-sm font-mono overflow-y-auto [&::-webkit-scrollbar-track]:bg-[#060010] [&::-webkit-scrollbar-thumb]:bg-[#222]`}>
             
             {renderOutput()}
         </div>
