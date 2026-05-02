@@ -3,512 +3,473 @@ import HomeLayout from '@/components/layout/HomeLayout'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
-import { Loader2, FileText, Users, Calendar, Trophy, Code, CheckCircle, Clock, Download, ExternalLink, Zap, Target, Award, ArrowRight, Play } from 'lucide-react';
+import { Loader2, ArrowLeft, Code, CheckCircle, ArrowRight, ExternalLink, Users, Trophy, Calendar } from 'lucide-react';
+
+// ─── Light tokens ─────────────────────────────────────────────────────────────
+const T = {
+    bg:      '#f8f9fb',
+    surface: '#ffffff',
+    raised:  '#f1f5f9',
+    border:  '#e2e8f0',
+    borderMd:'#cbd5e1',
+    text:    '#475569',
+    textHi:  '#0f172a',
+    textMid: '#64748b',
+    textDim: '#94a3b8',
+    teal:    '#0d9488',
+    tealBg:  '#f0fdfa',
+    tealBdr: '#99f6e4',
+    amber:   '#d97706',
+    amberBg: '#fffbeb',
+    green:   '#16a34a',
+    greenBg: '#f0fdf4',
+    red:     '#dc2626',
+    redBg:   '#fef2f2',
+    blue:    '#2563eb',
+    blueBg:  '#eff6ff',
+};
+
+const DIFF: Record<string, { color: string; bg: string; border: string; label: string }> = {
+    easy:   { color: T.green, bg: T.greenBg, border: '#bbf7d0', label: 'easy'   },
+    medium: { color: T.amber, bg: T.amberBg, border: '#fde68a', label: 'medium'  },
+    hard:   { color: T.red,   bg: T.redBg,   border: '#fecaca', label: 'hard'   },
+};
+
+const mono = "'IBM Plex Mono', monospace";
+const sans = "'Inter', system-ui, sans-serif";
+
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+function MarkdownBlock({ content }: { content: string }) {
+    const html = content
+        .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="mb-pre"><code>$2</code></pre>')
+        .replace(/`([^`]+)`/g, '<code class="mb-code">$1</code>')
+        .replace(/^### (.+)$/gm, '<h3 class="mb-h3">$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2 class="mb-h2">$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1 class="mb-h1">$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="mb-a">$1</a>')
+        .replace(/^- (.+)$/gm, '<li class="mb-li">$1</li>')
+        .replace(/\n\n/g, '</p><p class="mb-p">');
+    return (
+        <>
+            <style>{`
+                .mb-h1{color:${T.textHi};font-size:1.4rem;font-weight:800;margin:1.2rem 0 .5rem;font-family:${sans}}
+                .mb-h2{color:${T.textHi};font-size:1.1rem;font-weight:700;margin:1.2rem 0 .4rem;padding-bottom:.4rem;border-bottom:2px solid ${T.border};font-family:${sans}}
+                .mb-h3{color:${T.textMid};font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;font-family:${sans}}
+                .mb-p{color:${T.text};margin:.6rem 0;line-height:1.8;font-size:14px;font-family:${sans}}
+                .mb-pre{background:${T.raised};border:1px solid ${T.border};border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin:.8rem 0;font-family:${mono};font-size:12px;color:${T.teal};line-height:1.7}
+                .mb-code{background:${T.raised};border:1px solid ${T.border};border-radius:4px;padding:.1em .4em;font-size:.85em;color:${T.teal};font-family:${mono}}
+                .mb-a{color:${T.teal};text-decoration:underline;text-underline-offset:2px}
+                .mb-li{color:${T.text};margin:.25rem 0 .25rem 1.4rem;list-style:disc;font-size:14px;line-height:1.7;font-family:${sans}}
+            `}</style>
+            <div dangerouslySetInnerHTML={{ __html: `<p class="mb-p">${html}</p>` }} />
+        </>
+    );
+}
+
+function LoadingScreen({ message = 'loading…' }) {
+    return (
+        <HomeLayout>
+            <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: mono }}>
+                <div style={{ textAlign: 'center', color: T.textDim }}>
+                    <Loader2 size={22} style={{ margin: '0 auto 14px', animation: 'spin 1s linear infinite', color: T.teal }} />
+                    <p style={{ fontSize: 12, letterSpacing: '0.08em' }}>{message}</p>
+                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                </div>
+            </div>
+        </HomeLayout>
+    );
+}
 
 export default function OneChallenge() {
     const router = useRouter();
-    const { challengeId } = useParams<{challengeId: string}>();
-    const [challengeData, setChallengesData] = useState<any>([]);
-    const [isJoin, setIsJoin] = useState<boolean>(false);
+    const { challengeId } = useParams<{ challengeId: string }>();
+    const [data, setData] = useState<any>(null);
+    const [isJoin, setIsJoin] = useState(false);
     const [activeTab, setActiveTab] = useState<'description' | 'tests'>('description');
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isJoining, setIsJoining] = useState<boolean>(false);
-    const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
-    const [hasPDF, setHasPDF] = useState<boolean>(false);
-    const [pdfUrl, setPdfUrl] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isJoining, setIsJoining] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
-    const getChallenges = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch(`/api/challenges/${challengeId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
-            setChallengesData(data);
-            setIsJoin(data.join || false);
-            
-            // Check if there's a PDF file
-            if (data.pdf_url) {
-                setHasPDF(true);
-                setPdfUrl(data.pdf_url);
-            }
-        } catch (error) {
-            console.error('Error fetching challenge:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    const joinChallenge = async () => {
-        try {
-            setIsJoining(true);
-            const response = await fetch(`/api/challenges/${challengeId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
-            setIsJoin(data.message || false);
-        } catch (error) {
-            console.error('Error joining challenge:', error);
-        } finally {
-            setIsJoining(false);
-        }
-    }
-
-    const handleGoToEditor = () => {
-        setIsRedirecting(true);
-        setTimeout(() => {
-            router.push(`/members/editor/${challengeData.id}`);
-        }, 500);
-    }
+    const cloudBase = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`;
 
     useEffect(() => {
-        getChallenges();
-    }, [])
+        (async () => {
+            try {
+                setIsLoading(true);
+                const res = await fetch(`/api/challenges/${challengeId}`, { headers: { 'Content-Type': 'application/json' } });
+                const d = await res.json();
+                setData(d);
+                setIsJoin(d.join || false);
+            } catch (e) { console.error(e); }
+            finally { setIsLoading(false); }
+        })();
+    }, []);
 
-    // Redirecting Loader
-    if (isRedirecting) {
-        return (
-            <HomeLayout>
-                <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                    <div className="text-center">
-                        <div className="relative mb-8">
-                            <div className="w-32 h-32 rounded-full bg-indigo-100 animate-pulse mx-auto"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="relative">
-                                    <Loader2 className="w-16 h-16 animate-spin text-indigo-600" />
-                                    <Code className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-indigo-700" />
-                                </div>
-                            </div>
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            Opening Editor
-                        </h2>
-                        <p className="text-gray-600 mb-6">Preparing your coding environment...</p>
-                        <div className="flex items-center justify-center gap-2 mb-4">
-                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                        <div className="w-64 h-1.5 bg-gray-200 rounded-full overflow-hidden mx-auto">
-                            <div className="h-full bg-indigo-600 rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
-                        </div>
-                    </div>
-                </div>
-            </HomeLayout>
-        );
-    }
-    
-    // Initial Loading
-    if (isLoading) {
-        return (
-            <HomeLayout>
-                <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                    <div className="text-center">
-                        <div className="relative mb-8">
-                            <div className="w-24 h-24 rounded-full bg-indigo-100 animate-pulse mx-auto"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-                            </div>
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Challenge</h2>
-                        <p className="text-gray-600 text-sm">Please wait...</p>
-                        <div className="w-48 h-1.5 bg-gray-200 rounded-full mt-6 overflow-hidden mx-auto">
-                            <div className="h-full bg-indigo-600 rounded-full animate-[loading_2s_ease-in-out_infinite]"></div>
-                        </div>
-                    </div>
-                </div>
-            </HomeLayout>
-        );
-    }
-
-    // 404 Error
-    if (challengeData?.details) {   
-        return (
-            <HomeLayout>
-                <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                    <div className="text-center bg-white rounded-2xl shadow-lg border border-gray-200 p-12 max-w-md">
-                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <h1 className="text-5xl font-bold text-gray-400 mb-2">404</h1>
-                        <p className="text-gray-900 text-lg font-medium mb-2">Challenge not found</p>
-                        <p className="text-gray-500 text-sm mb-8">The challenge you're looking for doesn't exist or has been removed.</p>
-                        <Link 
-                            href="/members/challenges" 
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors duration-200"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back to Challenges
-                        </Link>
-                    </div>
-                </div>
-            </HomeLayout>
-        );
-    }
-
-    const getDifficultyIcon = (difficulty: string) => {
-        const icon = <Zap className="w-4 h-4" />;
-        switch(difficulty) {
-            case "easy":
-                return <div className="flex gap-0.5">{icon}</div>;
-            case "medium":
-                return <div className="flex gap-0.5">{icon}{icon}</div>;
-            case "hard":
-                return <div className="flex gap-0.5">{icon}{icon}{icon}</div>;
-            default:
-                return <div className="flex gap-0.5">{icon}</div>;
-        }
+    const joinChallenge = async () => {
+        setIsJoining(true);
+        try {
+            const res = await fetch(`/api/challenges/${challengeId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+            const d = await res.json();
+            setIsJoin(true);
+            setData((prev: any) => ({ ...prev, ...d }));
+        } catch (e) { console.error(e); }
+        finally { setIsJoining(false); }
     };
 
-    const getDifficultyColor = (difficulty: string) => {
-        switch(difficulty) {
-            case "easy":
-                return "text-emerald-700 bg-emerald-50 border-emerald-200";
-            case "medium":
-                return "text-amber-700 bg-amber-50 border-amber-200";
-            case "hard":
-                return "text-rose-700 bg-rose-50 border-rose-200";
-            default:
-                return "text-gray-700 bg-gray-50 border-gray-200";
-        }
+    const goToEditor = () => {
+        setIsRedirecting(true);
+        setTimeout(() => router.push(`/members/editor/${data.id}`), 400);
     };
+
+
+
+    const diff = DIFF[data?.difficulty] ?? { color: T.textMid, bg: T.raised, border: T.border, label: data?.difficulty };
+
+    // ── Only render content types that actually exist ──────────────────────
+    const hasPdf = !!data?.description_pdf;
+    const hasImg = !!data?.description_img;
+    const hasMarkdown = !!data?.description?.trim();
+    const pdfUrl  = hasPdf ? `${cloudBase}/${data.description_pdf}` : null;
+    const imgUrl  = hasImg ? `${cloudBase}/${data.description_img}` : null;
+    const hasAnyDescription = hasPdf || hasImg || hasMarkdown;
+
+    // Build tab list only from what exists
+    type DescTab = 'pdf' | 'image' | 'markdown';
+    const descTabs: DescTab[] = [
+        ...(hasPdf      ? ['pdf'      as DescTab] : []),
+        ...(hasImg      ? ['image'    as DescTab] : []),
+        ...(hasMarkdown ? ['markdown' as DescTab] : []),
+    ];
+
+    const [activeDescTab, setActiveDescTab] = useState<DescTab | null>(null);
+
+    // Set default desc tab once data loads
+    useEffect(() => {
+        if (descTabs.length > 0 && !activeDescTab) setActiveDescTab(descTabs[0]);
+    }, [data]);
+
+    const descTabLabel: Record<DescTab, string> = { pdf: 'PDF', image: 'image', markdown: 'description' };
+
+
+    if (isRedirecting || isLoading) return <LoadingScreen message={isRedirecting ? 'opening editor…' : 'loading challenge…'} />;
+
+    if (data?.details) return (
+        <HomeLayout>
+            <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: mono }}>
+                <div style={{ textAlign: 'center', padding: 40 }}>
+                    <div style={{ fontSize: 56, fontWeight: 800, color: T.border, marginBottom: 12, fontFamily: sans }}>404</div>
+                    <p style={{ fontSize: 14, color: T.textMid, marginBottom: 24, fontFamily: sans }}>challenge not found</p>
+                    <Link href="/members/challenges" style={{
+                        color: T.teal, fontSize: 13, textDecoration: 'none',
+                        border: `1px solid ${T.tealBdr}`, background: T.tealBg,
+                        padding: '9px 20px', borderRadius: 8, fontFamily: sans,
+                    }}>
+                        ← back to challenges
+                    </Link>
+                </div>
+            </div>
+        </HomeLayout>
+    );
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <HomeLayout>
-                {/* Header Section */}
-                <div className="bg-white border-b border-gray-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                            <div className="flex items-start gap-6">
-                                {/* Icon */}
-                                <div className="w-16 h-16 rounded-xl bg-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
-                                    <img 
-                                        className="w-10 h-10 object-contain" 
-                                        src="/golden_challenge.png" 
-                                        alt="Challenge Icon"
-                                    />
-                                </div>
-                                
-                                {/* Info */}
-                                <div className="flex-1">
-                                    <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-                                        {challengeData?.title}
-                                    </h1>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        {/* Difficulty Badge */}
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border ${getDifficultyColor(challengeData.difficulty)}`}>
-                                            {getDifficultyIcon(challengeData.difficulty)}
-                                            <span className="capitalize">{challengeData.difficulty}</span>
-                                        </div>
-                                        
-                                        {/* XP Reward */}
-                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm font-semibold border border-amber-200">
-                                            <Trophy className="w-4 h-4" />
-                                            <span>{challengeData?.xp_reward || 100} XP</span>
-                                        </div>
+        <HomeLayout>
+            <div style={{ minHeight: '100vh', background: T.bg, fontFamily: sans, color: T.text }}>
 
-                                        {/* Status Badge if joined */}
-                                        {isJoin && (
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold border border-emerald-200">
-                                                <CheckCircle className="w-4 h-4" />
-                                                <span>Enrolled</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                {/* ── Top bar ── */}
+                <div style={{
+                    background: T.surface, borderBottom: `1px solid ${T.border}`,
+                    padding: '0 36px', height: 52,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Link href="/members/challenges" style={{
+                            color: T.textMid, display: 'flex', alignItems: 'center', gap: 5,
+                            fontSize: 13, textDecoration: 'none',
+                        }}>
+                            <ArrowLeft size={14} /> challenges
+                        </Link>
+                        <span style={{ color: T.border }}>/</span>
+                        <span style={{ color: T.textHi, fontSize: 13, fontWeight: 600 }}>{data?.title}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{
+                            fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase',
+                            color: diff.color, background: diff.bg, border: `1px solid ${diff.border}`,
+                            borderRadius: 4, padding: '3px 10px', fontFamily: mono, fontWeight: 700,
+                        }}>{diff.label}</span>
+                        <span style={{ fontSize: 12, color: T.amber, fontWeight: 700, fontFamily: mono }}>
+                            +{data?.xp_reward ?? 100} xp
+                        </span>
+                        {isJoin ? (
+                            <button onClick={goToEditor} style={{
+                                display: 'flex', alignItems: 'center', gap: 7,
+                                background: T.teal, border: 'none',
+                                color: '#fff', fontSize: 13, fontWeight: 600,
+                                padding: '7px 18px', borderRadius: 7, cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(13,148,136,0.3)',
+                            }}>
+                                <Code size={14} /> open editor <ArrowRight size={13} />
+                            </button>
+                        ) : (
+                            <button onClick={joinChallenge} disabled={isJoining} style={{
+                                display: 'flex', alignItems: 'center', gap: 7,
+                                background: isJoining ? T.raised : T.teal, border: 'none',
+                                color: isJoining ? T.textMid : '#fff', fontSize: 13, fontWeight: 600,
+                                padding: '7px 18px', borderRadius: 7,
+                                cursor: isJoining ? 'not-allowed' : 'pointer',
+                                boxShadow: isJoining ? 'none' : '0 2px 8px rgba(13,148,136,0.3)',
+                                transition: 'all 0.15s',
+                            }}>
+                                {isJoining
+                                    ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> joining…</>
+                                    : <>join challenge</>}
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-                            {/* Action Button */}
-                            <div className="flex-shrink-0">
-                                {isJoin ? (
-                                    <button 
-                                        onClick={handleGoToEditor}
-                                        disabled={isRedirecting}
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <Code className="w-5 h-5" />
-                                        <span>Go to Editor</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                ) : (
-                                    <button 
-                                        onClick={joinChallenge}
-                                        disabled={isJoining}
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isJoining ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                <span>Joining...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Target className="w-5 h-5" />
-                                                <span>Join Challenge</span>
-                                            </>
-                                        )}
-                                    </button>
+                {/* ── Body ── */}
+                <div style={{ maxWidth: 1280, margin: '0 auto', padding: '36px 28px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
+
+                    {/* ── Left ── */}
+                    <div>
+                        {/* Title block */}
+                        <div style={{ marginBottom: 28 }}>
+                            <h1 style={{ color: T.textHi, fontSize: 26, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.25 }}>
+                                {data?.title}
+                            </h1>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                {isJoin && (
+                                    <span style={{ fontSize: 12, color: T.green, display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                                        <CheckCircle size={13} /> enrolled
+                                    </span>
+                                )}
+                                {data?.status && isJoin && (
+                                    <span style={{ fontSize: 12, color: data.status === 'completed' ? T.green : T.blue }}>
+                                        · {data.status === 'completed' ? 'completed' : 'in progress'}
+                                    </span>
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Content Section */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left Column - Description & Tests */}
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Tab Navigation */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setActiveTab('description')}
-                                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                            activeTab === 'description' 
-                                            ? 'bg-indigo-600 text-white shadow-sm' 
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-center gap-2">
-                                            <FileText className="w-4 h-4" />
-                                            Description
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('tests')}
-                                        className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                            activeTab === 'tests' 
-                                            ? 'bg-indigo-600 text-white shadow-sm' 
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-center gap-2">
-                                            <CheckCircle className="w-4 h-4" />
-                                            Tests ({challengeData?.test_cases?.length || 0})
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
+                        {/* ── Main tabs: description / tests ── */}
+                        <div style={{ display: 'flex', borderBottom: `2px solid ${T.border}`, marginBottom: 28 }}>
+                            {(['description', 'tests'] as const).map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                                    background: 'none', border: 'none',
+                                    borderBottom: `2px solid ${activeTab === tab ? T.teal : 'transparent'}`,
+                                    color: activeTab === tab ? T.teal : T.textMid,
+                                    fontSize: 13, fontWeight: activeTab === tab ? 700 : 400,
+                                    padding: '10px 20px', cursor: 'pointer', marginBottom: -2,
+                                    transition: 'all 0.15s', fontFamily: sans,
+                                }}>
+                                    {tab === 'tests'
+                                        ? `tests (${data?.test_cases?.length ?? 0})`
+                                        : 'description'}
+                                </button>
+                            ))}
+                        </div>
 
-                            {/* Content based on active tab */}
-                            {activeTab === 'description' ? (
-                                <div className="space-y-6">
-                                    {/* PDF Viewer if available */}
-                                    {hasPDF && (
-                                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                                        <FileText className="w-5 h-5 text-indigo-600" />
-                                                        Challenge Document
-                                                    </h3>
-                                                    <a 
-                                                        href={pdfUrl} 
-                                                        download 
-                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors duration-200"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                        Download PDF
+                        {/* ── Description tab ── */}
+                        {activeTab === 'description' && (
+                            <div>
+                                {!hasAnyDescription ? (
+                                    <div style={{ padding: '48px 0', textAlign: 'center', color: T.textDim, fontSize: 13 }}>
+                                        no description available
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Sub-tabs — only if more than one source */}
+                                        {descTabs.length > 1 && (
+                                            <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+                                                {descTabs.map(t => (
+                                                    <button key={t} onClick={() => setActiveDescTab(t)} style={{
+                                                        background: activeDescTab === t ? T.tealBg : T.surface,
+                                                        border: `1px solid ${activeDescTab === t ? T.tealBdr : T.border}`,
+                                                        borderRadius: 6, color: activeDescTab === t ? T.teal : T.textMid,
+                                                        fontSize: 12, fontWeight: activeDescTab === t ? 700 : 400,
+                                                        padding: '6px 16px', cursor: 'pointer', fontFamily: mono,
+                                                        transition: 'all 0.15s',
+                                                    }}>
+                                                        {descTabLabel[t]}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* PDF */}
+                                        {(activeDescTab === 'pdf' || (descTabs.length === 1 && hasPdf)) && pdfUrl && (
+                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                                <div style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '12px 18px', background: T.raised, borderBottom: `1px solid ${T.border}`,
+                                                }}>
+                                                    <span style={{ fontSize: 12, color: T.textMid, fontFamily: mono }}>challenge.pdf</span>
+                                                    <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{
+                                                        color: T.teal, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5,
+                                                        textDecoration: 'none', fontWeight: 600,
+                                                    }}>
+                                                        <ExternalLink size={12} /> open in new tab
                                                     </a>
                                                 </div>
+                                                <iframe src={`${pdfUrl}#toolbar=0`} style={{ width: '100%', height: 620, display: 'block', border: 'none', background: '#fff' }} title="PDF" />
                                             </div>
-                                            <div className="p-4 bg-gray-50">
-                                                <iframe
-                                                    src={pdfUrl}
-                                                    className="w-full h-[700px] rounded-lg border border-gray-300"
-                                                    title="Challenge PDF"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Description */}
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                                <FileText className="w-5 h-5 text-indigo-600" />
+                                        {/* Image */}
+                                        {(activeDescTab === 'image' || (descTabs.length === 1 && hasImg)) && imgUrl && (
+                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                                <div style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '12px 18px', background: T.raised, borderBottom: `1px solid ${T.border}`,
+                                                }}>
+                                                    <span style={{ fontSize: 12, color: T.textMid, fontFamily: mono }}>description.png</span>
+                                                    <a href={imgUrl} target="_blank" rel="noopener noreferrer" style={{ color: T.teal, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none', fontWeight: 600 }}>
+                                                        <ExternalLink size={12} /> open in new tab
+                                                    </a>
+                                                </div>
+                                                <img src={imgUrl} alt="Challenge description" style={{ width: '100%', display: 'block', maxHeight: 600, objectFit: 'contain', background: '#fafafa' }} />
                                             </div>
-                                            Description
-                                        </h2>
-                                        <div className="prose prose-gray max-w-none">
-                                            <div className="text-gray-700 leading-relaxed space-y-6">
-                                                {challengeData?.description?.split('##').map((section: string, index: number) => {
-                                                    if (index === 0) return (
-                                                        <p key={index} className="text-gray-800 text-lg leading-relaxed">
-                                                            {section.trim()}
-                                                        </p>
-                                                    );
-                                                    
-                                                    const [title, ...content] = section.split('\n');
-                                                    return (
-                                                        <div key={index} className="mt-8">
-                                                            <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                                                                {title.trim()}
-                                                            </h3>
-                                                            <div className="bg-gray-50 rounded-lg p-5 border-l-4 border-indigo-600">
-                                                                {content.map((line, lineIndex) => (
-                                                                    <p key={lineIndex} className="text-gray-700 mb-3 last:mb-0 leading-relaxed">
-                                                                        {line.trim()}
-                                                                    </p>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                        )}
+
+                                        {/* Markdown */}
+                                        {(activeDescTab === 'markdown' || (descTabs.length === 1 && hasMarkdown)) && (
+                                            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: '28px 32px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                                                <MarkdownBlock content={data.description} />
                                             </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── Tests tab ── */}
+                        {activeTab === 'tests' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                {(!data?.test_cases || data.test_cases.length === 0) ? (
+                                    <div style={{ padding: '48px 0', textAlign: 'center', color: T.textDim, fontSize: 13 }}>
+                                        no test cases available
+                                    </div>
+                                ) : data.test_cases.map((tc: any, i: number) => (
+                                    <div key={tc.id} style={{
+                                        background: T.surface, border: `1px solid ${T.border}`,
+                                        borderLeft: `3px solid ${T.teal}66`, borderRadius: 10,
+                                        padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                                            <span style={{ fontSize: 13, fontWeight: 700, color: T.textHi, fontFamily: mono }}>
+                                                test_{String(i + 1).padStart(2, '0')}
+                                            </span>
+                                            {tc.is_sample && (
+                                                <span style={{
+                                                    fontSize: 10, color: T.amber, fontWeight: 700,
+                                                    background: T.amberBg, border: `1px solid #fde68a`,
+                                                    borderRadius: 4, padding: '3px 9px', fontFamily: mono, letterSpacing: '0.1em',
+                                                }}>SAMPLE</span>
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                            {[
+                                                { label: 'input', val: tc.input_content },
+                                                { label: 'expected output', val: tc.output_content },
+                                            ].map(({ label, val }) => (
+                                                <div key={label}>
+                                                    <div style={{ fontSize: 10, color: T.textDim, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, fontFamily: mono }}>
+                                                        {label}
+                                                    </div>
+                                                    <pre style={{
+                                                        background: T.raised, border: `1px solid ${T.border}`,
+                                                        borderRadius: 8, padding: '12px 16px',
+                                                        fontFamily: mono, fontSize: 13, color: T.textHi,
+                                                        margin: 0, whiteSpace: 'pre-wrap', minHeight: 64, lineHeight: 1.65,
+                                                    }}>
+                                                        {val || '—'}
+                                                    </pre>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── Right sidebar ── */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                        {/* CTA */}
+                        <button
+                            onClick={isJoin ? goToEditor : joinChallenge}
+                            disabled={isJoining}
+                            style={{
+                                width: '100%', padding: '14px 0',
+                                background: isJoining ? T.raised : T.teal,
+                                border: 'none', borderRadius: 8,
+                                color: isJoining ? T.textMid : '#fff',
+                                fontSize: 14, fontWeight: 700, cursor: isJoining ? 'not-allowed' : 'pointer',
+                                fontFamily: sans,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                boxShadow: isJoining ? 'none' : '0 4px 12px rgba(13,148,136,0.25)',
+                                transition: 'all 0.15s',
+                            }}
+                        >
+                            {isJoin
+                                ? <><Code size={15} /> open editor <ArrowRight size={14} /></>
+                                : isJoining
+                                ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> joining…</>
+                                : <>join challenge</>}
+                        </button>
+
+                        {/* Info card */}
+                        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                            <div style={{ padding: '12px 18px', borderBottom: `1px solid ${T.border}`, fontSize: 11, color: T.textMid, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: mono, background: T.raised }}>
+                                challenge info
+                            </div>
+                            {[
+                                { label: 'difficulty', value: diff.label, color: diff.color },
+                                { label: 'xp reward',  value: `${data?.xp_reward ?? 100} xp`, color: T.amber },
+                                { label: 'test cases', value: `${data?.test_cases?.length ?? 0}`, color: T.textHi },
+                                { label: 'participants', value: `${data?.participants_count ?? 0}`, color: T.textHi },
+                            ].map(({ label, value, color }, idx, arr) => (
+                                <div key={label} style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '12px 18px',
+                                    borderBottom: idx < arr.length - 1 ? `1px solid ${T.border}` : 'none',
+                                }}>
+                                    <span style={{ fontSize: 12, color: T.textMid }}>{label}</span>
+                                    <span style={{ fontSize: 13, color, fontWeight: 700, fontFamily: mono, textTransform: 'capitalize' }}>{value}</span>
                                 </div>
-                            ) : (
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-emerald-600" />
-                                        </div>
-                                        Test Cases
-                                    </h2>
-                                    
-                                    <div className="space-y-5">
-                                        {challengeData?.test_cases?.map((testCase: any, index: number) => (
-                                            <div 
-                                                key={testCase.id} 
-                                                className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200"
-                                            >
-                                                <div className="flex items-center justify-between mb-5">
-                                                    <h4 className="font-semibold text-gray-900 flex items-center gap-3">
-                                                        <span className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center text-sm font-bold">
-                                                            {index + 1}
-                                                        </span>
-                                                        <span className="text-lg">Test Case {index + 1}</span>
-                                                    </h4>
-                                                    {testCase.is_sample && (
-                                                        <span className="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-lg border border-amber-200">
-                                                            Example
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                                    <div className="space-y-2">
-                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                                            <span className="text-base">📥</span> Input
-                                                        </label>
-                                                        <div className="bg-white rounded-lg p-4 font-mono text-sm text-gray-800 min-h-[80px] border border-gray-200 whitespace-pre-wrap">
-                                                            {testCase.input_content || "No input data"}
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="space-y-2">
-                                                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                                            <span className="text-base">📤</span> Expected Output
-                                                        </label>
-                                                        <div className="bg-white rounded-lg p-4 font-mono text-sm text-gray-800 min-h-[80px] border border-gray-200 whitespace-pre-wrap">
-                                                            {testCase.output_content || "No output data"}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            ))}
                         </div>
 
-                        {/* Right Column - Stats */}
-                        <div className="space-y-6">
-                            {/* Participants Card */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                        <Users className="w-5 h-5 text-indigo-600" />
+                        {/* Created / started */}
+                        {(data?.created_at || data?.started_at) && (
+                            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                                {data?.created_at && (
+                                    <div style={{ padding: '14px 18px', borderBottom: data?.started_at ? `1px solid ${T.border}` : 'none' }}>
+                                        <div style={{ fontSize: 10, color: T.textDim, letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 5, fontFamily: mono }}>created</div>
+                                        <div style={{ fontSize: 13, color: T.textHi, fontWeight: 500 }}>
+                                            {new Date(data.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        Participants
-                                    </h3>
-                                </div>
-                                <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-100">
-                                    <p className="text-4xl font-bold text-indigo-600">
-                                        {challengeData?.participants_count || 0}
-                                    </p>
-                                    <p className="text-sm text-gray-600 mt-2 font-medium">
-                                        challengers enrolled
-                                    </p>
-                                </div>
+                                )}
+                                {data?.started_at && isJoin && (
+                                    <div style={{ padding: '14px 18px' }}>
+                                        <div style={{ fontSize: 10, color: T.textDim, letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 5, fontFamily: mono }}>started</div>
+                                        <div style={{ fontSize: 13, color: T.textHi, fontWeight: 500 }}>
+                                            {new Date(data.started_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            
-                            {/* Created At Card */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                        <Calendar className="w-5 h-5 text-emerald-600" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        Created
-                                    </h3>
-                                </div>
-                                <div className="bg-emerald-50 rounded-lg p-5 border border-emerald-100">
-                                    <p className="text-lg font-semibold text-emerald-700">
-                                        {new Date(challengeData?.created_at).toLocaleDateString('en-US', { 
-                                            year: 'numeric', 
-                                            month: 'long', 
-                                            day: 'numeric' 
-                                        })}
-                                    </p>
-                                    <p className="text-sm text-gray-600 mt-2 font-medium flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        {new Date(challengeData?.created_at).toLocaleTimeString('en-US', { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Stats Summary Card */}
-                            <div className="bg-indigo-600 rounded-xl shadow-lg p-6 text-white">
-                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <Trophy className="w-5 h-5" />
-                                    Quick Stats
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-                                        <span className="text-sm font-medium">Difficulty</span>
-                                        <span className="text-sm font-semibold capitalize">{challengeData?.difficulty}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-                                        <span className="text-sm font-medium">Test Cases</span>
-                                        <span className="text-sm font-semibold">{challengeData?.test_cases?.length || 0}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-                                        <span className="text-sm font-medium">XP Reward</span>
-                                        <span className="text-sm font-semibold">{challengeData?.xp_reward || 100} XP</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
-            </HomeLayout>
 
-            <style jsx>{`
-                @keyframes loading {
-                    0% { width: 0%; }
-                    50% { width: 100%; }
-                    100% { width: 0%; }
-                }
-            `}</style>
-        </div>
-    )
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+        </HomeLayout>
+    );
 }

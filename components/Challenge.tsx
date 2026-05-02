@@ -1,380 +1,289 @@
 "use client";
 
-import { Star, Loader2, Search, Filter, Flame, Users, FileText, Calendar, Trophy, Zap, Target, Shield, Award, ArrowRight, Clock } from "lucide-react";
+import { Search, Users, Trophy, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function ChallengesPage() {
-  const [challengesData, setChallengesData] = useState<any[]>([]);
-  const [filteredChallenges, setFilteredChallenges] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [difficultyFilter, setDifficultyFilter] = useState("all");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFiltering, setIsFiltering] = useState(false);
+// ─── Light tokens ─────────────────────────────────────────────────────────────
+const T = {
+    bg:       '#f8f9fb',
+    surface:  '#ffffff',
+    border:   '#e2e8f0',
+    borderMd: '#cbd5e1',
+    text:     '#475569',
+    textHi:   '#0f172a',
+    textMid:  '#64748b',
+    textDim:  '#94a3b8',
+    teal:     '#0d9488',
+    tealBg:   '#f0fdfa',
+    tealBdr:  '#99f6e4',
+    amber:    '#d97706',
+    amberBg:  '#fffbeb',
+    green:    '#16a34a',
+    greenBg:  '#f0fdf4',
+    red:      '#dc2626',
+    redBg:    '#fef2f2',
+    blue:     '#2563eb',
+    blueBg:   '#eff6ff',
+};
 
-  const getChallenges = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/challenges', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-      setChallengesData(data);
-      setFilteredChallenges(data);
-    } catch (error) {
-      console.error('Error fetching challenges:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+const DIFF: Record<string, { color: string; bg: string; border: string; label: string; dot: string }> = {
+    easy:   { color: T.green,  bg: T.greenBg,  border: '#bbf7d0', label: 'easy',   dot: T.green  },
+    medium: { color: T.amber,  bg: T.amberBg,  border: '#fde68a', label: 'medium',  dot: T.amber  },
+    hard:   { color: T.red,    bg: T.redBg,    border: '#fecaca', label: 'hard',   dot: T.red    },
+};
 
-  // Filter challenges based on search term and difficulty
-  useEffect(() => {
-    setIsFiltering(true);
-    
-    const timer = setTimeout(() => {
-      let filtered = challengesData;
-      
-      if (searchTerm) {
-        filtered = filtered.filter(challenge => 
-          challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          challenge.slug.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      if (difficultyFilter !== "all") {
-        filtered = filtered.filter(challenge => 
-          challenge.difficulty === difficultyFilter
-        );
-      }
-      
-      setFilteredChallenges(filtered);
-      setIsFiltering(false);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [searchTerm, difficultyFilter, challengesData]);
+const STATUS: Record<string, { color: string; bg: string; label: string }> = {
+    in_progress: { color: T.blue,  bg: T.blueBg,  label: 'in progress' },
+    completed:   { color: T.green, bg: T.greenBg, label: 'completed'   },
+};
 
-  useEffect(() => {
-    getChallenges();
-  }, []);
+const mono = "'IBM Plex Mono', monospace";
 
-  const getDifficultyBadge = (difficulty: string) => {
-    const config = {
-      easy: {
-        color: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
-        icon: "🌱",
-        label: "Beginner"
-      },
-      medium: {
-        color: "bg-amber-500/10 text-amber-700 border-amber-200",
-        icon: "🔥",
-        label: "Intermediate"
-      },
-      hard: {
-        color: "bg-rose-500/10 text-rose-700 border-rose-200",
-        icon: "⚡",
-        label: "Advanced"
-      }
-    };
-    
-    const style = config[difficulty as keyof typeof config] || config.easy;
-    
+function DiffPill({ difficulty }: { difficulty: string }) {
+    const d = DIFF[difficulty] ?? { color: T.textMid, bg: '#f1f5f9', border: T.border, label: difficulty, dot: T.textMid };
     return (
-      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${style.color} flex items-center gap-1.5 whitespace-nowrap`}>
-        <span className="text-sm">{style.icon}</span>
-        {style.label}
-      </span>
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 10, letterSpacing: '0.09em', textTransform: 'uppercase',
+            color: d.color, background: d.bg, border: `1px solid ${d.border}`,
+            borderRadius: 4, padding: '3px 9px', fontFamily: mono, fontWeight: 600,
+        }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: d.dot }} />
+            {d.label}
+        </span>
     );
-  };
+}
 
-  const getStatusBadge = (challenge: any) => {
-    if (challenge.join && challenge.status === "in_progress") {
-      return (
-        <span className="bg-blue-500/10 text-blue-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-blue-200 flex items-center gap-1.5 whitespace-nowrap">
-          <Zap className="w-3 h-3" />
-          In Progress
+function StatusPill({ status }: { status: string }) {
+    const s = STATUS[status];
+    if (!s) return null;
+    return (
+        <span style={{
+            fontSize: 10, letterSpacing: '0.07em', color: s.color,
+            background: s.bg, borderRadius: 4, padding: '3px 9px',
+            fontFamily: mono, fontWeight: 600, border: `1px solid ${s.color}33`,
+        }}>
+            {s.label}
         </span>
-      );
-    } else if (challenge.join) {
-      return (
-        <span className="bg-emerald-500/10 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200 flex items-center gap-1.5 whitespace-nowrap">
-          <Award className="w-3 h-3" />
-          Completed
-        </span>
-      );
-    }
-    return null;
-  };
+    );
+}
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy":
-        return {
-          gradient: "from-emerald-500/5 via-emerald-500/10 to-emerald-500/5",
-          border: "border-emerald-200/50 hover:border-emerald-400",
-          glow: "hover:shadow-emerald-200/50",
-          icon: "bg-linear-to-br from-emerald-400 to-emerald-600"
-        };
-      case "medium":
-        return {
-          gradient: "from-amber-500/5 via-amber-500/10 to-amber-500/5",
-          border: "border-amber-200/50 hover:border-amber-400",
-          glow: "hover:shadow-amber-200/50",
-          icon: "bg-linear-to-br from-amber-400 to-amber-600"
-        };
-      case "hard":
-        return {
-          gradient: "from-rose-500/5 via-rose-500/10 to-rose-500/5",
-          border: "border-rose-200/50 hover:border-rose-400",
-          glow: "hover:shadow-rose-200/50",
-          icon: "bg-linear-to-br from-rose-400 to-rose-600"
-        };
-      default:
-        return {
-          gradient: "from-gray-500/5 via-gray-500/10 to-gray-500/5",
-          border: "border-gray-200/50 hover:border-gray-400",
-          glow: "hover:shadow-gray-200/50",
-          icon: "bg-linear-to-br from-gray-400 to-gray-600"
-        };
-    }
-  };
+function ChallengeCard({ challenge }: { challenge: any }) {
+    const diff = DIFF[challenge.difficulty] ?? { color: T.textMid, dot: T.textMid, border: T.border, bg: '#f8fafc', label: challenge.difficulty };
+    const [hovered, setHovered] = useState(false);
 
-  return (
-    <div className="min-h-screen">
-      <div className="">
-        {/* Header Section */}
-        {/* <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                Code Challenges
-              </h1>
-              <p className="text-gray-600">Master your skills through practice and competition</p>
-            </div>
-            
-            <Link 
-              href={'/members/leaderBoard'} 
-              className="group inline-flex items-center gap-3 font-semibold text-white py-3.5 px-6 text-sm rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+    return (
+        <Link href={`/members/challenges/${challenge.id}`} style={{ textDecoration: 'none' }}>
+            <div
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                style={{
+                    background: T.surface,
+                    border: `1px solid ${hovered ? diff.dot : T.border}`,
+                    borderLeft: `3px solid ${diff.dot}`,
+                    borderRadius: 10,
+                    padding: '22px 26px',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s',
+                    boxShadow: hovered ? '0 4px 20px rgba(0,0,0,0.07)' : '0 1px 3px rgba(0,0,0,0.04)',
+                    display: 'flex', flexDirection: 'column', gap: 16,
+                }}
             >
-              <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Trophy className="w-4 h-4" />
-              </div>
-              <div className="text-left">
-                <div className="font-bold">Leaderboard</div>
-                <div className="text-xs text-indigo-100 font-normal">Top performers</div>
-              </div>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        </div> */}
-
-        {/* Search and Filters */}
-        <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
-            {/* Search Box */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search challenges by title or topic..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 placeholder-neutral-400 bg-gray-50/50 border border-gray-200 rounded-xl focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 focus:outline-none transition-all duration-300 text-gray-700"
-                />
-              </div>
-            </div>
-            
-            {/* Quick Filter Chips */}
-            <div className="flex items-center gap-3">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <div className="flex flex-wrap gap-2">
-                {["all", "easy", "medium", "hard"].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setDifficultyFilter(level)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                      difficultyFilter === level
-                        ? level === "easy" 
-                          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                          : level === "medium"
-                          ? "bg-amber-500 text-white shadow-lg shadow-amber-200"
-                          : level === "hard"
-                          ? "bg-rose-500 text-white shadow-lg shadow-rose-200"
-                          : "bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-200"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200"
-                    }`}
-                  >
-                    {level === "all" && "All Challenges"}
-                    {level === "easy" && "🌱 Easy"}
-                    {level === "medium" && "🔥 Medium"}
-                    {level === "hard" && "⚡ Hard"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Results Counter */}
-            {!isLoading && !isFiltering && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Showing <span className="font-semibold text-indigo-600">{filteredChallenges.length}</span> challenge{filteredChallenges.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-linear-to-r from-indigo-500/20 to-purple-500/20 animate-pulse"></div>
-              <Loader2 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 animate-spin text-indigo-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-800 mt-8 mb-3">Loading Challenges</h2>
-            <p className="text-gray-600 text-center max-w-md">Preparing exciting challenges to boost your skills...</p>
-            <div className="w-72 h-2 bg-gray-200 rounded-full mt-8 overflow-hidden">
-              <div className="h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full animate-[loading_2s_ease-in-out_infinite]"></div>
-            </div>
-          </div>
-        ) : (
-          /* Challenges Grid */
-          <div className="space-y-6">
-            {/* Filtering Indicator */}
-            {isFiltering && (
-              <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
-                <Loader2 className="w-5 h-5 animate-spin text-amber-600" />
-                <span className="text-sm font-medium text-amber-700">Filtering challenges...</span>
-              </div>
-            )}
-            
-            {/* Challenges Grid */}
-            {filteredChallenges.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredChallenges.map((challenge) => {
-                  const colors = getDifficultyColor(challenge.difficulty);
-                  return (
-                    <Link 
-                      href={`/members/challenges/${challenge.id}`}
-                      key={challenge.id}
-                      className={`group relative bg-white border-2 ${colors.border} rounded-2xl overflow-hidden hover:shadow-2xl ${colors.glow} transition-all duration-300 hover:-translate-y-1`}
-                    >
-                      {/* Gradient Background */}
-                      <div className={`absolute inset-0 bg-linear-to-br ${colors.gradient} opacity-50`}></div>
-                      
-                      {/* Shine Effect */}
-                      <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                      
-                      <div className="relative p-6">
-                        {/* Header */}
-                        <div className="flex items-start gap-4 mb-4">
-                          <div className={`w-14 h-14 rounded-xl ${colors.icon} flex items-center justify-center text-2xl shadow-lg flex-shrink-0`}>
-                            {challenge.difficulty === "easy" ? "🌱" :
-                            challenge.difficulty === "medium" ? "🔥" : "⚡"}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors">
-                              {challenge.title}
-                            </h3>
-                            <div className="flex flex-wrap items-center gap-2">
-                              {getDifficultyBadge(challenge.difficulty)}
-                              {getStatusBadge(challenge)}
-                            </div>
-                          </div>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                            color: T.textHi, fontSize: 15, fontWeight: 700,
+                            margin: '0 0 10px', lineHeight: 1.35,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                            {challenge.title}
+                        </h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <DiffPill difficulty={challenge.difficulty} />
+                            {challenge.join && challenge.status && <StatusPill status={challenge.status} />}
                         </div>
-
-                        {/* Description */}
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-6 leading-relaxed">
-                          {challenge.description || "Test your programming skills with this challenge."}
-                        </p>
-
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-3 gap-3 mb-6">
-                          <div className="bg-gray-50/50 rounded-lg p-3 text-center border border-gray-100">
-                            <FileText className="w-5 h-5 text-indigo-600 mx-auto mb-1" />
-                            <p className="text-xs text-gray-500 mb-0.5">Tests</p>
-                            <p className="text-sm font-bold text-gray-900">{challenge.test_cases_count}</p>
-                          </div>
-                          
-                          <div className="bg-gray-50/50 rounded-lg p-3 text-center border border-gray-100">
-                            <Users className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                            <p className="text-xs text-gray-500 mb-0.5">Participants</p>
-                            <p className="text-sm font-bold text-gray-900">{challenge.participants_count}</p>
-                          </div>
-                          
-                          <div className="bg-gray-50/50 rounded-lg p-3 text-center border border-gray-100">
-                            <Trophy className="w-5 h-5 text-amber-600 mx-auto mb-1" />
-                            <p className="text-xs text-gray-500 mb-0.5">XP</p>
-                            <p className="text-sm font-bold text-gray-900">{challenge.xp_reward || 100}</p>
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        {challenge.tags && challenge.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-6">
-                            {challenge.tags.slice(0, 3).map((tag: string, index: number) => (
-                              <span key={index} className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-lg border border-indigo-100">
-                                {tag}
-                              </span>
-                            ))}
-                            {challenge.tags.length > 3 && (
-                              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg border border-gray-200">
-                                +{challenge.tags.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            <span>{new Date(challenge.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium text-sm group-hover:shadow-lg group-hover:from-indigo-700 group-hover:to-purple-700 transition-all">
-                            Start Challenge
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : !isFiltering && (
-              /* Empty State */
-              <div className="text-center py-20 bg-white/50 backdrop-blur-sm rounded-2xl border-2 border-dashed border-gray-300">
-                <div className="w-32 h-32 mx-auto mb-6 relative">
-                  <div className="absolute inset-0 bg-linear-to-r from-gray-200 to-gray-300 rounded-full opacity-50 animate-pulse"></div>
-                  <Target className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 text-gray-400" />
+                    </div>
+                    <div style={{
+                        color: hovered ? diff.color : T.textDim,
+                        transition: 'color 0.15s, transform 0.15s',
+                        transform: hovered ? 'translateX(3px)' : 'none',
+                        marginTop: 2, flexShrink: 0,
+                    }}>
+                        <ArrowRight size={16} />
+                    </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-700 mb-3">No Challenges Found</h3>
-                <p className="text-gray-500 max-w-md mx-auto mb-8">
-                  {searchTerm 
-                    ? `No challenges match "${searchTerm}". Try a different search term.`
-                    : "No challenges match your current filters. Try selecting a different difficulty level."}
-                </p>
-                <button 
-                  onClick={() => {
-                    setSearchTerm("");
-                    setDifficultyFilter("all");
-                  }}
-                  className="px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+                {/* Description */}
+                {challenge.description && (
+                    <p style={{
+                        color: T.textMid, fontSize: 13, lineHeight: 1.65, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
+                        {challenge.description.replace(/[#`*\[\]]/g, '').substring(0, 160)}
+                    </p>
+                )}
+
+                {/* Footer */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    paddingTop: 14, borderTop: `1px solid ${T.border}`,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: T.textDim, fontSize: 12 }}>
+                            <Users size={12} />
+                            {challenge.participants_count ?? 0}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: T.amber, fontSize: 12, fontWeight: 600 }}>
+                            <Trophy size={12} />
+                            {challenge.xp_reward ?? 100} xp
+                        </span>
+                        <span style={{ color: T.textDim, fontSize: 12 }}>
+                            {challenge.test_cases_count ?? challenge.test_cases?.length ?? 0} tests
+                        </span>
+                    </div>
+                    <span style={{ color: T.textDim, fontSize: 11, fontFamily: mono }}>
+                        {new Date(challenge.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+export default function ChallengesPage() {
+    const [challenges, setChallenges] = useState<any[]>([]);
+    const [filtered, setFiltered] = useState<any[]>([]);
+    const [search, setSearch] = useState('');
+    const [diff, setDiff] = useState('all');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                setLoading(true);
+                const res = await fetch('/api/challenges', { headers: { 'Content-Type': 'application/json' } });
+                const data = await res.json();
+                setChallenges(data);
+                setFiltered(data);
+            } catch (e) { console.error(e); }
+            finally { setLoading(false); }
+        })();
+    }, []);
+
+    useEffect(() => {
+        const q = search.toLowerCase();
+        setFiltered(challenges.filter(c => {
+            const matchSearch = !q || c.title.toLowerCase().includes(q) || c.slug?.toLowerCase().includes(q);
+            const matchDiff = diff === 'all' || c.difficulty === diff;
+            return matchSearch && matchDiff;
+        }));
+    }, [search, diff, challenges]);
+
+    const counts = {
+        easy:   challenges.filter(c => c.difficulty === 'easy').length,
+        medium: challenges.filter(c => c.difficulty === 'medium').length,
+        hard:   challenges.filter(c => c.difficulty === 'hard').length,
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', background: T.bg, fontFamily: mono, color: T.text }}>
+
+            {/* ── Top bar ── */}
+            <div style={{
+                background: T.surface, borderBottom: `1px solid ${T.border}`,
+                padding: '0 36px', height: 52,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <span style={{ color: T.textHi, fontSize: 13, fontWeight: 700, letterSpacing: '0.04em' }}>
+                        challenges
+                    </span>
+                    <span style={{ color: T.border }}>·</span>
+                    <span style={{ color: T.textMid, fontSize: 11 }}>{filtered.length} results</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    {Object.entries(DIFF).map(([key, d]) => (
+                        <span key={key} style={{ fontSize: 11, color: T.textDim }}>
+                            <span style={{ color: d.dot, fontWeight: 700 }}>{counts[key as keyof typeof counts]}</span>
+                            {' '}{key}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
+
+                {/* ── Search + filters ── */}
+                <div style={{ display: 'flex', gap: 10, marginBottom: 28, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1, maxWidth: 480 }}>
+                        <Search size={14} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: T.textDim, pointerEvents: 'none' }} />
+                        <input
+                            type="text"
+                            placeholder="search challenges…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            style={{
+                                width: '100%', background: T.surface,
+                                border: `1px solid ${T.border}`, borderRadius: 8,
+                                color: T.textHi, fontSize: 13,
+                                padding: '10px 14px 10px 38px',
+                                outline: 'none', boxSizing: 'border-box',
+                                fontFamily: mono, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        {[
+                            { key: 'all',    label: 'All',    color: T.teal    },
+                            { key: 'easy',   label: 'Easy',   color: T.green   },
+                            { key: 'medium', label: 'Medium', color: T.amber   },
+                            { key: 'hard',   label: 'Hard',   color: T.red     },
+                        ].map(({ key, label, color }) => {
+                            const active = diff === key;
+                            return (
+                                <button key={key} onClick={() => setDiff(key)} style={{
+                                    background: active ? color : T.surface,
+                                    border: `1px solid ${active ? color : T.border}`,
+                                    borderRadius: 6, color: active ? '#fff' : T.textMid,
+                                    fontSize: 12, fontWeight: active ? 700 : 400,
+                                    padding: '8px 16px', cursor: 'pointer',
+                                    transition: 'all 0.15s', fontFamily: mono,
+                                    boxShadow: active ? `0 2px 8px ${color}44` : 'none',
+                                }}>
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── Grid ── */}
+                {loading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240, gap: 10, color: T.textDim }}>
+                        <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                        <span style={{ fontSize: 13 }}>loading challenges…</span>
+                        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '64px 0', color: T.textDim }}>
+                        <div style={{ fontSize: 40, marginBottom: 14, opacity: 0.3 }}>∅</div>
+                        <p style={{ fontSize: 13, marginBottom: 20 }}>no challenges match your filters</p>
+                        <button onClick={() => { setSearch(''); setDiff('all'); }} style={{
+                            background: T.surface, border: `1px solid ${T.border}`,
+                            color: T.text, fontSize: 12, padding: '8px 20px', borderRadius: 6,
+                            cursor: 'pointer', fontFamily: mono,
+                        }}>reset filters</button>
+                    </div>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(460px, 1fr))', gap: 14 }}>
+                        {filtered.map(c => <ChallengeCard key={c.id} challenge={c} />)}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
