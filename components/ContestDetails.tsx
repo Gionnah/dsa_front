@@ -506,13 +506,13 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
 
                 {/* Manage Team Sidebar */}
                 {showManageTeam && (
-                    <div className={`fixed inset-0 z-50 flex justify-end ${slideRight}`}>
+                    <div className={`fixed inset-0 z-50 flex justify-end`}>
                         <div 
                             onClick={toggleManageTeam}
                             className="absolute inset-0 bg-black/50 "
                         ></div>
                         
-                        <div className="relative w-full max-w-md bg-white h-full shadow-xl overflow-y-auto">
+                        <div className={`relative w-full max-w-md bg-white h-full shadow-xl overflow-y-auto ${slideRight}`}>
                             <div className="sticky top-0 bg-white border-b border-gray-200 p-4">
                                 <button 
                                     onClick={toggleManageTeam}
@@ -626,8 +626,8 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                 
                 {/* Delete Confirmation Popup */}
                 {showPopupDelete && (
-                    <div className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 ${scaleIn}`}>
-                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                    <div className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4`}>
+                        <div className={`bg-white rounded-lg shadow-lg max-w-md w-full p-6 ${scaleIn}`}>
                             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Trash2 className="w-6 h-6 text-orange-600" />
                             </div>
@@ -650,8 +650,8 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
 
                 {/* Invitation Modal */}
                 {showInvitation && (
-                    <div className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 ${scaleIn}`}>
-                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full px-6 relative py-8">
+                    <div className={`fixed inset-0 bg-black/50 h-screen z-50 flex items-center justify-center p-4`}>
+                        <div className={`bg-white rounded-lg shadow-lg max-w-md w-full px-6 relative py-8 ${scaleIn}`}>
                             <button 
                                 onClick={() => setShowInvitation(!showInvitation)} 
                                 className="absolute top-3 right-3 text-gray-400 hover:text-red-600 transition-all duration-200 hover:rotate-90"
