@@ -72,6 +72,8 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [now, setNow] = useState(Date.now());
     const [listTeam, setListTeam] = useState<any>([]);
+    const [invitation, setInvitation] = useState<any>(null);
+    const [showInvitation, setShowInvitation] = useState<boolean>(false);
 
     const start = useMemo(
         () => details ? new Date(details.date_debut).getTime() : 0,
@@ -88,6 +90,20 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
         return () => clearInterval(interval);
     }, []);
 
+    const getInvitation = async () => {
+        try {
+            const res = await fetch('/api/contests/invitation');
+            const data = await res.json();
+
+            setInvitation(data?.data);
+        }
+        catch (e: any){
+            console.error(e);
+        }
+    }
+    useEffect(()=>{
+        getInvitation()
+    }, [])
     const getLitTeam = async () => {
         if (teamData?.dataTeam?.is_member) {
             const res = await fetch('/api/contests/' + details.id + '/teams/' + teamData?.dataTeam?.team_id, {
@@ -158,7 +174,6 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
             });
         }
     };
-
     const showChallenges = details.is_ongoing || details.is_finished;
     const showLeaderboard = details.is_ongoing || details.is_finished;
 
@@ -215,6 +230,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     return (
         <div className="min-h-screen bg-gray-50 font-mono">
             <div className="max-w-7xl mx-auto space-y-6 p-6">
+                
                 {/* Create Team Modal */}
                 {showCreateTeamModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -225,7 +241,6 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                             >
                                 <X className="w-5 h-5" />
                             </button>
-                            
                             <div className="mb-6">
                                 <h2 className="text-xl font-semibold text-center text-gray-900">Create Your Team</h2>
                                 <p className="text-center text-gray-500 text-sm mt-1">Choose a name for your team</p>
@@ -380,8 +395,45 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                     </div>
                 )}
 
+                {showInvitation && (
+                    <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
+                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                            {
+                                invitation?.map((inv: any, index: number) => {
+                                    <div className="">
+
+                                        <h1 className='text-orange-600 text-lg font-semibold text-center mb-3'>Warning</h1>
+                                        <p className='text-gray-600 text-center text-sm mb-2'>This action will unregister you from the contest as well as all the team members.</p> 
+                                        <p className='text-gray-600 text-center text-sm mb-4'>
+                                            <span className='font-medium text-gray-900'>Note:</span> You can create a new team or join an existing team only before the contest starts.
+                                        </p>
+                                        <div className="flex gap-3">
+                                            <button onClick={() => setShowPopupDelete(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                                                Cancel
+                                            </button>    
+                                            <button onClick={deleteTeam} className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors">
+                                                Yes, Delete
+                                            </button>    
+                                        </div>  
+                                    </div>
+                                })
+                            }         
+                        </div>
+                    </div>
+                )}
+
                 {/* Action Button */}
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                    {invitation && 
+                        <button 
+                            onClick={() => setShowInvitation(!showInvitation)} 
+                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-md transition-colors flex items-center gap-2"
+                        >
+                            <Users className="w-4 h-4" />
+                            View invitation
+                        </button>
+
+                    }
                     {!teamData?.dataTeam?.is_member ? (
                         <button 
                             onClick={toggleCreateTeamModal} 
@@ -456,7 +508,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                 {/* Content */}
                 <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                     {/* Challenges */}
-                    {showChallenges && details?.statut != 'upcoming' (
+                    {showChallenges && teamData?.dataTeam?.is_member &&  (
                         <div className="mb-8">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <Target className="w-4 h-4 text-teal-600" />

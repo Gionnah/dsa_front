@@ -45,7 +45,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
         body: JSON.stringify({
             user_email: user_email
         })
-
     });
 
     const listTeam = await response.json();
