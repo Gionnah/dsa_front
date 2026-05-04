@@ -38,7 +38,193 @@ const DIFF: Record<string, { color: string; bg: string; border: string; label: s
 const mono = "'IBM Plex Mono', monospace";
 const sans = "'Inter', system-ui, sans-serif";
 
-// ─── Markdown renderer ────────────────────────────────────────────────────────
+// ─── Shimmer Effect Component ────────────────────────────────────────────────
+const Shimmer = () => (
+    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+);
+
+// ─── Enhanced Skeleton Components ────────────────────────────────────────────
+function SkeletonTopBar() {
+    return (
+        <div style={{
+            background: T.surface, borderBottom: `1px solid ${T.border}`,
+            padding: '0 36px', height: 52,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 80, height: 16, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                    <Shimmer />
+                </div>
+                <div style={{ width: 100, height: 16, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                    <Shimmer />
+                </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 60, height: 28, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                    <Shimmer />
+                </div>
+                <div style={{ width: 80, height: 36, background: T.raised, borderRadius: 7, position: 'relative', overflow: 'hidden' }}>
+                    <Shimmer />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function SkeletonTitle() {
+    return (
+        <div style={{ marginBottom: 28 }}>
+            <div style={{ width: '70%', height: 32, background: T.raised, borderRadius: 8, marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ width: 120, height: 16, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+        </div>
+    );
+}
+
+function SkeletonTabs() {
+    return (
+        <div style={{ display: 'flex', borderBottom: `2px solid ${T.border}`, marginBottom: 28 }}>
+            {[1, 2].map((i) => (
+                <div key={i} style={{ padding: '10px 20px', marginBottom: -2 }}>
+                    <div style={{ width: 80, height: 16, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                        <Shimmer />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function SkeletonDescription() {
+    return (
+        <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, padding: '28px 32px', background: T.surface }}>
+            <div style={{ width: '100%', height: 16, background: T.raised, borderRadius: 4, marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ width: '90%', height: 14, background: T.raised, borderRadius: 4, marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ width: '80%', height: 14, background: T.raised, borderRadius: 4, marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ width: '95%', height: 14, background: T.raised, borderRadius: 4, marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ width: '70%', height: 14, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+        </div>
+    );
+}
+
+function SkeletonTestCases() {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[1, 2].map((i) => (
+                <div key={i} style={{
+                    background: T.surface, border: `1px solid ${T.border}`,
+                    borderRadius: 10, padding: '20px 24px',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <div style={{ width: 80, height: 16, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                            <Shimmer />
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                        {[1, 2].map((j) => (
+                            <div key={j}>
+                                <div style={{ width: 60, height: 12, background: T.raised, borderRadius: 4, marginBottom: 8, position: 'relative', overflow: 'hidden' }}>
+                                    <Shimmer />
+                                </div>
+                                <div style={{ height: 64, background: T.raised, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
+                                    <Shimmer />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function SkeletonSidebar() {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ height: 48, background: T.raised, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
+                <Shimmer />
+            </div>
+            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.raised }}>
+                    <div style={{ width: 100, height: 12, background: T.border, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                        <Shimmer />
+                    </div>
+                </div>
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 18px', borderBottom: i < 4 ? `1px solid ${T.border}` : 'none' }}>
+                        <div style={{ width: 60, height: 14, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                            <Shimmer />
+                        </div>
+                        <div style={{ width: 50, height: 14, background: T.raised, borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                            <Shimmer />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ─── Loading Screen Component ────────────────────────────────────────────────
+function EnhancedLoadingScreen({ message = 'loading challenge...', subMessage = 'preparing your coding environment' }) {
+    return (
+        <HomeLayout>
+            <div style={{ minHeight: '100vh', background: T.bg, fontFamily: sans }}>
+                <SkeletonTopBar />
+                <div style={{ maxWidth: 1280, margin: '0 auto', padding: '36px 28px', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
+                    <div>
+                        <SkeletonTitle />
+                        <SkeletonTabs />
+                        <SkeletonDescription />
+                    </div>
+                    <div>
+                        <SkeletonSidebar />
+                    </div>
+                </div>
+                <div style={{
+                    position: 'fixed', bottom: 24, right: 24,
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: T.surface, padding: '12px 20px',
+                    borderRadius: 40, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    border: `1px solid ${T.border}`,
+                    zIndex: 1000,
+                }}>
+                    <div className="relative w-5 h-5">
+                        <div className="absolute inset-0 border-2 border-teal-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-2 border-teal-600 rounded-full border-t-transparent animate-spin"></div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.textHi }}>{message}</div>
+                        <div style={{ fontSize: 10, color: T.textDim }}>{subMessage}</div>
+                    </div>
+                </div>
+            </div>
+            <style>{`
+                @keyframes shimmer {
+                    100% { transform: translateX(100%); }
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
+        </HomeLayout>
+    );
+}
+
+// ─── Markdown renderer (unchanged) ───────────────────────────────────────────
 function MarkdownBlock({ content }: { content: string }) {
     const html = content
         .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="mb-pre"><code>$2</code></pre>')
@@ -67,20 +253,7 @@ function MarkdownBlock({ content }: { content: string }) {
     );
 }
 
-function LoadingScreen({ message = 'loading…' }) {
-    return (
-        <HomeLayout>
-            <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: mono }}>
-                <div style={{ textAlign: 'center', color: T.textDim }}>
-                    <Loader2 size={22} style={{ margin: '0 auto 14px', animation: 'spin 1s linear infinite', color: T.teal }} />
-                    <p style={{ fontSize: 12, letterSpacing: '0.08em' }}>{message}</p>
-                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-                </div>
-            </div>
-        </HomeLayout>
-    );
-}
-
+// ─── Main Component ──────────────────────────────────────────────────────────
 export default function OneChallenge() {
     const router = useRouter();
     const { challengeId } = useParams<{ challengeId: string }>();
@@ -90,6 +263,7 @@ export default function OneChallenge() {
     const [isLoading, setIsLoading] = useState(true);
     const [isJoining, setIsJoining] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
+    const [loadingProgress, setLoadingProgress] = useState(0);
 
     const cloudBase = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`;
 
@@ -97,14 +271,25 @@ export default function OneChallenge() {
         (async () => {
             try {
                 setIsLoading(true);
+                // Simulate progress for better UX
+                const progressInterval = setInterval(() => {
+                    setLoadingProgress(prev => Math.min(prev + 10, 90));
+                }, 100);
+                
                 const res = await fetch(`/api/challenges/${challengeId}`, { headers: { 'Content-Type': 'application/json' } });
                 const d = await res.json();
                 setData(d);
                 setIsJoin(d.join || false);
-            } catch (e) { console.error(e); }
-            finally { setIsLoading(false); }
+                
+                clearInterval(progressInterval);
+                setLoadingProgress(100);
+                setTimeout(() => setIsLoading(false), 300);
+            } catch (e) { 
+                console.error(e);
+                setIsLoading(false);
+            }
         })();
-    }, []);
+    }, [challengeId]);
 
     const joinChallenge = async () => {
         setIsJoining(true);
@@ -122,11 +307,8 @@ export default function OneChallenge() {
         setTimeout(() => router.push(`/members/editor/${data.id}`), 400);
     };
 
-
-
     const diff = DIFF[data?.difficulty] ?? { color: T.textMid, bg: T.raised, border: T.border, label: data?.difficulty };
 
-    // ── Only render content types that actually exist ──────────────────────
     const hasPdf = !!data?.description_pdf;
     const hasImg = !!data?.description_img;
     const hasMarkdown = !!data?.description?.trim();
@@ -134,7 +316,6 @@ export default function OneChallenge() {
     const imgUrl  = hasImg ? `${cloudBase}/${data.description_img}` : null;
     const hasAnyDescription = hasPdf || hasImg || hasMarkdown;
 
-    // Build tab list only from what exists
     type DescTab = 'pdf' | 'image' | 'markdown';
     const descTabs: DescTab[] = [
         ...(hasPdf      ? ['pdf'      as DescTab] : []),
@@ -144,15 +325,33 @@ export default function OneChallenge() {
 
     const [activeDescTab, setActiveDescTab] = useState<DescTab | null>(null);
 
-    // Set default desc tab once data loads
     useEffect(() => {
         if (descTabs.length > 0 && !activeDescTab) setActiveDescTab(descTabs[0]);
     }, [data]);
 
     const descTabLabel: Record<DescTab, string> = { pdf: 'PDF', image: 'image', markdown: 'description' };
 
+    // Loading state with enhanced screen
+    if (isRedirecting) {
+        return (
+            <HomeLayout>
+                <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: sans }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div className="relative w-16 h-16 mx-auto mb-6">
+                            <div className="absolute inset-0 border-4 border-teal-200 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-teal-600 rounded-full border-t-transparent animate-spin"></div>
+                        </div>
+                        <p style={{ fontSize: 14, color: T.textHi, fontWeight: 600, marginBottom: 4 }}>Opening editor...</p>
+                        <p style={{ fontSize: 12, color: T.textDim }}>preparing your coding environment</p>
+                    </div>
+                </div>
+            </HomeLayout>
+        );
+    }
 
-    if (isRedirecting || isLoading) return <LoadingScreen message={isRedirecting ? 'opening editor…' : 'loading challenge…'} />;
+    if (isLoading) {
+        return <EnhancedLoadingScreen message="loading challenge..." subMessage="fetching challenge data" />;
+    }
 
     if (data?.details) return (
         <HomeLayout>
@@ -186,8 +385,8 @@ export default function OneChallenge() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Link href="/members/challenges" style={{
                             color: T.textMid, display: 'flex', alignItems: 'center', gap: 5,
-                            fontSize: 13, textDecoration: 'none',
-                        }}>
+                            fontSize: 13, textDecoration: 'none', transition: 'color 0.2s',
+                        }} onMouseEnter={e => e.currentTarget.style.color = T.teal} onMouseLeave={e => e.currentTarget.style.color = T.textMid}>
                             <ArrowLeft size={14} /> challenges
                         </Link>
                         <span style={{ color: T.border }}>/</span>
@@ -209,7 +408,8 @@ export default function OneChallenge() {
                                 color: '#fff', fontSize: 13, fontWeight: 600,
                                 padding: '7px 18px', borderRadius: 7, cursor: 'pointer',
                                 boxShadow: '0 2px 8px rgba(13,148,136,0.3)',
-                            }}>
+                                transition: 'all 0.2s ease',
+                            }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
                                 <Code size={14} /> open editor <ArrowRight size={13} />
                             </button>
                         ) : (
@@ -220,8 +420,8 @@ export default function OneChallenge() {
                                 padding: '7px 18px', borderRadius: 7,
                                 cursor: isJoining ? 'not-allowed' : 'pointer',
                                 boxShadow: isJoining ? 'none' : '0 2px 8px rgba(13,148,136,0.3)',
-                                transition: 'all 0.15s',
-                            }}>
+                                transition: 'all 0.2s ease',
+                            }} onMouseEnter={e => { if (!isJoining) e.currentTarget.style.transform = 'scale(1.02)'; }} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
                                 {isJoining
                                     ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> joining…</>
                                     : <>join challenge</>}
@@ -236,7 +436,7 @@ export default function OneChallenge() {
                     {/* ── Left ── */}
                     <div>
                         {/* Title block */}
-                        <div style={{ marginBottom: 28 }}>
+                        <div style={{ marginBottom: 28, animation: 'fadeInUp 0.5s ease-out' }}>
                             <h1 style={{ color: T.textHi, fontSize: 26, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.25 }}>
                                 {data?.title}
                             </h1>
@@ -263,7 +463,7 @@ export default function OneChallenge() {
                                     color: activeTab === tab ? T.teal : T.textMid,
                                     fontSize: 13, fontWeight: activeTab === tab ? 700 : 400,
                                     padding: '10px 20px', cursor: 'pointer', marginBottom: -2,
-                                    transition: 'all 0.15s', fontFamily: sans,
+                                    transition: 'all 0.2s ease',
                                 }}>
                                     {tab === 'tests'
                                         ? `tests (${data?.test_cases?.length ?? 0})`
@@ -274,14 +474,13 @@ export default function OneChallenge() {
 
                         {/* ── Description tab ── */}
                         {activeTab === 'description' && (
-                            <div>
+                            <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
                                 {!hasAnyDescription ? (
                                     <div style={{ padding: '48px 0', textAlign: 'center', color: T.textDim, fontSize: 13 }}>
                                         no description available
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Sub-tabs — only if more than one source */}
                                         {descTabs.length > 1 && (
                                             <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
                                                 {descTabs.map(t => (
@@ -291,7 +490,7 @@ export default function OneChallenge() {
                                                         borderRadius: 6, color: activeDescTab === t ? T.teal : T.textMid,
                                                         fontSize: 12, fontWeight: activeDescTab === t ? 700 : 400,
                                                         padding: '6px 16px', cursor: 'pointer', fontFamily: mono,
-                                                        transition: 'all 0.15s',
+                                                        transition: 'all 0.2s ease',
                                                     }}>
                                                         {descTabLabel[t]}
                                                     </button>
@@ -299,9 +498,8 @@ export default function OneChallenge() {
                                             </div>
                                         )}
 
-                                        {/* PDF */}
                                         {(activeDescTab === 'pdf' || (descTabs.length === 1 && hasPdf)) && pdfUrl && (
-                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.3s ease-out' }}>
                                                 <div style={{
                                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                     padding: '12px 18px', background: T.raised, borderBottom: `1px solid ${T.border}`,
@@ -309,8 +507,8 @@ export default function OneChallenge() {
                                                     <span style={{ fontSize: 12, color: T.textMid, fontFamily: mono }}>challenge.pdf</span>
                                                     <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{
                                                         color: T.teal, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5,
-                                                        textDecoration: 'none', fontWeight: 600,
-                                                    }}>
+                                                        textDecoration: 'none', fontWeight: 600, transition: 'gap 0.2s',
+                                                    }} onMouseEnter={e => e.currentTarget.style.gap = '8px'} onMouseLeave={e => e.currentTarget.style.gap = '5px'}>
                                                         <ExternalLink size={12} /> open in new tab
                                                     </a>
                                                 </div>
@@ -318,9 +516,8 @@ export default function OneChallenge() {
                                             </div>
                                         )}
 
-                                        {/* Image */}
                                         {(activeDescTab === 'image' || (descTabs.length === 1 && hasImg)) && imgUrl && (
-                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                                            <div style={{ border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.3s ease-out' }}>
                                                 <div style={{
                                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                     padding: '12px 18px', background: T.raised, borderBottom: `1px solid ${T.border}`,
@@ -334,9 +531,8 @@ export default function OneChallenge() {
                                             </div>
                                         )}
 
-                                        {/* Markdown */}
                                         {(activeDescTab === 'markdown' || (descTabs.length === 1 && hasMarkdown)) && (
-                                            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: '28px 32px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                                            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: '28px 32px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', animation: 'fadeIn 0.3s ease-out' }}>
                                                 <MarkdownBlock content={data.description} />
                                             </div>
                                         )}
@@ -347,7 +543,7 @@ export default function OneChallenge() {
 
                         {/* ── Tests tab ── */}
                         {activeTab === 'tests' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, animation: 'fadeIn 0.3s ease-out' }}>
                                 {(!data?.test_cases || data.test_cases.length === 0) ? (
                                     <div style={{ padding: '48px 0', textAlign: 'center', color: T.textDim, fontSize: 13 }}>
                                         no test cases available
@@ -357,7 +553,8 @@ export default function OneChallenge() {
                                         background: T.surface, border: `1px solid ${T.border}`,
                                         borderLeft: `3px solid ${T.teal}66`, borderRadius: 10,
                                         padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                                    }}>
+                                        transition: 'all 0.2s ease', animation: `fadeInUp 0.3s ease-out ${i * 0.05}s both`,
+                                    }} onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'} onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)'}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                                             <span style={{ fontSize: 13, fontWeight: 700, color: T.textHi, fontFamily: mono }}>
                                                 test_{String(i + 1).padStart(2, '0')}
@@ -398,8 +595,6 @@ export default function OneChallenge() {
 
                     {/* ── Right sidebar ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                        {/* CTA */}
                         <button
                             onClick={isJoin ? goToEditor : joinChallenge}
                             disabled={isJoining}
@@ -412,8 +607,10 @@ export default function OneChallenge() {
                                 fontFamily: sans,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                 boxShadow: isJoining ? 'none' : '0 4px 12px rgba(13,148,136,0.25)',
-                                transition: 'all 0.15s',
+                                transition: 'all 0.2s ease',
                             }}
+                            onMouseEnter={e => { if (!isJoining && !isJoin) e.currentTarget.style.transform = 'scale(1.02)'; }}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             {isJoin
                                 ? <><Code size={15} /> open editor <ArrowRight size={14} /></>
@@ -437,7 +634,8 @@ export default function OneChallenge() {
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                     padding: '12px 18px',
                                     borderBottom: idx < arr.length - 1 ? `1px solid ${T.border}` : 'none',
-                                }}>
+                                    transition: 'background 0.2s ease',
+                                }} onMouseEnter={e => e.currentTarget.style.background = T.raised} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                     <span style={{ fontSize: 12, color: T.textMid }}>{label}</span>
                                     <span style={{ fontSize: 13, color, fontWeight: 700, fontFamily: mono, textTransform: 'capitalize' }}>{value}</span>
                                 </div>
@@ -448,7 +646,7 @@ export default function OneChallenge() {
                         {(data?.created_at || data?.started_at) && (
                             <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                                 {data?.created_at && (
-                                    <div style={{ padding: '14px 18px', borderBottom: data?.started_at ? `1px solid ${T.border}` : 'none' }}>
+                                    <div style={{ padding: '14px 18px', borderBottom: data?.started_at ? `1px solid ${T.border}` : 'none', transition: 'background 0.2s ease' }} onMouseEnter={e => e.currentTarget.style.background = T.raised} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                         <div style={{ fontSize: 10, color: T.textDim, letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 5, fontFamily: mono }}>created</div>
                                         <div style={{ fontSize: 13, color: T.textHi, fontWeight: 500 }}>
                                             {new Date(data.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -456,7 +654,7 @@ export default function OneChallenge() {
                                     </div>
                                 )}
                                 {data?.started_at && isJoin && (
-                                    <div style={{ padding: '14px 18px' }}>
+                                    <div style={{ padding: '14px 18px', transition: 'background 0.2s ease' }} onMouseEnter={e => e.currentTarget.style.background = T.raised} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                         <div style={{ fontSize: 10, color: T.textDim, letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 5, fontFamily: mono }}>started</div>
                                         <div style={{ fontSize: 13, color: T.textHi, fontWeight: 500 }}>
                                             {new Date(data.started_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -468,7 +666,28 @@ export default function OneChallenge() {
                     </div>
                 </div>
 
-                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                {/* <style>{`
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes fadeInUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    @keyframes shimmer {
+                        100% { transform: translateX(100%); }
+                    }
+                `}</style> */}
             </div>
         </HomeLayout>
     );

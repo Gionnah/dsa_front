@@ -4,21 +4,107 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { 
   Trophy, 
-  Target, 
   Award, 
   Calendar, 
   Mail, 
   User, 
   BookOpen, 
   Star, 
-  TrendingUp,
-  Clock,
   Zap,
   MapPin,
   GraduationCap,
   Shield,
   BarChart3
 } from 'lucide-react';
+
+// Skeleton Components
+function HeaderSkeleton() {
+  return (
+    <div className="bg-slate-700 relative shadow-sm p-4 md:p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-16 h-16 md:w-26 md:h-26 rounded-full bg-slate-600"></div>
+          <div className="space-y-2">
+            <div className="h-5 bg-slate-600 rounded w-40"></div>
+            <div className="h-3 bg-slate-600 rounded w-24"></div>
+            <div className="flex gap-2">
+              <div className="h-3 bg-slate-600 rounded w-32"></div>
+              <div className="h-3 bg-slate-600 rounded w-20"></div>
+            </div>
+          </div>
+        </div>
+        <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-slate-600/50"></div>
+      </div>
+    </div>
+  );
+}
+
+function StatCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
+        <div className="h-5 bg-slate-200 rounded w-40"></div>
+      </div>
+      <div className="p-4 md:p-6">
+        <div className="h-32 bg-slate-100 rounded-lg"></div>
+      </div>
+    </div>
+  );
+}
+
+function StatsGridSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
+        <div className="h-5 bg-slate-200 rounded w-40"></div>
+      </div>
+      <div className="p-4 md:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center p-3 md:p-4 bg-slate-100 rounded-lg h-24"></div>
+          ))}
+        </div>
+        <div className="h-20 bg-slate-100 rounded-lg"></div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileInfoSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
+        <div className="h-5 bg-slate-200 rounded w-40"></div>
+      </div>
+      <div className="p-4 md:p-6 space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i}>
+            <div className="h-4 bg-slate-200 rounded w-32 mb-2"></div>
+            <div className="h-10 bg-slate-100 rounded-lg"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RankingSkeleton() {
+  return (
+    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-4 md:p-6">
+      <div className="flex items-center gap-3 mb-3 md:mb-4">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-200"></div>
+        <div className="flex-1">
+          <div className="h-3 bg-amber-300 rounded w-24 mb-1"></div>
+          <div className="h-6 bg-amber-300 rounded w-16"></div>
+        </div>
+      </div>
+      <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
+        <div className="w-1/3 h-full bg-amber-400 rounded-full"></div>
+      </div>
+      <div className="h-3 bg-amber-200 rounded w-32 mx-auto"></div>
+    </div>
+  );
+}
 
 // Modal component pour les images
 function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
@@ -37,7 +123,7 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
 
   return (
     <div 
-      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50 "
       onClick={onClose}
     >
       <div 
@@ -46,7 +132,7 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
       >
         <button
           onClick={onClose}
-          className="absolute -top-12 right-0 bg-white/10 hover:bg-white/20 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm transition-all duration-200"
+          className="absolute -top-12 right-0 bg-white/10 hover:bg-white/20 text-white rounded-full w-10 h-10 flex items-center justify-center backdrop-blur-sm transition-all duration-200 hover:scale-110"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -72,16 +158,20 @@ export default function GetUserPage() {
     const [apiUrl, setApiUrl] = useState<string>('');
 
     const getUserData = async () => {
+        setLoading(true);
         try {
             const response = await fetch(`/api/users/${id}`, {
                 method: 'GET'
             });
             const data = await response.json();
-            setUserData(data.data);
-            setApiUrl(data.api_url);
+            // Simulate minimum loading time for better UX
+            setTimeout(() => {
+                setUserData(data.data);
+                setApiUrl(data.api_url);
+                setLoading(false);
+            }, 500);
         } catch (error) {
             console.error('Error fetching user data:', error);
-        } finally {
             setLoading(false);
         }
     }
@@ -117,10 +207,21 @@ export default function GetUserPage() {
     if (loading) {
         return (
             <HomeLayout>
-                <div className="min-h-screen bg-indigo-50 rounded-lg w-full flex items-center justify-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-gray-700 text-lg font-medium">Loading profile...</span>
+                <div className="min-h-screen bg-indigo-50 rounded-lg w-full">
+                    <div className="space-y-4 md:space-y-6">
+                        <HeaderSkeleton />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 px-3 md:px-4">
+                            <div className="lg:col-span-2 space-y-4 md:space-y-6">
+                                <StatCardSkeleton />
+                                <StatsGridSkeleton />
+                                <StatCardSkeleton />
+                            </div>
+                            <div className="space-y-4 md:space-y-6">
+                                <ProfileInfoSkeleton />
+                                <RankingSkeleton />
+                                <div className="h-32 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl animate-pulse"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </HomeLayout>
@@ -171,17 +272,17 @@ export default function GetUserPage() {
                                         <img
                                             src={`${user.photo}`}
                                             alt={getUserFullName()}
-                                            className="w-16 h-16 md:w-26 md:h-26 rounded-full object-cover border-4 border-white shadow-md transition-transform duration-200 group-hover:scale-110"
+                                            className="w-16 h-16 md:w-26 md:h-26 rounded-full object-cover border-4 border-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
                                             onContextMenu={(e) => e.preventDefault()}
                                         />
                                         <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
-                                            <svg className="w-5 h-5 md:w-8 md:h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-5 h-5 md:w-8 md:h-8 text-white opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="w-16 h-16 md:w-26 md:h-26 rounded-full bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl md:text-4xl font-bold shadow-md">
+                                    <div className="w-16 h-16 md:w-26 md:h-26 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl md:text-4xl font-bold shadow-md ">
                                         {getUserInitials()}
                                     </div>
                                 )}
@@ -191,21 +292,21 @@ export default function GetUserPage() {
                                     </h1>
                                     <p className="text-slate-200 text-xs md:text-sm">@{user.username}</p>
                                     <div className="flex flex-wrap items-center gap-3 mt-2 text-slate-200 text-xs md:text-sm">
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-1 hover:gap-2 transition-all duration-200">
                                             <Mail className="w-3 h-3 md:w-4 md:h-4" />
                                             <span>{user.email}</span>
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-1 hover:gap-2 transition-all duration-200">
                                             <MapPin className="w-3 h-3 md:w-4 md:h-4" />
                                             <span>{user.parcours}</span>
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-1 hover:gap-2 transition-all duration-200">
                                             <GraduationCap className="w-3 h-3 md:w-4 md:h-4" />
                                             <span>{user.classe}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="absolute w-full h-full bg-linear-to-t from-black/35 top-0 left-0"></div>
+                                <div className="absolute w-full h-full bg-gradient-to-t from-black/35 top-0 left-0"></div>
                             </div>
                             
                             <div className="relative">
@@ -228,7 +329,7 @@ export default function GetUserPage() {
                                         strokeDasharray="351.86"
                                         strokeDashoffset={351.86 - (calculateRankPercentage() / 100) * 351.86}
                                         strokeLinecap="round"
-                                        className="transition-all duration-1000"
+                                        className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -249,7 +350,7 @@ export default function GetUserPage() {
                         {/* Left Column - Stats and Info */}
                         <div className="lg:col-span-2 space-y-4 md:space-y-6">
                             {/* XP Progress Section */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                                 <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
                                     <h2 className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2">
                                         <Zap className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
@@ -257,7 +358,7 @@ export default function GetUserPage() {
                                     </h2>
                                 </div>
                                 <div className="p-4 md:p-6">
-                                    <div className="bg-slate-50 rounded-lg p-4 md:p-5 border border-slate-200">
+                                    <div className="bg-slate-50 rounded-lg p-4 md:p-5 border border-slate-200 hover:border-amber-200 transition-colors duration-200">
                                         <div className="flex justify-between items-center mb-3">
                                             <h3 className="text-xl md:text-2xl font-bold text-slate-900">
                                                 Total Experience
@@ -266,7 +367,7 @@ export default function GetUserPage() {
                                         </div>
                                         <div className="w-full h-2 md:h-3 bg-white rounded-full overflow-hidden border border-slate-200 mb-3">
                                             <div 
-                                                className="h-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-500 rounded-full"
+                                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-700 ease-out rounded-full"
                                                 style={{width: `${Math.min((user.total_xp / 10000) * 100, 100)}%`}}
                                             />
                                         </div>
@@ -284,7 +385,7 @@ export default function GetUserPage() {
                             </div>
 
                             {/* Statistics Section */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
                                 <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
                                     <h2 className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2">
                                         <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
@@ -294,21 +395,21 @@ export default function GetUserPage() {
                                 
                                 <div className="p-4 md:p-6">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
-                                        <div className="text-center p-3 md:p-4 bg-linear-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                                        <div className="text-center p-3 md:p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200 hover:scale-105 transition-transform duration-200">
                                             <p className="text-2xl md:text-4xl font-bold text-slate-900 mb-1">{challenges.completed}</p>
                                             <p className="text-xs md:text-sm font-semibold text-slate-600">Completed</p>
                                         </div>
-                                        <div className="text-center p-3 md:p-4 bg-linear-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                                        <div className="text-center p-3 md:p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200 hover:scale-105 transition-transform duration-200">
                                             <p className="text-2xl md:text-4xl font-bold text-slate-900 mb-1">{challenges.in_progress}</p>
                                             <p className="text-xs md:text-sm font-semibold text-slate-600">In Progress</p>
                                         </div>
-                                        <div className="text-center p-3 md:p-4 bg-linear-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                                        <div className="text-center p-3 md:p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200 hover:scale-105 transition-transform duration-200">
                                             <p className="text-2xl md:text-4xl font-bold text-slate-900 mb-1">{challenges.completion_rate}%</p>
                                             <p className="text-xs md:text-sm font-semibold text-slate-600">Success Rate</p>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-slate-50 rounded-lg p-4 md:p-5 border border-slate-200">
+                                    <div className="bg-slate-50 rounded-lg p-4 md:p-5 border border-slate-200 hover:bg-slate-100 transition-colors duration-200">
                                         <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
                                             {getUserFullName()} has participated in a total of <span className="font-bold text-slate-900">{user.challenges_joined} challenges</span>. 
                                             With a success rate of <span className="font-bold text-slate-900">{challenges.completion_rate}%</span>, 
@@ -320,7 +421,7 @@ export default function GetUserPage() {
                             </div>
 
                             {/* Recent Activity */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
                                 <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
                                     <h2 className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2">
                                         <Award className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
@@ -331,7 +432,7 @@ export default function GetUserPage() {
                                 <div className="p-4 md:p-6">                                    
                                     <div className="space-y-3">
                                         <div className="text-center py-8 md:py-12">
-                                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 md:mb-4">
+                                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
                                                 <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-slate-400" />
                                             </div>
                                             <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2">No recent activity</h3>
@@ -347,7 +448,7 @@ export default function GetUserPage() {
                         {/* Right Column - Profile Details */}
                         <div className="space-y-4 md:space-y-6">
                             {/* Profile Information */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
                                 <div className="border-b border-slate-200 px-4 md:px-6 py-3 md:py-4">
                                     <h2 className="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2">
                                         <User className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
@@ -357,30 +458,30 @@ export default function GetUserPage() {
                                 
                                 <div className="p-4 md:p-6">
                                     <div className="space-y-4">
-                                        <div>
+                                        <div className="group">
                                             <label className="text-sm font-medium text-gray-600 mb-2 block">Registration Number</label>
-                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm">
+                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm group-hover:border-blue-300 transition-colors duration-200">
                                                 {user.numero_inscription}
                                             </div>
                                         </div>
                                         
-                                        <div>
+                                        <div className="group">
                                             <label className="text-sm font-medium text-gray-600 mb-2 block">Academic Path</label>
-                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm">
+                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm group-hover:border-blue-300 transition-colors duration-200">
                                                 {user.parcours}
                                             </div>
                                         </div>
                                         
-                                        <div>
+                                        <div className="group">
                                             <label className="text-sm font-medium text-gray-600 mb-2 block">Class</label>
-                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm">
+                                            <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm group-hover:border-blue-300 transition-colors duration-200">
                                                 {user.classe}
                                             </div>
                                         </div>
                                         
-                                        <div>
+                                        <div className="group">
                                             <label className="text-sm font-medium text-gray-600 mb-2 block">Member Since</label>
-                                            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm">
+                                            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 text-gray-900 text-sm group-hover:border-blue-300 transition-colors duration-200">
                                                 <Calendar className="w-4 h-4 text-gray-400" />
                                                 <span>Recently joined</span>
                                             </div>
@@ -390,7 +491,7 @@ export default function GetUserPage() {
                             </div>
 
                             {/* Ranking Stats */}
-                            <div className="bg-linear-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-4 md:p-6">
+                            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-sm border border-amber-200 p-4 md:p-6 hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
                                 <div className="flex items-center gap-3 mb-3 md:mb-4">
                                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-100 flex items-center justify-center border-2 border-amber-300">
                                         <Trophy className="w-4 h-4 md:w-6 md:h-6 text-amber-600" />
@@ -403,7 +504,7 @@ export default function GetUserPage() {
                                 
                                 <div className="w-full h-2 md:h-2.5 bg-white rounded-full overflow-hidden mb-2 md:mb-3 border border-amber-200">
                                     <div 
-                                        className="h-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-1000 rounded-full"
+                                        className="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-1000 ease-out rounded-full"
                                         style={{width: `${calculateRankPercentage()}%`}}
                                     />
                                 </div>
@@ -413,27 +514,28 @@ export default function GetUserPage() {
                             </div>
 
                             {/* Performance Badge */}
-                            <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-4 md:p-6">
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-4 md:p-6 hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
                                 <div className="text-center">
-                                    <Shield className="w-8 h-8 md:w-10 md:h-10 text-blue-600 mx-auto mb-2" />
+                                    <Shield className="w-8 h-8 md:w-10 md:h-10 text-blue-600 mx-auto mb-2 hover:scale-110 transition-transform duration-300" />
                                     <h3 className="text-sm md:text-base font-bold text-slate-900 mb-1">Performance Level</h3>
                                     <div className="flex justify-center gap-1 mb-2">
                                         {[...Array(5)].map((_, i) => (
                                             <Star 
                                                 key={i}
-                                                className={`w-4 h-4 ${
+                                                className={`w-4 h-4 transition-all duration-200 ${
                                                     i < Math.min(3, Math.floor(challenges.completion_rate / 20))
                                                         ? 'fill-yellow-400 text-yellow-400'
                                                         : 'text-gray-300'
                                                 }`}
+                                                style={{ animationDelay: `${i * 100}ms` }}
                                             />
                                         ))}
                                     </div>
                                     <p className="text-xs text-slate-600">
-                                        {challenges.completion_rate >= 80 ? 'Elite Solver' :
-                                         challenges.completion_rate >= 60 ? 'Advanced Coder' :
-                                         challenges.completion_rate >= 40 ? 'Rising Star' :
-                                         'Beginner'}
+                                        {challenges.completion_rate >= 80 ? '🏆 Elite Solver' :
+                                         challenges.completion_rate >= 60 ? '⭐ Advanced Coder' :
+                                         challenges.completion_rate >= 40 ? '🚀 Rising Star' :
+                                         '🌱 Beginner'}
                                     </p>
                                 </div>
                             </div>

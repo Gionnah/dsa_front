@@ -1,15 +1,126 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+const T = {
+    bg:       '#f8f9fb',
+    surface:  '#ffffff',
+    border:   '#e2e8f0',
+    borderMd: '#cbd5e1',
+    text:     '#475569',
+    textHi:   '#0f172a',
+    textMid:  '#64748b',
+    textDim:  '#94a3b8',
+    teal:     '#0d9488',
+    tealBg:   '#f0fdfa',
+    tealBdr:  '#99f6e4',
+    amber:    '#d97706',
+    amberBg:  '#fffbeb',
+    green:    '#16a34a',
+    greenBg:  '#f0fdf4',
+    red:      '#dc2626',
+    redBg:    '#fef2f2',
+    blue:     '#2563eb',
+    blueBg:   '#eff6ff',
+};
+
+// Skeleton Components
+function TableRowSkeleton() {
+  return (
+    <tr className="">
+      <td className="px-4 md:px-6 py-3 md:py-4">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-200"></div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-24"></div>
+          </div>
+        </div>
+      </td>
+      <td className="px-4 md:px-6 py-3 md:py-4 hidden sm:table-cell">
+        <div className="h-6 bg-gray-200 rounded w-20"></div>
+      </td>
+      <td className="px-4 md:px-6 py-3 md:py-4 hidden md:table-cell">
+        <div className="h-4 bg-gray-200 rounded w-24"></div>
+      </td>
+      <td className="px-4 md:px-6 py-3 md:py-4">
+        <div className="h-4 bg-gray-200 rounded w-12"></div>
+      </td>
+      <td className="px-4 md:px-6 py-3 md:py-4">
+        <div className="h-4 bg-gray-200 rounded w-20"></div>
+      </td>
+      <td className="px-4 md:px-6 py-3 md:py-4 text-right">
+        <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
+      </td>
+    </tr>
+  );
+}
+
+function FilterSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
+        <div className="flex-1 min-w-[200px] w-full sm:w-auto">
+          <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
+          <div className="h-10 bg-gray-200 rounded w-full"></div>
+        </div>
+        <div className="min-w-[150px] md:min-w-[180px] w-full sm:w-auto">
+          <div className="h-4 bg-gray-200 rounded w-12 mb-2"></div>
+          <div className="h-10 bg-gray-200 rounded w-full"></div>
+        </div>
+        <div className="min-w-[140px] md:min-w-[150px] w-full sm:w-auto">
+          <div className="h-4 bg-gray-200 rounded w-12 mb-2"></div>
+          <div className="h-10 bg-gray-200 rounded w-full"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeaderSkeleton() {
+  return (
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 md:mb-8">
+      <div className="mb-4 lg:mb-0">
+        <div className="h-8 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+        <div className="h-4 bg-gray-200 rounded w-64"></div>
+      </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="h-10 bg-gray-200 rounded-lg w-32 animate-pulse"></div>
+      </div>
+    </div>
+  );
+}
+
+function MobileCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-12 h-12 rounded-xl bg-gray-200"></div>
+        <div className="flex-1">
+          <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-24"></div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-3 bg-gray-200 rounded w-20"></div>
+        <div className="h-3 bg-gray-200 rounded w-20"></div>
+        <div className="h-3 bg-gray-200 rounded w-20"></div>
+        <div className="h-3 bg-gray-200 rounded w-20"></div>
+      </div>
+      <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="h-8 bg-gray-200 rounded w-full"></div>
+      </div>
+    </div>
+  );
+}
 
 // Composant Modal pour l'image agrandie
 function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
   useEffect(() => {
-    // Désactiver le scroll du body quand la modal est ouverte
     document.body.style.overflow = 'hidden';
     
-    // Fermer avec la touche Escape
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -24,15 +135,14 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
 
   return (
     <div 
-      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
       <div 
-        className="relative max-w-5xl w-full"
+        className="relative max-w-5xl w-full animate-in zoom-in duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Bouton de fermeture */}
         <button
           onClick={onClose}
           className="absolute -top-14 right-0 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-sm transition-all duration-200 border border-white/20 hover:scale-110"
@@ -43,7 +153,6 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
           </svg>
         </button>
 
-        {/* Image agrandie */}
         <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
           <img
             src={src}
@@ -51,8 +160,7 @@ function ImageModal({ src, alt, onClose }: { src: string; alt: string; onClose: 
             className="w-full max-h-[85vh] object-contain"
           />
           
-          {/* Légende */}
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-6">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
             <p className="text-white text-lg font-semibold text-center">{alt}</p>
           </div>
         </div>
@@ -92,14 +200,18 @@ export default function UsersPage() {
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/users");
       const data = await response.json();
-      setUsersData(data?.data);
-      setApiUrl(data?.api_url);
+      // Simulate minimum loading time for better UX
+      setTimeout(() => {
+        setUsersData(data?.data);
+        setApiUrl(data?.api_url);
+        setLoading(false);
+      }, 500);
     } catch (error) {
       console.error("Error loading users:", error);
-    } finally {
       setLoading(false);
     }
   };
@@ -180,19 +292,48 @@ export default function UsersPage() {
   // Get unique paths for filter dropdown
   const uniquePaths = ["All paths", ...new Set(usersData.map((user: any) => user.parcours))];
 
+  // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 rounded-2xl px-4 md:px-8 py-8 md:py-10 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 md:w-8 md:h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-700 text-base md:text-lg font-medium">Loading users...</span>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl px-4 md:px-8 py-6 md:py-10">
+        <HeaderSkeleton />
+        <FilterSkeleton />
+        
+        {/* Desktop table skeleton */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hidden sm:block">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700">User</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 hidden sm:table-cell">Registration N°</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700 hidden md:table-cell">Path</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700">Challenges</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-700">Experience</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <TableRowSkeleton key={i} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        {/* Mobile cards skeleton */}
+        <div className="sm:hidden mt-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <MobileCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 rounded-2xl px-4 md:px-8 py-6 md:py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl px-4 md:px-8 py-6 md:py-10">
       {/* Modal pour l'image agrandie */}
       {selectedImage && (
         <ImageModal
@@ -209,7 +350,7 @@ export default function UsersPage() {
           <p className="text-gray-600 text-sm md:text-base">Manage and view all platform users</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
             <svg className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -223,7 +364,7 @@ export default function UsersPage() {
             <div className="relative">
               <button
                 onClick={copyInvitationUrl}
-                className="inline-flex items-center hover:cursor-pointer gap-2 px-4 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md text-sm md:text-base"
+                className="inline-flex items-center hover:cursor-pointer gap-2 px-4 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105 text-sm md:text-base"
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -232,7 +373,7 @@ export default function UsersPage() {
               </button>
               
               {showCopied && (
-                <div className="absolute top-full right-0 mt-2 px-3 md:px-4 py-1 md:py-2 bg-emerald-600 text-white text-xs md:text-sm font-medium rounded-lg shadow-lg animate-fade-in">
+                <div className="absolute top-full right-0 mt-2 px-3 md:px-4 py-1 md:py-2 bg-emerald-600 text-white text-xs md:text-sm font-medium rounded-lg shadow-lg">
                   ✓ Redirecting!
                 </div>
               )}
@@ -242,7 +383,7 @@ export default function UsersPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-4 md:mb-6 hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
           <div className="flex-1 min-w-[200px] w-full sm:w-auto">
             <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
@@ -263,7 +404,7 @@ export default function UsersPage() {
           <div className="min-w-[150px] md:min-w-[180px] w-full sm:w-auto">
             <label className="block text-sm font-medium text-gray-700 mb-2">Path</label>
             <select 
-              className="w-full text-gray-700 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all rounded-lg px-4 py-2.5 text-sm focus:outline-none bg-white"
+              className="w-full text-gray-700 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all rounded-lg px-4 py-2.5 text-sm focus:outline-none bg-white hover:bg-gray-50 cursor-pointer"
               value={selectedPath}
               onChange={(e) => setSelectedPath(e.target.value)}
             >
@@ -276,7 +417,7 @@ export default function UsersPage() {
           <div className="min-w-[140px] md:min-w-[150px] w-full sm:w-auto">
             <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
             <select 
-              className="w-full text-gray-700 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all rounded-lg px-4 py-2.5 text-sm focus:outline-none bg-white"
+              className="w-full text-gray-700 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all rounded-lg px-4 py-2.5 text-sm focus:outline-none bg-white hover:bg-gray-50 cursor-pointer"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
@@ -290,7 +431,7 @@ export default function UsersPage() {
       </div>
 
       {/* Users table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -318,10 +459,11 @@ export default function UsersPage() {
 
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedUsers && sortedUsers.length > 0 ? (
-                sortedUsers.map((user: any) => (
+                sortedUsers.map((user: any, index: number) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
+                    className="hover:bg-gray-50 transition-all duration-200 hover:scale-[1.01]"
+                    // style={{ animationDelay: `${index * 30}ms` }}
                   >
                     <td className="px-4 md:px-6 py-3 md:py-4">
                       <div className="flex items-center gap-3 md:gap-4">
@@ -336,7 +478,7 @@ export default function UsersPage() {
                             <img
                               src={`${user.photo}`}
                               alt={`${user.prenom} ${user.nom}`}
-                              className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110"
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover border-2 border-white shadow-sm transition-all duration-200 group-hover:scale-110 group-hover:rotate-3"
                               onContextMenu={(e) => e.preventDefault()}
                             />
                             <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
@@ -347,7 +489,7 @@ export default function UsersPage() {
                           </div>
                         ) : (
                           <div
-                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-base md:text-lg flex-shrink-0`}
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-base md:text-lg flex-shrink-0 transition-all duration-200 hover:scale-110`}
                           >
                             {user.prenom?.charAt(0) && user.nom?.charAt(0) 
                               ? `${user.prenom.charAt(0)}${user.nom.charAt(0)}` 
@@ -373,19 +515,19 @@ export default function UsersPage() {
                           </div>
                         </div>
                       </div>
-                    </td>
+                     </td>
                     
                     <td className="px-4 md:px-6 py-3 md:py-4 hidden sm:table-cell">
-                      <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                      <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors duration-200">
                         #{user.numero_inscription}
                       </span>
-                    </td>
+                     </td>
                     
                     <td className="px-4 md:px-6 py-3 md:py-4 hidden md:table-cell">
                       <span className="text-sm text-gray-700 font-medium">
                         {user.parcours}
                       </span>
-                    </td>
+                     </td>
                     
                     <td className="px-4 md:px-6 py-3 md:py-4">
                       <div className="flex items-center gap-2">
@@ -396,7 +538,7 @@ export default function UsersPage() {
                           {user.challenges_joined}
                         </span>
                       </div>
-                    </td>
+                     </td>
                     
                     <td className="px-4 md:px-6 py-3 md:py-4">
                       <div className="flex items-center gap-2">
@@ -407,21 +549,21 @@ export default function UsersPage() {
                           {user.total_xp.toLocaleString()} XP
                         </span>
                       </div>
-                    </td>
+                     </td>
                     
                     <td className="px-4 md:px-6 py-3 md:py-4 text-right">
-                      <Link href={`/members/users/${user?.id}`} className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-xs md:text-sm font-medium transition-colors">
+                      <Link href={`/members/users/${user?.id}`} className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-xs md:text-sm font-medium transition-all duration-200 hover:gap-2">
                         <span className="hidden sm:inline">View profile</span>
                         <span className="sm:hidden">View</span>
-                        <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 md:w-4 md:h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </Link>
-                    </td>
-                  </tr>
+                     </td>
+                   </tr>
                 ))
               ) : (
-                <tr>
+                <tr className="">
                   <td colSpan={6} className="px-4 md:px-6 py-8 md:py-12 text-center">
                     <svg className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-3 md:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -432,14 +574,16 @@ export default function UsersPage() {
                 </tr>
               )}
             </tbody>
-          </table>
+           </table>
         </div>
       </div>
 
       {/* Mobile card view for small screens */}
       <div className="sm:hidden mt-4 space-y-3">
-        {sortedUsers && sortedUsers.length > 0 && sortedUsers.map((user: any) => (
-          <div key={user.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        {sortedUsers && sortedUsers.length > 0 && sortedUsers.map((user: any, index: number) => (
+          <div key={user.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all" 
+          // style={{ animationDelay: `${index * 50}ms` }}
+          >
             <div className="flex items-center gap-3 mb-3">
               {user.photo ? (
                 <div 
@@ -452,12 +596,12 @@ export default function UsersPage() {
                   <img
                     src={user.photo}
                     alt={`${user.prenom} ${user.nom}`}
-                    className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-sm"
+                    className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110"
                   />
                 </div>
               ) : (
                 <div
-                  className={`w-12 h-12 rounded-xl bg-linear-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-base`}
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getUserColor(user.id)} flex items-center justify-center font-bold text-white shadow-sm text-base transition-transform duration-200 hover:scale-110`}
                 >
                   {user.prenom?.charAt(0) && user.nom?.charAt(0) 
                     ? `${user.prenom.charAt(0)}${user.nom.charAt(0)}` 
@@ -494,12 +638,12 @@ export default function UsersPage() {
             </div>
             
             <div className="mt-3 pt-3 border-t border-gray-200">
-              <button className="w-full inline-flex justify-center items-center gap-1 text-indigo-600 hover:text-indigo-400 text-sm font-medium transition-colors py-1">
+              <Link href={`/members/users/${user?.id}`} className="w-full inline-flex justify-center items-center gap-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-all duration-200 hover:gap-2 py-1">
                 View profile
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
             </div>
           </div>
         ))}
