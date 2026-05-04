@@ -5,6 +5,17 @@ import { CODE_SNIPPETS } from '@/lib/constant';
 import { useParams } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 
+const JUDGE0_LANG_MAP: Record<string, number> = {
+    python: 71,
+    javascript: 63,
+    typescript: 74,
+    java: 62,
+    c: 50,
+    cpp: 54,
+    go: 60,
+    rust: 73,
+};
+
 export default function ChallengePage() {
     const editorRef = useRef(null);
     const [code, setCode] = useState<string>("");
@@ -58,7 +69,7 @@ export default function ChallengePage() {
             const res = await fetch(`/api/challenges/${challengeId}/save-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
+                body: JSON.stringify({ code, language: Language }),
             });
             showToast(res.ok ? 'Saved' : 'Save failed', res.ok ? 'success' : 'error');
         } catch { showToast('Save failed', 'error'); }
@@ -69,7 +80,7 @@ export default function ChallengePage() {
         setLoadingSubmit(true);
         try {
             const res = await fetch(`/api/challenges/${challengeId}/submit`, {
-                method: 'POST', body: JSON.stringify({ code }),
+                method: 'POST', body: JSON.stringify({ code, language: Language }),
             });
             const data = await res.json();
             if (res.ok) window.location.href = data.redirect || `/members/challenges`;
@@ -82,7 +93,7 @@ export default function ChallengePage() {
         try {
             const res = await fetch(`/api/challenges/${challengeData?.id}/test/${id}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
+                body: JSON.stringify({ code, language: Language }),
             });
             setResponseTest(await res.json());
         } catch { setResponseTest({ success: false, message: "Error running test" }); }
@@ -94,7 +105,7 @@ export default function ChallengePage() {
         try {
             const res = await fetch(`/api/challenges/${challengeData?.id}/test`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
+                body: JSON.stringify({ code, language: Language }),
             });
             setResponseTest(await res.json());
         } catch { setResponseTest({ success: false, message: "Error running tests" }); }
@@ -107,7 +118,10 @@ export default function ChallengePage() {
         try {
             const res = await fetch("/api/submissions", {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ source_code: code, language_id: 71 }),
+                body: JSON.stringify({
+                    source_code: code,
+                    language_id: JUDGE0_LANG_MAP[Language] ?? 71,
+                }),
             });
             const result = await res.json();
             setExecutionTime(Date.now() - t0);
@@ -121,12 +135,22 @@ export default function ChallengePage() {
         } finally { setLoading(false); }
     };
 
+    const handleLanguageChange = (lang: string) => {
+        setLanguage(lang);
+        setCode(CODE_SNIPPETS[lang] ?? CODE_SNIPPETS["python"]);
+        setOutput("");
+        setError("");
+        setResponseTest(null);
+    };
+
     const getChallenges = async () => {
         try {
             const res = await fetch(`/api/challenges/${challengeId}`, { headers: { 'Content-Type': 'application/json' } });
             const data = await res.json();
             setChallengesData(data);
-            setCode(data?.saved_code || CODE_SNIPPETS["python"]);
+            const savedLang = data?.saved_language ?? "python";
+            setLanguage(savedLang);
+            setCode(data?.saved_code || CODE_SNIPPETS[savedLang] || CODE_SNIPPETS["python"]);
             if (data?.started_at) setTimeElapsed(calculateTimeElapsed(data.started_at));
         } catch { showToast('Failed to load challenge', 'error'); }
     };
@@ -138,14 +162,14 @@ export default function ChallengePage() {
     const toastColors = { success: '#22c55e', error: '#ef4444', info: '#3b82f6' };
 
     return (
-        <div style={{ background: '#080808', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'IBM Plex Mono', monospace" }}>
+        <div style={{ background: '#0e0f14', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'IBM Plex Mono', monospace" }}>
 
             {/* ── Toast ── */}
             {toast && (
                 <div style={{
                     position: 'fixed', top: 20, right: 20, zIndex: 9999,
                     display: 'flex', alignItems: 'center', gap: 10,
-                    background: '#111', border: `1px solid ${toastColors[toast.type]}22`,
+                    background: '#141620', border: `1px solid ${toastColors[toast.type]}22`,
                     borderLeft: `3px solid ${toastColors[toast.type]}`,
                     padding: '10px 16px', borderRadius: 6,
                     color: '#e0e0e0', fontSize: 12, letterSpacing: '0.03em',
@@ -160,8 +184,8 @@ export default function ChallengePage() {
             <header style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0 24px', height: 44,
-                borderBottom: '1px solid #1a1a1a',
-                background: '#0a0a0a',
+                borderBottom: '1px solid #1e2535',
+                background: '#11121a',
                 flexShrink: 0,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -229,13 +253,13 @@ export default function ChallengePage() {
             {/* ── Main ── */}
             <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
                 {/* Editor panel — 60% */}
-                <div style={{ flex: '0 0 60%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #141414' }}>
+                <div style={{ flex: '0 0 60%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #1a1c26' }}>
                     <EditorComponent
                         value={code}
                         setValue={setCode}
                         onMount={onMount}
                         Language={Language}
-                        setLanguage={setLanguage}
+                        setLanguage={handleLanguageChange}
                     />
                 </div>
 
@@ -246,10 +270,11 @@ export default function ChallengePage() {
                         output={output}
                         runCode={runCode}
                         loading={loading}
-                        setLanguage={setLanguage}
+                        setLanguage={handleLanguageChange}
                         setValue={setCode}
                         id={challengeId}
                         code={code}
+                        Language={Language}
                         challengeData={challengeData}
                         runSingleTest={runSingleTest}
                         runAllTest={runAllTest}

@@ -14,10 +14,21 @@ const PlayIcon = ({ color = '#555' }) => (
     <svg width={12} height={12} viewBox="0 0 24 24" fill={color} stroke="none"><polygon points="5 3 19 12 5 21 5 3" /></svg>
 );
 
-// Console color palette (distinct from editor's #161b22 blue-dark)
+const LANGUAGES = [
+    { value: 'python',     label: 'python' },
+    { value: 'javascript', label: 'javascript' },
+    { value: 'typescript', label: 'typescript' },
+    { value: 'java',       label: 'java' },
+    { value: 'c',          label: 'c' },
+    { value: 'cpp',        label: 'c++' },
+    { value: 'go',         label: 'go' },
+    { value: 'rust',       label: 'rust' },
+];
+
+// Console color palette — lifted from pure black to a dark blue-gray tint
 const C = {
-    bg:         '#0f1117',   // console bg — warmer, slightly lighter than editor
-    surface:    '#171c26',   // panels, rows
+    bg:         '#0e0f14',
+    surface:    '#13151e',
     border:     '#252d3d',
     borderSoft: '#1e2535',
     text:       '#8892a4',
@@ -131,6 +142,7 @@ export default function Console({
     error, code, id, output, loading, loadingSubmit, submitCode,
     runCode, setLanguage, setValue, runSingleTest, runAllTest,
     challengeData, resTest, activeMode, onSave, loadingSave, executionTime,
+    Language,
 }: {
     error: string; submitCode: (code: string, id: string) => void;
     output: string; id: string; loading: boolean; loadingSubmit: boolean;
@@ -138,7 +150,7 @@ export default function Console({
     setValue: (code: string) => void; challengeData: any;
     runSingleTest: (id: number) => void; runAllTest: () => void; resTest: any;
     activeMode: 'code' | 'test'; onSave: () => void; loadingSave: boolean;
-    executionTime?: number;
+    executionTime?: number; Language: string;
 }) {
     const [selectedTestIndex, setSelectedTestIndex] = useState(-1);
     const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
@@ -156,8 +168,8 @@ export default function Console({
 
     const Btn = ({ children, onClick, disabled = false, style = {} }: any) => (
         <button onClick={onClick} disabled={disabled} style={{
-            background: 'none', border: '1px solid #1e1e1e', borderRadius: 3,
-            color: disabled ? '#2a2a2a' : '#555', fontSize: 11, letterSpacing: '0.05em',
+            background: 'none', border: `1px solid ${C.borderSoft}`, borderRadius: 3,
+            color: disabled ? C.textFaint : C.textDim, fontSize: 11, letterSpacing: '0.05em',
             padding: '6px 14px', cursor: disabled ? 'not-allowed' : 'pointer',
             transition: 'all 0.15s', fontFamily: "'IBM Plex Mono', monospace",
             display: 'flex', alignItems: 'center', gap: 6,
@@ -168,7 +180,7 @@ export default function Console({
     return (
         <div style={{
             display: 'flex', flexDirection: 'column', height: '100%',
-            background: '#080808', fontFamily: "'IBM Plex Mono', monospace",
+            background: C.bg, fontFamily: "'IBM Plex Mono', monospace",
             overflow: 'hidden',
         }}>
             {/* ── Instructions Drawer ── */}
@@ -186,24 +198,24 @@ export default function Console({
                     zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                     <div style={{
-                        background: '#0d0d0d', border: '1px solid #1e1e1e',
+                        background: '#11121a', border: `1px solid ${C.borderSoft}`,
                         borderRadius: 6, padding: 28, maxWidth: 380, width: '90%',
                     }}>
                         <div style={{ color: '#888', fontSize: 12, marginBottom: 8, letterSpacing: '0.06em' }}>SUBMIT CHALLENGE</div>
-                        <p style={{ color: '#444', fontSize: 11, lineHeight: 1.6, marginBottom: 6 }}>
+                        <p style={{ color: C.textDim, fontSize: 11, lineHeight: 1.6, marginBottom: 6 }}>
                             This will end the challenge and lock your submission. Points are awarded based on passing tests.
                         </p>
-                        <p style={{ color: '#333', fontSize: 11, lineHeight: 1.6, marginBottom: 20 }}>
+                        <p style={{ color: C.textFaint, fontSize: 11, lineHeight: 1.6, marginBottom: 20 }}>
                             You can retry later, but this attempt will be scored.
                         </p>
                         <div style={{ display: 'flex', gap: 8 }}>
                             <button onClick={() => setShowSubmitConfirm(false)} style={{
-                                flex: 1, background: 'none', border: '1px solid #1e1e1e',
-                                color: '#444', fontSize: 11, padding: '8px 0', borderRadius: 3,
+                                flex: 1, background: 'none', border: `1px solid ${C.borderSoft}`,
+                                color: C.textDim, fontSize: 11, padding: '8px 0', borderRadius: 3,
                                 cursor: 'pointer', letterSpacing: '0.05em',
                             }}>cancel</button>
                             <button onClick={() => { submitCode(code, id); setShowSubmitConfirm(false); }} style={{
-                                flex: 1, background: '#1a1a1a', border: '1px solid #2a2a2a',
+                                flex: 1, background: C.surface, border: `1px solid ${C.border}`,
                                 color: '#888', fontSize: 11, padding: '8px 0', borderRadius: 3,
                                 cursor: 'pointer', letterSpacing: '0.05em',
                             }}>submit →</button>
@@ -216,8 +228,8 @@ export default function Console({
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '8px 12px',
-                borderBottom: '1px solid #141414',
-                background: '#060606',
+                borderBottom: `1px solid #1a1c26`,
+                background: '#0b0c11',
                 flexShrink: 0, gap: 8,
             }}>
                 {/* Run */}
@@ -226,20 +238,53 @@ export default function Console({
                     disabled={loading}
                     style={{
                         display: 'flex', alignItems: 'center', gap: 7,
-                        background: loading ? 'transparent' : '#111',
-                        border: '1px solid #1e1e1e',
-                        color: loading ? '#2a2a2a' : '#888',
+                        background: loading ? 'transparent' : C.surface,
+                        border: `1px solid ${C.borderSoft}`,
+                        color: loading ? C.textFaint : C.text,
                         fontSize: 11, padding: '6px 14px', borderRadius: 3,
                         cursor: loading ? 'not-allowed' : 'pointer',
                         letterSpacing: '0.05em', transition: 'all 0.15s',
                         fontFamily: "'IBM Plex Mono', monospace",
                     }}
                 >
-                    <PlayIcon color={loading ? '#2a2a2a' : '#888'} />
+                    <PlayIcon color={loading ? C.textFaint : C.text} />
                     {loading ? 'running…' : 'run'}
                 </button>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {/* Language selector */}
+                    <div style={{ position: 'relative' }}>
+                        <select
+                            value={Language}
+                            onChange={e => setLanguage(e.target.value)}
+                            style={{
+                                appearance: 'none',
+                                background: C.surface,
+                                border: `1px solid ${C.borderSoft}`,
+                                borderRadius: 3,
+                                color: C.text,
+                                fontSize: 11,
+                                padding: '6px 24px 6px 10px',
+                                fontFamily: "'IBM Plex Mono', monospace",
+                                cursor: 'pointer',
+                                letterSpacing: '0.04em',
+                                outline: 'none',
+                            }}
+                        >
+                            {LANGUAGES.map(l => (
+                                <option key={l.value} value={l.value}>{l.label}</option>
+                            ))}
+                        </select>
+                        {/* caret */}
+                        <svg
+                            width="8" height="8" viewBox="0 0 24 24"
+                            fill="none" stroke={C.textDim} strokeWidth="2"
+                            style={{ position: 'absolute', right: 7, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                        >
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+
                     {/* Instructions */}
                     <Btn onClick={() => setDrawerOpen(true)}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -258,8 +303,8 @@ export default function Console({
                         onClick={() => setShowSubmitConfirm(true)}
                         disabled={loadingSubmit}
                         style={{
-                            background: '#0f0f0f', border: '1px solid #2a2a2a',
-                            color: loadingSubmit ? '#2a2a2a' : '#666', fontSize: 11,
+                            background: C.surface, border: `1px solid ${C.border}`,
+                            color: loadingSubmit ? C.textFaint : C.textDim, fontSize: 11,
                             padding: '6px 14px', borderRadius: 3,
                             cursor: loadingSubmit ? 'not-allowed' : 'pointer',
                             letterSpacing: '0.05em', fontFamily: "'IBM Plex Mono', monospace",
@@ -274,14 +319,14 @@ export default function Console({
             <div style={{
                 display: 'flex', alignItems: 'center',
                 borderBottom: '1px solid #111',
-                background: '#060606',
+                background: '#0b0c11',
                 flexShrink: 0,
             }}>
                 {(['output', 'tests'] as const).map(tab => (
                     <button key={tab} onClick={() => setActivePanel(tab)} style={{
                         background: 'none', border: 'none',
-                        borderBottom: `1px solid ${activePanel === tab ? '#333' : 'transparent'}`,
-                        color: activePanel === tab ? '#555' : '#2a2a2a',
+                        borderBottom: `1px solid ${activePanel === tab ? C.border : 'transparent'}`,
+                        color: activePanel === tab ? C.textDim : C.textFaint,
                         fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
                         padding: '8px 14px', cursor: 'pointer',
                         transition: 'all 0.15s', fontFamily: "'IBM Plex Mono', monospace",
@@ -289,14 +334,14 @@ export default function Console({
                     }}>
                         {tab}
                         {tab === 'tests' && totalCount != null && (
-                            <span style={{ marginLeft: 6, color: '#2a2a2a' }}>{passCount}/{totalCount}</span>
+                            <span style={{ marginLeft: 6, color: C.textFaint }}>{passCount}/{totalCount}</span>
                         )}
                     </button>
                 ))}
 
                 {/* Execution time */}
                 {executionTime != null && executionTime > 0 && (
-                    <span style={{ marginLeft: 'auto', paddingRight: 12, color: '#222', fontSize: 10, letterSpacing: '0.06em' }}>
+                    <span style={{ marginLeft: 'auto', paddingRight: 12, color: C.textFaint, fontSize: 10, letterSpacing: '0.06em' }}>
                         {executionTime}ms
                     </span>
                 )}
@@ -304,16 +349,16 @@ export default function Console({
 
             {/* ── Output panel ── */}
             {activePanel === 'output' && (
-                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1a1a1a #080808' }}>
+                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: `${C.borderSoft} ${C.bg}` }}>
                     <OutputPanel output={output} error={error} resTest={resTest} activeMode={activeMode} loading={loading} />
                 </div>
             )}
 
             {/* ── Tests panel ── */}
             {activePanel === 'tests' && (
-                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#1a1a1a #080808' }}>
+                <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: `${C.borderSoft} ${C.bg}` }}>
                     {testCases.length === 0 ? (
-                        <div style={{ padding: 16, color: '#1e1e1e', fontSize: 11, letterSpacing: '0.08em' }}>no test cases</div>
+                        <div style={{ padding: 16, color: C.textFaint, fontSize: 11, letterSpacing: '0.08em' }}>no test cases</div>
                     ) : (
                         testCases.map((tc: any, i: number) => (
                             <TestRow
@@ -337,11 +382,11 @@ export default function Console({
             <div style={{
                 borderTop: '1px solid #111',
                 padding: '6px 14px',
-                background: '#050505',
+                background: '#090a0f',
                 flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-                <span style={{ color: '#1e1e1e', fontSize: 10, letterSpacing: '0.06em' }}>
+                <span style={{ color: C.textFaint, fontSize: 10, letterSpacing: '0.06em' }}>
                     {testCases.length} test{testCases.length !== 1 ? 's' : ''}
                 </span>
                 {resTest?.data && (
