@@ -176,7 +176,7 @@ export default function Console({
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 challengeData={challengeData}
-                cloudinaryBase={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}`}
+                cloudinaryBase={`{process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_URL}`}
             />
 
             {/* ── Submit confirm modal ── */}

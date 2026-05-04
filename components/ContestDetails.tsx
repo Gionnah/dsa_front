@@ -109,10 +109,8 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     }, [now, start, end, details]);
 
     if (!details) {
-        return <p className="text-center p-6">Chargement du contest…</p>;
+        return <p className="text-center p-6 font-mono text-teal-600">Chargement du contest…</p>;
     }
-
-
 
     const toggleCreateTeamModal = () => {
         setShowCreateTeamModal(!showCreateTeamModal);
@@ -124,7 +122,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
 
     const handleCreateTeam = (e: React.FormEvent) => {
         e.preventDefault();
-        const data  = fetch('/api/contests/' + details.id + '/teams', {
+        fetch('/api/contests/' + details.id + '/teams', {
             method: "POST",
             body: JSON.stringify({
                 nom: teamName,
@@ -138,14 +136,13 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
         .catch((error) => {
             console.error("Error creating team:", error);
         });
-
     };
 
     const handleInviteMember = (e: React.FormEvent) => {
         e.preventDefault();
         if (memberEmail)
         {
-            const data  = fetch('/api/contests/' + details.id + '/teams/' + listTeam?.team_id, {
+            fetch('/api/contests/' + details.id + '/teams/' + listTeam?.team_id, {
                 method: "POST",
                 body: JSON.stringify({
                     user_email: memberEmail,
@@ -168,22 +165,25 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     const getStatusConfig = () => {
         if (details.is_ongoing) {
             return {
-                linear: "from-emerald-600 via-teal-500 to-emerald-600",
-                badge: "bg-emerald-500/20 text-emerald-100 border border-emerald-400/30",
-                icon: <Zap className="w-6 h-6" />
+                bg: "bg-teal-50",
+                border: "border-teal-200",
+                badge: "bg-teal-100 text-teal-700",
+                icon: <Zap className="w-6 h-6 text-teal-600" />
             };
         }
         if (details.is_finished) {
             return {
-                linear: "from-gray-600 via-slate-500 to-gray-600",
-                badge: "bg-gray-500/20 text-gray-100 border border-gray-400/30",
-                icon: <Trophy className="w-6 h-6" />
+                bg: "bg-gray-50",
+                border: "border-gray-200",
+                badge: "bg-gray-100 text-gray-700",
+                icon: <Trophy className="w-6 h-6 text-gray-600" />
             };
         }
         return {
-            linear: "from-blue-600 via-indigo-500 to-blue-600",
-            badge: "bg-blue-500/20 text-blue-100 border border-blue-400/30",
-            icon: <Clock className="w-6 h-6" />
+            bg: "bg-orange-50",
+            border: "border-orange-200",
+            badge: "bg-orange-100 text-orange-700",
+            icon: <Clock className="w-6 h-6 text-orange-600" />
         };
     };
 
@@ -212,284 +212,240 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
         return null;
     };
 
-    const getRankColor = (rank: number) => {
-        if (rank === 1) return "from-yellow-500 to-yellow-600";
-        if (rank === 2) return "from-gray-400 to-gray-500";
-        if (rank === 3) return "from-amber-600 to-amber-700";
-        return "from-indigo-600 to-indigo-700";
-    };
-
-    const colorGradients = [
-        "from-teal-500 to-blue-600",
-        "from-blue-500 to-indigo-600",
-        "from-green-500 to-emerald-600",
-        "from-amber-500 to-orange-600",
-        "from-purple-500 to-pink-600",
-        "from-red-500 to-orange-600",
-        "from-indigo-500 to-purple-600",
-        "from-pink-500 to-rose-600",
-        "from-cyan-500 to-blue-600",
-        "from-orange-500 to-red-600",
-    ];
-
-    const getUserColor = (userId: number) => {
-        return colorGradients[userId % colorGradients.length];
-    };
-
     return (
-        <div className="min-h-screen">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className="min-h-screen bg-gray-50 font-mono">
+            <div className="max-w-7xl mx-auto space-y-6 p-6">
                 {/* Create Team Modal */}
                 {showCreateTeamModal && (
-                    <div className="fixed min-h-screen inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                        <div className="relative animation-scale bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                        <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6">
                             <button 
                                 onClick={toggleCreateTeamModal} 
-                                className="absolute top-4 cursor-pointer right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                             
                             <div className="mb-6">
-                                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                                    <Users className="w-8 h-8 text-white" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-center text-gray-900">Create Your Team</h2>
-                                <p className="text-center text-gray-500 mt-2">Choose a name for your team</p>
+                                <h2 className="text-xl font-semibold text-center text-gray-900">Create Your Team</h2>
+                                <p className="text-center text-gray-500 text-sm mt-1">Choose a name for your team</p>
                             </div>
 
-                            <div className="space-y-4">
+                            <form onSubmit={handleCreateTeam} className="space-y-4">
                                 <div>
-                                    <label htmlFor="teamName" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Team Name <span className="text-red-500">*</span>
+                                    <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Team Name <span className="text-orange-500">*</span>
                                     </label>
                                     <input 
                                         id="teamName"
                                         type="text" 
-                                        className="w-full px-4 py-3 text-indigo-900 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-colors" 
+                                        className="w-full px-3 py-2 font-mono text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500" 
                                         placeholder="Enter team name"
                                         value={teamName} 
                                         onChange={(e) => setTeamName(e.target.value)} 
+                                        required
                                     />
                                 </div>
                                 <button 
-                                    onClick={handleCreateTeam}
-                                    className="w-full py-3 cursor-pointer transition-all duration-300 ease-in-out bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl"
+                                    type="submit"
+                                    className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-md transition-colors"
                                 >
                                     Create Team
                                 </button>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 )}
 
                 {/* Manage Team Sidebar */}
                 {showManageTeam && (
-                    <div className="fixed inset-0 z-50 flex min-h-screen     justify-end">
+                    <div className="fixed inset-0 z-50 flex justify-end">
                         <div 
                             onClick={toggleManageTeam}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/50"
                         ></div>
                         
-                        <div className="relative w-full max-w-md animation-slide bg-white h-full shadow-2xl overflow-y-auto">
-                            <div className="sticky top-0 bg-linear-to-r from-emerald-600 to-teal-600 text-white p-6 shadow-lg">
+                        <div className="relative w-full max-w-md bg-white h-full shadow-xl overflow-y-auto">
+                            <div className="sticky top-0 bg-white border-b border-gray-200 p-4">
                                 <button 
                                     onClick={toggleManageTeam}
-                                    className="absolute cursor-pointer top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                                    className="absolute top-4 left-4 text-gray-400 hover:text-gray-600"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
-                                <div className="text-center pt-8">
-                                    <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                        <Users className="w-8 h-8" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold">{teamData?.dataTeam?.team_name}</h2>
-                                    <p className="text-emerald-100 text-sm mt-1">Team Management</p>
+                                <div className="text-center pt-6">
+                                    <h2 className="text-xl font-semibold text-gray-900">{teamData?.dataTeam?.team_name}</h2>
+                                    <p className="text-gray-500 text-sm mt-1">Team Management</p>
                                 </div>
                             </div>
 
                             <div className="p-6 space-y-6">
                                 {/* Invite Member */}
-                                { teamData?.dataTeam?.is_captain &&
+                                {teamData?.dataTeam?.is_captain && (
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                            <Mail className="w-5 h-5 text-indigo-600" />
+                                        <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                            <Mail className="w-4 h-4 text-teal-600" />
                                             Invite Member
                                         </h3>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                                                    Email Address <span className="text-red-500">*</span>
-                                                </label>
-                                                <input 
-                                                    type="email" 
-                                                    placeholder="member@example.com"
-                                                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-colors" 
-                                                    value={memberEmail} 
-                                                    onChange={(e) => setMemberEmail(e.target.value)} 
-                                                />
-                                            </div>
+                                        <form onSubmit={handleInviteMember} className="space-y-3">
+                                            <input 
+                                                type="email" 
+                                                placeholder="member@example.com"
+                                                className="w-full px-3 py-2 font-mono border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500" 
+                                                value={memberEmail} 
+                                                onChange={(e) => setMemberEmail(e.target.value)} 
+                                                required
+                                            />
                                             <button 
-                                                onClick={handleInviteMember}
-                                                className={`${memberEmail ? 'cursor-pointer' : 'cursor-not-allowed'} w-full py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all`}
+                                                type="submit"
+                                                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-md transition-colors"
                                             >
                                                 Send Invitation
                                             </button>
-                                        </div>
+                                        </form>
                                     </div>
-                                }
+                                )}
 
                                 {/* Team Members */}
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Users className="w-5 h-5 text-emerald-600" />
+                                    <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-teal-600" />
                                         Team Members
                                     </h3>
-                                    <div className="space-y-3">
-                                        {/* Example member */}
-                                    {
-                                        listTeam?.members?.map((member: any) => {
-                                            return (
-                                                <div key={member.id} className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                         <div
-                                                            className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-linear-to-br ${getUserColor(member.id)} flex items-center justify-center font-bold text-white shadow-sm text-base md:text-lg shrink-0`}
-                                                        >
-                                                            {member.prenom?.charAt(0) && member.nom?.charAt(0) 
+                                    <div className="space-y-2">
+                                        {listTeam?.members?.map((member: any) => (
+                                            <div key={member.id} className="border border-gray-200 rounded-md p-3 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-md bg-teal-100 flex items-center justify-center font-medium text-teal-700 text-sm">
+                                                        {member.prenom?.charAt(0) && member.nom?.charAt(0) 
                                                             ? `${member.prenom.charAt(0)}${member.nom.charAt(0)}` 
                                                             : member.username.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-semibold text-gray-900">{member?.prenom && member?.nom ? <>{member.prenom} {member.nom}</> : member.username}</p>
-                                                            <p className="text-xs text-gray-500">{member.email}</p>
-                                                        </div>
                                                     </div>
-                                                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-                                                        {teamData?.dataTeam?.is_captain ? "Leader" : "Member"}
-                                                    </span>
-                                                    {teamData?.dataTeam?.is_captain && member?.id != listTeam?.capitaine_id && <> <button className="text-red-500 hover:text-red-700"> x </button> </> }
+                                                    <div>
+                                                        <p className="font-medium text-gray-900 text-sm">{member?.prenom && member?.nom ? <>{member.prenom} {member.nom}</> : member.username}</p>
+                                                        <p className="text-xs text-gray-500">{member.email}</p>
+                                                    </div>
                                                 </div>
-                                            )
-                                        })
-                                    }
-                                    
-                                        
+                                                <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-medium rounded">
+                                                    {teamData?.dataTeam?.is_captain && member?.id === listTeam?.capitaine_id ? "Leader" : "Member"}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Action Buttons */}
-                            { teamData?.dataTeam?.is_captain ?
-                                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex gap-3">
-                                    <button onClick={() => setShowPopupDelete(true)} className="flex-1 py-3 bg-linear-to-r cursor-pointer from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                            {teamData?.dataTeam?.is_captain ? (
+                                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+                                    <button onClick={() => setShowPopupDelete(true)} className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors flex items-center justify-center gap-2">
                                         <Trash2 className="w-4 h-4" />
-                                        Delete
+                                        Delete Team
                                     </button>
-                                    <button className="flex-1 cursor-not-allowed py-3 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <button className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition-colors flex items-center justify-center gap-2 cursor-not-allowed">
                                         <Edit className="w-4 h-4" />
                                         Edit
                                     </button>
-                                </div> :
-                                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex gap-3">
-                                    <button className="flex-1 py-3 cursor-not-allowed bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                </div>
+                            ) : (
+                                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+                                    <button className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md transition-colors flex items-center justify-center gap-2 cursor-not-allowed">
                                         <X className="w-4 h-4" />
-                                        Leave this team
+                                        Leave Team
                                     </button>
                                 </div>
-
-                            }
+                            )}
                         </div>
                     </div>
                 )}
                 
-                 {showPopupDelete && <div className='fixed top-0 left-0 h-screen w-full bg-black/60 z-50'>
-                    <div className="w-full h-full flex items-center justify-center">
-                        <div className="bg-white popup text-neutral-800 text-sm max-w-lg rounded-xl shadow-black shadow-2xl p-4">
-                            <h1 className='text-amber-500 text-lg text-center font-semibold'>Warning !</h1>
-                            <p className='text-center'>This action will unregister you from the contest as well as all the team members.</p> 
-                            <p><span className='font-bold text-black text-lg'>Note:</span> You can create a new team or join an existing team only before the contest starts.</p>
-                            <div className="flex w-full items-center gap-2 mt-3">
-                                <button onClick={() => setShowPopupDelete(!showPopupDelete)} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg border border-gray-200'>No, cancel </button>    
-                                <button onClick={deleteTeam} className='w-full cursor-pointer hover:shadow transition-all duration-300 ease-in-out text-white px-4 py-2 bg-teal-500  hover:bg-teal-600 rounded-lg border border-gray-200'>Yes, delete</button>    
+                {/* Delete Confirmation Popup */}
+                {showPopupDelete && (
+                    <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
+                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                            <h1 className='text-orange-600 text-lg font-semibold text-center mb-3'>Warning</h1>
+                            <p className='text-gray-600 text-center text-sm mb-2'>This action will unregister you from the contest as well as all the team members.</p> 
+                            <p className='text-gray-600 text-center text-sm mb-4'>
+                                <span className='font-medium text-gray-900'>Note:</span> You can create a new team or join an existing team only before the contest starts.
+                            </p>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowPopupDelete(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                                    Cancel
+                                </button>    
+                                <button onClick={deleteTeam} className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors">
+                                    Yes, Delete
+                                </button>    
                             </div>                
                         </div>
                     </div>
-                </div>}
-
+                )}
 
                 {/* Action Button */}
                 <div className="flex justify-end">
-                    {!teamData?.dataTeam?.is_member  ? (
+                    {!teamData?.dataTeam?.is_member ? (
                         <button 
                             onClick={toggleCreateTeamModal} 
-                            className="py-3 px-6 cursor-pointer bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-md transition-colors flex items-center gap-2"
                         >
-                            <Users className="w-5 h-5" />
+                            <Users className="w-4 h-4" />
                             Create Team
                         </button>
                     ) : (
                         <button 
                             onClick={toggleManageTeam} 
-                            className="py-3 px-6 cursor-pointer bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-md transition-colors flex items-center gap-2"
                         >
-                            <Users className="w-5 h-5" />
-                            {!teamData?.dataTeam?.is_captain ? 'Manage Team': 'View Team'}
+                            <Users className="w-4 h-4" />
+                            {teamData?.dataTeam?.is_captain ? 'Manage Team' : 'View Team'}
                         </button>
                     )}
                 </div>
 
                 {/* Header */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className={`lg:col-span-2 bg-linear-to-r ${statusConfig.linear} text-white rounded-2xl shadow-xl p-8 relative overflow-hidden`}>
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
-                        
-                        <div className="relative">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${statusConfig.badge} backdrop-blur-sm mb-4`}>
-                                        {statusConfig.icon}
-                                        {details.status_display}
-                                    </span>
-                                    <h1 className="text-3xl md:text-4xl font-black mb-2">{details.title}</h1>
-                                </div>
-                            </div>
+                    <div className={`lg:col-span-2 bg-white border ${statusConfig.border} rounded-lg shadow-sm p-6`}>
+                        <div className="mb-4">
+                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusConfig.badge} mb-3`}>
+                                {statusConfig.icon}
+                                {details.status_display}
+                            </span>
+                            <h1 className="text-2xl font-bold text-gray-900">{details.title}</h1>
+                        </div>
 
-                            <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <Clock className="w-6 h-6" />
-                                    <span className="text-sm font-semibold opacity-90">
-                                        {!details.has_started ? "Starts in" : details.is_ongoing ? "Time Remaining" : "Contest Ended"}
-                                    </span>
-                                </div>
-                                <div className="text-4xl font-black font-mono">
-                                    {!details.has_started && formatDuration(countdown)}
-                                    {details.is_ongoing && formatDuration(countdown)}
-                                    {details.is_finished && "00:00:00"}
-                                </div>
+                        <div className="mt-6 bg-gray-50 rounded-md p-4 border border-gray-200">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Clock className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm text-gray-600">
+                                    {!details.has_started ? "Starts in" : details.is_ongoing ? "Time Remaining" : "Contest Ended"}
+                                </span>
+                            </div>
+                            <div className="text-3xl font-mono font-semibold text-gray-900">
+                                {!details.has_started && formatDuration(countdown)}
+                                {details.is_ongoing && formatDuration(countdown)}
+                                {details.is_finished && "00:00:00"}
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-xl p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <Target className="w-5 h-5 text-indigo-600" />
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                        <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                            <Target className="w-4 h-4 text-teal-600" />
                             Contest Stats
                         </h3>
-                        <div className="space-y-4">
-                            <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                                <p className="text-sm text-gray-600 mb-1">Type</p>
-                                <p className="font-bold text-blue-700 text-lg">Team</p>
+                        <div className="space-y-3">
+                            <div className="border-b border-gray-100 pb-2">
+                                <p className="text-xs text-gray-500 mb-1">Type</p>
+                                <p className="font-medium text-gray-900 text-sm">Team Contest</p>
                             </div>
-                            <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-100">
-                                <p className="text-sm text-gray-600 mb-1">Registered Teams</p>
-                                <p className="font-bold text-emerald-700 text-lg">
+                            <div className="border-b border-gray-100 pb-2">
+                                <p className="text-xs text-gray-500 mb-1">Registered Teams</p>
+                                <p className="font-medium text-gray-900 text-sm">
                                     {leaderboard?.leaderboard?.length ?? 0}
                                 </p>
                             </div>
-                            <div className="bg-linear-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                                <p className="text-sm text-gray-600 mb-1">Challenges</p>
-                                <p className="font-bold text-purple-700 text-lg">
+                            <div className="pb-2">
+                                <p className="text-xs text-gray-500 mb-1">Challenges</p>
+                                <p className="font-medium text-gray-900 text-sm">
                                     {challenges?.challenges?.length ?? 0}
                                 </p>
                             </div>
@@ -498,39 +454,37 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                 </div>
 
                 {/* Content */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                     {/* Challenges */}
-                    {showChallenges && (
+                    {showChallenges && details?.statut != 'upcoming' (
                         <div className="mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                                    <Target className="w-5 h-5 text-white" />
-                                </div>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Target className="w-4 h-4 text-teal-600" />
                                 Challenges
                             </h2>
 
                             {challenges && challenges.challenges?.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {challenges.challenges.map((c) => (
                                         <Link href={`/members/challenges/${c?.id}/`}
                                             key={c.id}
-                                            className="group bg-linear-to-br from-gray-50 to-blue-50 hover:from-blue-50 hover:to-indigo-50 rounded-xl p-6 border-2 border-gray-200 hover:border-indigo-300 transition-all cursor-pointer"
+                                            className="block border border-gray-200 rounded-md p-4 hover:border-teal-300 hover:shadow-sm transition-all"
                                         >
-                                            <div className="flex items-start justify-between mb-3">
-                                                <h3 className="font-bold text-gray-900 flex-1 group-hover:text-indigo-600 transition-colors">{c.title}</h3>
-                                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+                                            <div className="flex items-start justify-between mb-2">
+                                                <h3 className="font-medium text-gray-900 text-sm flex-1">{c.title}</h3>
+                                                <ChevronRight className="w-4 h-4 text-gray-400" />
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Award className="w-4 h-4 text-yellow-600" />
-                                                <span className="text-sm font-bold text-gray-700">{c.points} XP</span>
+                                            <div className="flex items-center gap-1">
+                                                <Award className="w-3 h-3 text-orange-500" />
+                                                <span className="text-xs font-medium text-gray-600">{c.points} XP</span>
                                             </div>
                                         </Link>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="bg-linear-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 rounded-xl p-8 text-center">
-                                    <Target className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
-                                    <p className="text-yellow-800 font-semibold">No challenges available yet</p>
+                                <div className="bg-gray-50 border border-gray-200 rounded-md p-6 text-center">
+                                    <Target className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                    <p className="text-gray-500 text-sm">No challenges available yet</p>
                                 </div>
                             )}
                         </div>
@@ -539,42 +493,40 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                     {/* Leaderboard */}
                     {showLeaderboard && leaderboard && (
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-yellow-500 to-orange-600 flex items-center justify-center">
-                                    <Trophy className="w-5 h-5 text-white" />
-                                </div>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Trophy className="w-4 h-4 text-teal-600" />
                                 Leaderboard
                             </h2>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {leaderboard.leaderboard.map((team) => (
                                     <div
                                         key={team.id}
-                                        className="bg-linear-to-r from-white to-gray-50 rounded-xl p-6 border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all"
+                                        className="border border-gray-200 rounded-md p-4 hover:border-teal-300 transition-all"
                                     >
-                                        <div className="flex items-center gap-6">
-                                            <div className={`w-16 h-16 rounded-xl bg-linear-to-br ${getRankColor(team.rank)} flex flex-col items-center justify-center text-white shadow-lg`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-md bg-gray-100 flex flex-col items-center justify-center">
                                                 {getRankBadge(team.rank)}
-                                                <span className="text-2xl font-black">#{team.rank}</span>
+                                                <span className="text-sm font-bold text-gray-700">#{team.rank}</span>
                                             </div>
                                             
                                             <div className="flex-1">
-                                                <h3 className="text-lg font-bold text-gray-900">{team.nom}</h3>
-                                                <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                                                <h3 className="font-medium text-gray-900">{team.nom}</h3>
+                                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                                                     <span className="flex items-center gap-1">
-                                                        <Users className="w-4 h-4" />
-                                                        {team.membres_count} members
+                                                        <Users className="w-3 h-3" />
+                                                        {team.membres_count}
                                                     </span>
                                                     <span className="flex items-center gap-1">
-                                                        <Clock className="w-4 h-4" />
+                                                        <Clock className="w-3 h-3" />
                                                         {formatDuration(team.temps_total * 1000)}
                                                     </span>
                                                 </div>
                                             </div>
                                             
                                             <div className="text-right">
-                                                <p className="text-sm text-gray-500 mb-1">Total XP</p>
-                                                <p className="text-3xl font-black bg-linear-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                                <p className="text-xs text-gray-500 mb-1">Total XP</p>
+                                                <p className="text-xl font-semibold text-teal-600">
                                                     {team.xp_total}
                                                 </p>
                                             </div>

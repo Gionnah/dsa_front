@@ -29,7 +29,7 @@ export default function ContestPage() {
     return (
         <div>
             <HomeLayout>
-                <div className="p-4 text-black">
+                <div className="text-black">
                     <ContestDetailsPage contestData={contestData} teamData={teamData} />
                 </div>
             </HomeLayout>

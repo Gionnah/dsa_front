@@ -182,7 +182,7 @@ export default function LoginForm() {
           {/* Register Link */}
           <div className="mt-8 text-center">
             <p className="text-gray-600 flex flex-col">
-              Don't hava an account ?{' '}
+              Don't have an account ?{' '}
               <span
                 className="font-bold text-blue-600"
               >

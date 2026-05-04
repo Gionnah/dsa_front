@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DSA Contest",
+  title: "DSA",
   description: "A platform for coding contests and challenges",
 };
 

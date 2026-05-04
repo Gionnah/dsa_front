@@ -1,257 +1,376 @@
 import { useState } from 'react';
-import { Search, Calendar, Users, Trophy, Code, Zap, Target, ArrowLeftRight, MapPin, Award, ChevronRight, Clock } from 'lucide-react';
+import { Search, Calendar, Users, Trophy, Code, Zap, Target, ArrowLeftRight, MapPin, Award, ChevronRight, Clock, Swords } from 'lucide-react';
 import Link from 'next/link';
 
-const CodingEventsPage = ({ events }: any) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const T = {
+    bg:      '#f8f9fb',
+    surface: '#ffffff',
+    raised:  '#f1f5f9',
+    border:  '#e2e8f0',
+    borderMd:'#cbd5e1',
+    text:    '#475569',
+    textHi:  '#0f172a',
+    textMid: '#64748b',
+    textDim: '#94a3b8',
+    teal:    '#0d9488',
+    tealBg:  '#f0fdfa',
+    tealBdr: '#99f6e4',
+    amber:   '#d97706',
+    blue:    '#2563eb',
+    blueBg:  '#eff6ff',
+    blueBdr: '#bfdbfe',
+};
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+const STATUS: Record<string, { color: string; bg: string; border: string; line: string }> = {
+    upcoming: { color: T.blue,    bg: T.blueBg,  border: T.blueBdr,  line: T.blue    },
+    ongoing:  { color: T.teal,    bg: T.tealBg,  border: T.tealBdr,  line: T.teal    },
+    finished: { color: T.textMid, bg: T.raised,  border: T.border,   line: T.borderMd },
+};
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+const mono = "'IBM Plex Mono', monospace";
+const sans = "'Inter', system-ui, sans-serif";
 
-  const filteredEvents = events.filter((event: any) => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || event.statut === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+const FILTERS = [
+    { key: 'all',      label: 'all'      },
+    { key: 'upcoming', label: 'upcoming' },
+    { key: 'ongoing',  label: 'live'     },
+    { key: 'finished', label: 'finished' },
+];
 
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'upcoming': return 'bg-blue-500/10 text-blue-600 border border-blue-500/30';
-      case 'ongoing': return 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30';
-      case 'finished': return 'bg-gray-500/10 text-gray-600 border border-gray-500/20';
-      default: return 'bg-gray-500/10 text-gray-600';
-    }
-  };
+function fmtDate(s: string) {
+    return new Date(s).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
-  const getEventIcon = (title: string) => {
-    if (title.includes('Algo')) return <Target className="w-6 h-6" />;
-    if (title.includes('Python')) return <Code className="w-6 h-6" />;
-    if (title.includes('Web')) return <Zap className="w-6 h-6" />;
-    if (title.includes('Data')) return <ArrowLeftRight className="w-6 h-6" />;
-    if (title.includes('Mobile')) return <Code className="w-6 h-6" />;
-    return <Trophy className="w-6 h-6" />;
-  };
+// ─── Chip ─────────────────────────────────────────────────────────────────────
+function Chip({ icon, label }: { icon: React.ReactNode; label: string }) {
+    return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 11, color: T.textMid, fontFamily: mono,
+            background: T.raised, border: `1px solid ${T.border}`,
+            borderRadius: 5, padding: '4px 9px', whiteSpace: 'nowrap',
+        }}>
+            <span style={{ color: T.teal }}>{icon}</span>
+            {label}
+        </span>
+    );
+}
 
-  const sortedEvents = [...filteredEvents].sort((a, b) => 
-    new Date(b.date_debut).getTime() - new Date(a.date_debut).getTime()
-  );
+// ─── EventCard with Timeline ────────────────────────────────────────────────────────────────
+function EventCard({ event, isLast }: { event: any; isLast: boolean }) {
+    const st     = STATUS[event.statut] ?? STATUS.finished;
+    const isLive = event.statut === 'ongoing';
 
-  return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30">
-      {/* Header */}
-      <div className="bg-linear-to-r from-slate-900 via-blue-900 to-slate-900 pt-8 pb-12 px-6 shadow-xl">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center mb-4">
-              <div className="relative">
-                <span className="text-7xl font-black bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  DSA
-                </span>
-                <div className="absolute -inset-2 bg-linear-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 rounded-lg blur-xl"></div>
-              </div>
+    return (
+        <div style={{ display: 'flex', gap: 0 }}>
+
+            {/* ── Timeline column ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
+                {/* Dot */}
+                <div style={{ position: 'relative', marginTop: 20, flexShrink: 0 }}>
+                    <div style={{
+                        width: 10, height: 10, borderRadius: '50%',
+                        background: st.line, zIndex: 1, position: 'relative',
+                    }} />
+                    {isLive && (
+                        <div style={{
+                            position: 'absolute', top: -3, left: -3,
+                            width: 16, height: 16, borderRadius: '50%',
+                            border: `2px solid ${T.teal}`, opacity: 0.5,
+                            animation: 'ping 1.6s ease-out infinite',
+                        }} />
+                    )}
+                </div>
+                {/* Line */}
+                {!isLast && (
+                    <div style={{
+                        flex: 1, width: 2, marginTop: 6,
+                        background: `linear-gradient(to bottom, ${st.line}55, ${T.border})`,
+                        minHeight: 24,
+                    }} />
+                )}
             </div>
-            <h1 className="text-2xl md:text-3xl font-black bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
-              Compete. Code. Conquer.
-            </h1>
-          </div>
-          
-          {/* Search Section */}
-          <div className="max-w-4xl mx-auto">
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-xl text-indigo-950 bg-white/95 backdrop-blur-sm border-2 border-white/50 focus:border-blue-400 focus:outline-none transition-all shadow-lg placeholder-gray-500"
-              />
+
+            {/* ── Card ── */}
+            <div style={{ flex: 1, paddingLeft: 14, paddingBottom: isLast ? 0 : 18 }}>
+                <Link href={`/members/event/contest/${event.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                    <div
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            borderLeft: `3px solid ${st.line}`,
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                            display: 'flex',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                            transition: 'box-shadow 0.15s, transform 0.15s',
+                            minHeight: 130,
+                        }}
+                        onMouseEnter={e => {
+                            (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.08)';
+                            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={e => {
+                            (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)';
+                            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                        }}
+                    >
+                        {/* Image */}
+                        {event.contest_img && (
+                            <div style={{ width: 150, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+                                <img
+                                    src={event.contest_img}
+                                    alt={event.title}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                />
+                                {/* Gradient overlay */}
+                                <div style={{
+                                    position: 'absolute', inset: 0,
+                                    background: 'linear-gradient(to right, rgba(0,0,0,0.15), transparent)',
+                                }} />
+                                {/* Date badge */}
+                                <div style={{
+                                    position: 'absolute', bottom: 8, left: 8,
+                                    background: 'rgba(15,23,42,0.72)', backdropFilter: 'blur(6px)',
+                                    borderRadius: 6, padding: '5px 8px',
+                                    color: '#fff', fontFamily: mono, lineHeight: 1,
+                                }}>
+                                    <div style={{ fontSize: 17, fontWeight: 800 }}>
+                                        {new Date(event.date_debut).getDate()}
+                                    </div>
+                                    <div style={{ fontSize: 10, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 1 }}>
+                                        {new Date(event.date_debut).toLocaleDateString('en-US', { month: 'short' })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        <div style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
+                            {/* Header */}
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                    {/* Status badge */}
+                                    <span style={{
+                                        fontSize: 10, fontFamily: mono, fontWeight: 700,
+                                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                                        color: st.color, background: st.bg, border: `1px solid ${st.border}`,
+                                        borderRadius: 4, padding: '3px 9px',
+                                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                                    }}>
+                                        {isLive && (
+                                            <span style={{
+                                                width: 5, height: 5, borderRadius: '50%',
+                                                background: T.teal, display: 'inline-block',
+                                                animation: 'pulse 1.4s ease-in-out infinite',
+                                            }} />
+                                        )}
+                                        {event.status_display}
+                                    </span>
+                                    <span style={{ fontSize: 11, color: T.textDim, fontFamily: mono }}>
+                                        {event.type_display}
+                                    </span>
+                                </div>
+                                <h3 style={{ fontSize: 15, fontWeight: 700, color: T.textHi, margin: '0 0 5px', lineHeight: 1.3 }}>
+                                    {event.title}
+                                </h3>
+                                {event.description && (
+                                    <p style={{
+                                        fontSize: 12, color: T.textMid, margin: 0, lineHeight: 1.55,
+                                        display: '-webkit-box', WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                    }}>
+                                        {event.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Footer: chips + CTA */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, paddingTop: 10, borderTop: `1px solid ${T.border}` }}>
+                                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                    <Chip icon={<Swords size={10} />} label={`${event.challenges_count} challenges`} />
+                                    <Chip icon={<Calendar size={10} />} label={fmtDate(event.date_debut)} />
+                                    <Chip icon={<Clock size={10} />}    label={`ends ${fmtDate(event.date_fin)}`} />
+                                </div>
+                                <span style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 3,
+                                    fontSize: 12, fontWeight: 600, color: st.color, flexShrink: 0,
+                                }}>
+                                    {event.statut === 'upcoming' ? 'register' : event.statut === 'ongoing' ? 'join now' : 'results'}
+                                    <ChevronRight size={13} />
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </Link>
             </div>
-            
-            <div className="flex gap-2 flex-wrap justify-center">
-              {['all', 'upcoming', 'ongoing', 'finished'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-6 py-2.5 font-bold transition-all text-sm rounded-lg cursor-pointer ${
-                    filterStatus === status
-                      ? 'bg-white text-blue-600 shadow-lg scale-105'
-                      : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
-                  }`}
-                >
-                  {status === 'all' ? 'All Events' : status === 'upcoming' ? 'Upcoming' : status === 'ongoing' ? 'Live' : 'Completed'}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
+    );
+}
 
-      {/* Events Timeline */}
-      <div className="w-full p-4 md:p-6">
-        <div className="mx-auto">
-          {/* Timeline Container */}
-          <div className="relative">
-            {/* Timeline Vertical Line */}
-            <div className="absolute left-4 top-0 bottom-0 w-1 bg-linear-to-b from-blue-400 via-purple-400 to-pink-400 rounded-full"></div>
-            
-            {/* Events List */}
-            <div className="space-y-8">
-              {sortedEvents.map((event, index) => (
-                <div key={event.id} className="relative">
-                  {/* Timeline Marker */}
-                  <div className={`absolute left-4 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white shadow-lg z-10 ${
-                    event.statut === 'upcoming' 
-                      ? 'bg-linear-to-br from-blue-500 to-blue-600' 
-                      : event.statut === 'ongoing'
-                      ? 'bg-linear-to-br from-emerald-500 to-emerald-600 animate-pulse'
-                      : 'bg-linear-to-br from-gray-400 to-gray-500'
-                  }`}></div>
+// ─── Main Component ─────────────────────────────────────────────────────────────────────
+const CodingEventsPage = ({ events }: { events: any[] }) => {
+    const [search, setSearch]       = useState('');
+    const [filter, setFilter]       = useState('all');
+    const mono = "'IBM Plex Mono', monospace";
 
-                  {/* Event Card */}
-                  <div className="ml-12">
-                    <div className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 hover:-translate-y-1">
-                      <div className="md:flex">
-                        {/* Image on Left */}
-                        <div className="md:w-1/3 relative">
-                          <div className={`relative h-48 md:h-full bg-linear-to-br ${
-                            event.statut === 'upcoming' 
-                              ? 'from-blue-500 to-indigo-600' 
-                              : event.statut === 'ongoing'
-                              ? 'from-emerald-500 to-teal-600'
-                              : 'from-gray-500 to-slate-600'
-                          }`}>
-                            <div className="absolute inset-0 bg-black/10"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl">
-                                {getEventIcon(event.title)}
-                              </div>
-                            </div>
-                            {/* Status Badge */}
-                            <div className="absolute top-4 left-4">
-                              <span className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm ${getStatusColor(event.statut)} bg-white/90`}>
-                                {event.status_display}
-                              </span>
-                            </div>
-                            {/* Date Badge */}
-                            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
-                              <div className="text-2xl font-bold text-gray-800 leading-none">
-                                {new Date(event.date_debut).getDate()}
-                              </div>
-                              <div className="text-xs font-semibold text-gray-600">
-                                {new Date(event.date_debut).toLocaleDateString('en-US', { month: 'short' })}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+    const safe = events ?? [];
 
-                        {/* Content on Right */}
-                        <div className="md:w-2/3 p-4">
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                            {event.title}
-                          </h3>
-                          <p className="text-gray-600 mb-5 leading-relaxed">
-                            {event?.description || "No description available."}
-                          </p>
+    const counts: Record<string, number> = { all: safe.length };
+    safe.forEach(e => { counts[e.statut] = (counts[e.statut] ?? 0) + 1; });
 
-                          {/* Event Details */}
-                          <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                                <Users className="w-5 h-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold">{event.nombre_team} Teams</div>
-                                <div className="text-xs text-gray-500">{event.type_display}</div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                                <Code className="w-5 h-5 text-purple-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold">{event.challenges_count} Challenges</div>
-                                <div className="text-xs text-gray-500">To solve</div>
-                              </div>
-                            </div>
+    const filtered = [...safe]
+        .filter(e => {
+            const s = e.title.toLowerCase().includes(search.toLowerCase());
+            const f = filter === 'all' || e.statut === filter;
+            return s && f;
+        })
+        .sort((a, b) => new Date(b.date_debut).getTime() - new Date(a.date_debut).getTime());
 
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                                <MapPin className="w-5 h-5 text-red-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold">{event?.location || "Online"}</div>
-                                <div className="text-xs text-gray-500">Location</div>
-                              </div>
-                            </div>
+    return (
+        <div style={{ minHeight: '100vh', background: T.bg, fontFamily: mono, color: T.text }}>
+            <style>{`
+                @keyframes pulse { 0%,100%{opacity:1}  50%{opacity:.3} }
+                @keyframes ping  { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(2.4);opacity:0} }
+            `}</style>
 
-                            <div className="flex items-center gap-3 text-gray-700">
-                              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-green-600" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold">{formatTime(event.date_debut)}</div>
-                                <div className="text-xs text-gray-500">{formatDate(event.date_debut)}</div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Action link */}
-                          <Link href={`/members/event/contest/${event.id}`} className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg ${
-                            event.statut === 'upcoming' 
-                              ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/50' 
-                              : event.statut === 'ongoing'
-                              ? 'bg-linear-to-r from-emerald-600 to-teal-600 text-white hover:shadow-emerald-500/50'
-                              : 'bg-linear-to-r from-gray-600 to-slate-600 text-white hover:shadow-gray-500/50'
-                          }`}>
-                            {event.statut === 'upcoming' 
-                              ? 'Join Event' 
-                              : event.statut === 'ongoing'
-                              ? 'Join Live Event'
-                              : 'View Results'
-                            }
-                            <ChevronRight className="w-5 h-5" />
-                          </Link>
-                        </div>
-                      </div>
+            <div className="bg-linear-to-r from-slate-900 via-blue-900 to-slate-900 pt-8 pb-12 px-6 shadow-xl">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center mb-4">
+                    <div className="relative">
+                      <span className="text-7xl font-black bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        DSA
+                      </span>
+                      <div className="absolute -inset-2 bg-linear-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 rounded-lg blur-xl"></div>
                     </div>
                   </div>
+                  <h1 className="text-2xl md:text-3xl font-black bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
+                    Compete. Code. Conquer.
+                  </h1>
                 </div>
-              ))}
-
-              {/* Empty State */}
-              {sortedEvents.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 mx-auto bg-linear-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6">
-                    <Search className="w-12 h-12 text-blue-400" />
+                
+                {/* Search Section */}
+                <div className="max-w-4xl mx-auto">
+                  <div className="relative mb-6">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search events..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 rounded-xl text-indigo-950 bg-white/95 backdrop-blur-sm border-2 border-white/50 focus:border-blue-400 focus:outline-none transition-all shadow-lg placeholder-gray-500"
+                    />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">No events found</h3>
-                  <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+                  
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    {['all', 'upcoming', 'ongoing', 'finished'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setFilter(status)}
+                        className={`px-6 py-2.5 font-bold transition-all text-sm rounded-lg cursor-pointer ${
+                          filter === status
+                            ? 'bg-white text-blue-600 shadow-lg scale-105'
+                            : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
+                        }`}
+                      >
+                        {status === 'all' ? 'All Events' : status === 'upcoming' ? 'Upcoming' : status === 'ongoing' ? 'Live' : 'Completed'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+
+            {/* Top bar */}
+            <div style={{
+                background: T.surface, borderBottom: `1px solid ${T.border}`,
+                padding: '0 36px', height: 52,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}>
+                <span style={{ color: T.textHi, fontSize: 14, fontWeight: 700, fontFamily: mono }}>events</span>
+                <span style={{ fontSize: 12, color: T.textDim, fontFamily: mono }}>
+                    {counts.all} total · {counts.ongoing ?? 0} live
+                </span>
+            </div>
+
+            <div style={{ maxWidth: 1400, margin: '0 auto', padding: '36px 28px' }}>
+                {/* Page heading */}
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ color: T.textHi, fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>
+                        Coding Events
+                    </h1>
+                    <p style={{ color: T.textMid, fontSize: 13, margin: 0 }}>
+                        Compete with your team, solve challenges, climb the leaderboard.
+                    </p>
+                </div>
+
+                {/* Controls */}
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 32 }}>
+                    <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: 300 }}>
+                        <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: T.textDim }} />
+                        <input
+                            type="text" placeholder="search events…" value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            style={{
+                                width: '100%', boxSizing: 'border-box',
+                                paddingLeft: 30, paddingRight: 12, height: 34,
+                                background: T.surface, border: `1px solid ${T.border}`,
+                                borderRadius: 7, fontSize: 12, color: T.textHi,
+                                fontFamily: mono, outline: 'none', transition: 'border-color 0.15s',
+                            }}
+                            onFocus={e => (e.target.style.borderColor = T.teal)}
+                            onBlur={e  => (e.target.style.borderColor = T.border)}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        {FILTERS.map(f => {
+                            const active = filter === f.key;
+                            return (
+                                <button key={f.key} onClick={() => setFilter(f.key)} style={{
+                                    background: active ? T.tealBg : T.surface,
+                                    border: `1px solid ${active ? T.tealBdr : T.border}`,
+                                    borderRadius: 6, color: active ? T.teal : T.textMid,
+                                    fontSize: 11, fontWeight: active ? 700 : 400,
+                                    padding: '6px 11px', cursor: 'pointer', fontFamily: mono,
+                                    display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.15s',
+                                }}>
+                                    {f.label}
+                                    {counts[f.key] !== undefined && (
+                                        <span style={{
+                                            fontSize: 10, borderRadius: 8, padding: '1px 5px', fontWeight: 700,
+                                            background: active ? T.teal : T.raised,
+                                            color: active ? '#fff' : T.textDim,
+                                        }}>{counts[f.key]}</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Timeline */}
+                {filtered.length === 0 ? (
+                    <div style={{
+                        background: T.surface, border: `1px solid ${T.border}`,
+                        borderRadius: 10, padding: '52px 0', textAlign: 'center',
+                        color: T.textDim, fontSize: 13, fontFamily: mono,
+                    }}>
+                        <Search size={24} style={{ margin: '0 auto 10px', color: T.border, display: 'block' }} />
+                        no events match your search
+                    </div>
+                ) : (
+                    <div>
+                        {filtered.map((event, idx) => (
+                            <EventCard key={event.id} event={event} isLast={idx === filtered.length - 1} />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default CodingEventsPage;
