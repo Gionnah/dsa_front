@@ -72,7 +72,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [now, setNow] = useState(Date.now());
     const [listTeam, setListTeam] = useState<any>([]);
-    const [invitation, setInvitation] = useState<any>(null);
+    const [invitation, setInvitation] = useState<any>([]);
     const [showInvitation, setShowInvitation] = useState<boolean>(false);
 
     const start = useMemo(
@@ -103,7 +103,7 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
     }
     useEffect(()=>{
         getInvitation()
-    }, [])
+    }, [showInvitation])
     const getLitTeam = async () => {
         if (teamData?.dataTeam?.is_member) {
             const res = await fetch('/api/contests/' + details.id + '/teams/' + teamData?.dataTeam?.team_id, {
@@ -201,6 +201,20 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
             icon: <Clock className="w-6 h-6 text-orange-600" />
         };
     };
+
+    const submitInvitation = async (token: string, mode: string) => {
+        const data = await fetch('/api/contests/invitation',
+            {
+                method: 'POST',
+                body : JSON.stringify({
+                    token,
+                    mode
+                })
+            }
+        )
+
+        setShowInvitation(false);
+    }
 
     const deleteTeam = async () => {
         const del = await fetch('/api/contests/' + details.id + '/teams/' + listTeam?.team_id, {
@@ -397,27 +411,31 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
 
                 {showInvitation && (
                     <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
-                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                        <div className="bg-white rounded-lg shadow-lg max-w-md w-full px-6 relative py-8">
+                            <div className="absolute top-0 right-0 bg-red-600 text-white p-1 cursor-pointer" onClick={() => setShowInvitation(!showInvitation)}> X </div>
                             {
-                                invitation?.map((inv: any, index: number) => {
-                                    <div className="">
-
-                                        <h1 className='text-orange-600 text-lg font-semibold text-center mb-3'>Warning</h1>
-                                        <p className='text-gray-600 text-center text-sm mb-2'>This action will unregister you from the contest as well as all the team members.</p> 
-                                        <p className='text-gray-600 text-center text-sm mb-4'>
-                                            <span className='font-medium text-gray-900'>Note:</span> You can create a new team or join an existing team only before the contest starts.
-                                        </p>
-                                        <div className="flex gap-3">
-                                            <button onClick={() => setShowPopupDelete(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                                                Cancel
-                                            </button>    
-                                            <button onClick={deleteTeam} className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors">
-                                                Yes, Delete
-                                            </button>    
-                                        </div>  
+                                invitation && invitation?.length > 0 ? invitation?.map((inv: any, index: number) => {
+                                    return (
+                                        <div className="w-full border-y border-gray-400 py-3" key={index}>
+                                            <p className='text-gray-600 text-center text-sm mb-4'>
+                                                <span className='font-medium text-gray-900'>Note:</span> {inv?.message}
+                                            </p>
+                                            <div className="flex gap-3">
+                                                <button onClick={() => submitInvitation(inv.token, 'decline')} className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                                                    Decline
+                                                </button>    
+                                                <button onClick={() => submitInvitation(inv.token, 'accept')} className="flex-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors">
+                                                    Accept
+                                                </button>    
+                                            </div>  
+                                        </div>
+                                    )
+                                }) : (
+                                    <div className="text-center text-gray-500">
+                                        No invitation.
                                     </div>
-                                })
-                            }         
+                                )
+                            }    
                         </div>
                     </div>
                 )}
