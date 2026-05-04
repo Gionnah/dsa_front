@@ -39,6 +39,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - API_URL=http://django:8888/api
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_URL=http://res.cloudinary.com/dubaqdqgo
     restart: unless-stopped
     networks:
       - app-network
