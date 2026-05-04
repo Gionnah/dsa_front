@@ -462,8 +462,8 @@ export default function ContestPage({ contestData, teamData }: { contestData: Co
                 
                 {/* Create Team Modal */}
                 {showCreateTeamModal && (
-                    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 ${scaleIn}`}>
-                        <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4`}>
+                        <div className={`relative bg-white rounded-lg shadow-lg max-w-md w-full p-6 ${scaleIn}`}>
                             <button 
                                 onClick={toggleCreateTeamModal} 
                                 className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-all duration-200 hover:rotate-90"
