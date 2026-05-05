@@ -226,7 +226,30 @@ function EnhancedLoadingScreen({ message = 'loading challenge...', subMessage = 
 
 // ─── Markdown renderer (unchanged) ───────────────────────────────────────────
 function MarkdownBlock({ content }: { content: string }) {
-    const html = content
+    // Traiter d'abord les blocs de code pour les protéger
+    let processed = content;
+    
+    // Protéger les blocs de code
+    const codeBlocks: string[] = [];
+    processed = processed.replace(/```(\w+)?\n([\s\S]*?)```/g, (match) => {
+        codeBlocks.push(match);
+        return `___CODE_BLOCK_${codeBlocks.length - 1}___`;
+    });
+    
+    // Convertir les doubles sauts de ligne en marqueurs de paragraphes
+    processed = processed.replace(/\n\n/g, '___PARAGRAPH_BREAK___');
+    
+    // Convertir les simples sauts de ligne en <br/>
+    processed = processed.replace(/\n/g, '<br/>');
+    
+    // Restaurer les paragraphes
+    processed = processed.replace(/___PARAGRAPH_BREAK___/g, '</p><p class="mb-p">');
+    
+    // Restaurer les blocs de code
+    processed = processed.replace(/___CODE_BLOCK_(\d+)___/g, (_, index) => codeBlocks[parseInt(index)]);
+    
+    // Appliquer les autres conversions markdown
+    let html = processed
         .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="mb-pre"><code>$2</code></pre>')
         .replace(/`([^`]+)`/g, '<code class="mb-code">$1</code>')
         .replace(/^### (.+)$/gm, '<h3 class="mb-h3">$1</h3>')
@@ -235,7 +258,14 @@ function MarkdownBlock({ content }: { content: string }) {
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="mb-a">$1</a>')
         .replace(/^- (.+)$/gm, '<li class="mb-li">$1</li>')
-        .replace(/\n\n/g, '</p><p class="mb-p">');
+        // Grouper les éléments de liste
+        .replace(/(<li class="mb-li">[\s\S]*?<\/li>)(?=(?:<li|$))/g, (match) => {
+            if (!match.includes('<ul')) {
+                return `<ul class="mb-ul">${match}</ul>`;
+            }
+            return match;
+        });
+    
     return (
         <>
             <style>{`
@@ -243,10 +273,12 @@ function MarkdownBlock({ content }: { content: string }) {
                 .mb-h2{color:${T.textHi};font-size:1.1rem;font-weight:700;margin:1.2rem 0 .4rem;padding-bottom:.4rem;border-bottom:2px solid ${T.border};font-family:${sans}}
                 .mb-h3{color:${T.textMid};font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;font-family:${sans}}
                 .mb-p{color:${T.text};margin:.6rem 0;line-height:1.8;font-size:14px;font-family:${sans}}
+                .mb-p br { display: block; content: ""; margin: 0.25rem 0; }
                 .mb-pre{background:${T.raised};border:1px solid ${T.border};border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin:.8rem 0;font-family:${mono};font-size:12px;color:${T.teal};line-height:1.7}
                 .mb-code{background:${T.raised};border:1px solid ${T.border};border-radius:4px;padding:.1em .4em;font-size:.85em;color:${T.teal};font-family:${mono}}
                 .mb-a{color:${T.teal};text-decoration:underline;text-underline-offset:2px}
                 .mb-li{color:${T.text};margin:.25rem 0 .25rem 1.4rem;list-style:disc;font-size:14px;line-height:1.7;font-family:${sans}}
+                .mb-ul { margin: 0.5rem 0; }
             `}</style>
             <div dangerouslySetInnerHTML={{ __html: `<p class="mb-p">${html}</p>` }} />
         </>

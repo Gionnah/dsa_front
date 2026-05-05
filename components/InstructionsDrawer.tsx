@@ -4,10 +4,26 @@ import { X, FileText, Image, FileCode2 } from 'lucide-react';
 
 // Simple markdown renderer (no external deps needed)
 function MarkdownRenderer({ content }: { content: string }) {
-    const html = content
+    // D'abord, convertir les sauts de ligne simples en <br/> quand nécessaire
+    let processed = content
+        // Protéger les blocs de code des transformations
+        .replace(/```(\w+)?\n([\s\S]*?)```/g, (match) => {
+            return match.replace(/\n/g, '___NEWLINE_PLACEHOLDER___');
+        })
+        // Convertir les doubles sauts de ligne en marqueurs de paragraphes
+        .replace(/\n\n/g, '___PARAGRAPH_BREAK___')
+        // Convertir les sauts de ligne simples en <br/>
+        .replace(/\n/g, '<br/>')
+        // Restaurer les paragraphes
+        .replace(/___PARAGRAPH_BREAK___/g, '</p><p class="md-p">')
+        // Restaurer les blocs de code
+        .replace(/___NEWLINE_PLACEHOLDER___/g, '\n');
+
+    // Application des autres conversions markdown
+    let html = processed
         // Code blocks
         .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="md-pre"><code>$2</code></pre>')
-        // Inline code
+        // Inline code (éviter les conflits avec les blocs de code)
         .replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>')
         // Headers
         .replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>')
@@ -19,8 +35,6 @@ function MarkdownRenderer({ content }: { content: string }) {
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="md-link">$1</a>')
         // Unordered lists
         .replace(/^- (.+)$/gm, '<li class="md-li">$1</li>')
-        // Paragraphs (double newline)
-        .replace(/\n\n/g, '</p><p class="md-p">')
         // Wrap list items
         .replace(/(<li[\s\S]*?<\/li>)/g, '<ul class="md-ul">$1</ul>');
 
