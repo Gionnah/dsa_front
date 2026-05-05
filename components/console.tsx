@@ -17,12 +17,7 @@ const PlayIcon = ({ color = '#555' }) => (
 const LANGUAGES = [
     { value: 'python',     label: 'python' },
     { value: 'javascript', label: 'javascript' },
-    { value: 'typescript', label: 'typescript' },
-    { value: 'java',       label: 'java' },
-    { value: 'c',          label: 'c' },
-    { value: 'cpp',        label: 'c++' },
-    { value: 'go',         label: 'go' },
-    { value: 'rust',       label: 'rust' },
+    { value: 'c',          label: 'c' }
 ];
 
 // Console color palette — lifted from pure black to a dark blue-gray tint
