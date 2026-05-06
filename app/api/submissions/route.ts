@@ -5,9 +5,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.source_code || !body.language_id) {
+    if (!body.source_code || !body.language) {
       return NextResponse.json(
-        { error: "source_code et language_id sont requis" },
+        { error: "source_code et language sont requis" },
         { status: 400 }
       );
     }
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         },
         body: JSON.stringify({
           code: body.source_code,
-          language_id: body.language_id,
+          language: body.language,
           stdin: body.stdin || "",
           cpu_time_limit: 10,
           memory_limit: 128000,

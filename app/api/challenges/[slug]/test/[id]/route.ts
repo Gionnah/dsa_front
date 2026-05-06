@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string, id: string }> }) {
     const { slug, id } = await params;
-    const { code } = await req.json();
+    const { code, language } = await req.json();
     const res = await fetch(`${process.env.API_URL}/challenges/${slug}/test-case/${id}/`,
         {
             method: "POST",
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
                 "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ code }), 
+            body: JSON.stringify({ code, language }), 
         }
     );
     const data = await res.json();

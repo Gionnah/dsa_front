@@ -120,7 +120,8 @@ export default function ChallengePage() {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     source_code: code,
-                    language_id: JUDGE0_LANG_MAP[Language] ?? 71,
+                    // language_id: JUDGE0_LANG_MAP[Language] ?? 71,
+                    language: Language ?? 'python',
                 }),
             });
             const result = await res.json();
