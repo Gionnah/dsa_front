@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
-    const { code } = await req.json();
+    const { code, language } = await req.json();
     const resChallenge = await fetch(`${process.env.API_URL}/challenges/${slug}/`, {
         method: "GET",
         headers: {
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
                 "Authorization": `Bearer ${req.cookies.get('Access')?.value || ''}`,
             },
             credentials: "include",
-            body: JSON.stringify({ code, team_id: team.team_id }),
+            body: JSON.stringify({ code, team_id: team.team_id, language }),
         });
         const data = await res.json();
         if (!res.ok) {
