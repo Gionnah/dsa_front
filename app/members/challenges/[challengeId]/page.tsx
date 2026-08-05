@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
 import { Loader2, ArrowLeft, Code, CheckCircle, ArrowRight, ExternalLink, Users, Trophy, Calendar } from 'lucide-react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 // ─── Light tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -40,7 +42,7 @@ const sans = "'Inter', system-ui, sans-serif";
 
 // ─── Shimmer Effect Component ────────────────────────────────────────────────
 const Shimmer = () => (
-    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] gradient-to-r from-transparent via-white/30 to-transparent" />
 );
 
 // ─── Enhanced Skeleton Components ────────────────────────────────────────────
@@ -224,18 +226,47 @@ function EnhancedLoadingScreen({ message = 'loading challenge...', subMessage = 
     );
 }
 
-// ─── Markdown renderer (unchanged) ───────────────────────────────────────────
+// ─── Rendu d'une expression LaTeX en HTML via KaTeX ──────────────────────────
+const renderMath = (expr: string, displayMode: boolean) => {
+    try {
+        return katex.renderToString(expr.trim(), {
+            throwOnError: false,
+            displayMode,
+            strict: false,
+        });
+    } catch (e) {
+        return `<span class="mb-math-error">${expr}</span>`;
+    }
+};
+
+// ─── Markdown renderer (avec support KaTeX) ──────────────────────────────────
 function MarkdownBlock({ content }: { content: string }) {
     // Traiter d'abord les blocs de code pour les protéger
     let processed = content;
-    
+
     // Protéger les blocs de code
     const codeBlocks: string[] = [];
     processed = processed.replace(/```(\w+)?\n([\s\S]*?)```/g, (match) => {
         codeBlocks.push(match);
         return `___CODE_BLOCK_${codeBlocks.length - 1}___`;
     });
-    
+
+    // Extraire les maths AVANT le reste du parsing, pour ne pas être
+    // cassées par les regex de gras/liens/listes (*, _, etc.)
+    const mathBlocks: string[] = [];
+    const mathToken = (i: number) => `XKATEXMATHTOKENX${i}X`;
+
+    // Mode "bloc" ($$...$$)
+    processed = processed.replace(/\$\$([\s\S]+?)\$\$/g, (_match, expr) => {
+        mathBlocks.push(renderMath(expr, true));
+        return mathToken(mathBlocks.length - 1);
+    });
+    // Mode "inline" ($...$)
+    processed = processed.replace(/\$([^\$\n]+?)\$/g, (_match, expr) => {
+        mathBlocks.push(renderMath(expr, false));
+        return mathToken(mathBlocks.length - 1);
+    });
+
     // Convertir les doubles sauts de ligne en marqueurs de paragraphes
     processed = processed.replace(/\n\n/g, '___PARAGRAPH_BREAK___');
     
@@ -256,6 +287,7 @@ function MarkdownBlock({ content }: { content: string }) {
         .replace(/^## (.+)$/gm, '<h2 class="mb-h2">$1</h2>')
         .replace(/^# (.+)$/gm, '<h1 class="mb-h1">$1</h1>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em class="mb-em">$1</em>')
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="mb-a">$1</a>')
         .replace(/^- (.+)$/gm, '<li class="mb-li">$1</li>')
         // Grouper les éléments de liste
@@ -264,7 +296,9 @@ function MarkdownBlock({ content }: { content: string }) {
                 return `<ul class="mb-ul">${match}</ul>`;
             }
             return match;
-        });
+        })
+        // Réinjection des blocs mathématiques rendus par KaTeX
+        .replace(/XKATEXMATHTOKENX(\d+)X/g, (_match, i) => mathBlocks[parseInt(i, 10)] ?? '');
     
     return (
         <>
@@ -274,11 +308,17 @@ function MarkdownBlock({ content }: { content: string }) {
                 .mb-h3{color:${T.textMid};font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;font-family:${sans}}
                 .mb-p{color:${T.text};margin:.6rem 0;line-height:1.8;font-size:14px;font-family:${sans}}
                 .mb-p br { display: block; content: ""; margin: 0.25rem 0; }
+                .mb-em{color:${T.text};font-style:italic}
                 .mb-pre{background:${T.raised};border:1px solid ${T.border};border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin:.8rem 0;font-family:${mono};font-size:12px;color:${T.teal};line-height:1.7}
                 .mb-code{background:${T.raised};border:1px solid ${T.border};border-radius:4px;padding:.1em .4em;font-size:.85em;color:${T.teal};font-family:${mono}}
                 .mb-a{color:${T.teal};text-decoration:underline;text-underline-offset:2px}
                 .mb-li{color:${T.text};margin:.25rem 0 .25rem 1.4rem;list-style:disc;font-size:14px;line-height:1.7;font-family:${sans}}
                 .mb-ul { margin: 0.5rem 0; }
+                .mb-math-error{color:${T.red};font-family:${mono};font-size:.85em}
+
+                /* KaTeX — intégration au thème clair */
+                .katex{color:${T.textHi};font-size:1.05em}
+                .katex-display{margin:.6rem 0 !important;overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
             `}</style>
             <div dangerouslySetInnerHTML={{ __html: `<p class="mb-p">${html}</p>` }} />
         </>

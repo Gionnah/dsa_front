@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
 import { X, FileText, Image, FileCode2, Copy, Check, Maximize2, Minimize2, Menu, BookOpen, List, Type, Grid3x3 } from 'lucide-react';
+import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
 // Amélioration du renderer markdown avec support KaTeX
@@ -24,12 +25,42 @@ function MarkdownRenderer({ content }: { content: string }) {
         setTimeout(() => setCopied(null), 2000);
     };
 
+    // Rendu d'une expression LaTeX en HTML via KaTeX (avec fallback silencieux)
+    const renderMath = (expr: string, displayMode: boolean) => {
+        try {
+            return katex.renderToString(expr.trim(), {
+                throwOnError: false,
+                displayMode,
+                strict: false,
+            });
+        } catch (e) {
+            // En cas d'échec total, on retombe sur le texte brut échappé
+            return `<span class="md-math-error">${expr}</span>`;
+        }
+    };
+
     // Traitement du markdown avec support mathématique
     const processContent = (text: string) => {
+        // Stockage temporaire des blocs mathématiques rendus par KaTeX,
+        // extraits AVANT le reste du parsing pour ne pas être cassés par
+        // les regex de gras/italique/soulignement (*, _, ^)
+        const mathBlocks: string[] = [];
+        const mathToken = (i: number) => `XKATEXMATHTOKENX${i}X`;
+
         let processed = text
             // Protection des blocs de code
             .replace(/```(\w+)?\n([\s\S]*?)```/g, (match) => {
                 return match.replace(/\n/g, '___CODE_NEWLINE___');
+            })
+            // Extraction des maths en mode "bloc" ($$...$$)
+            .replace(/\$\$([\s\S]+?)\$\$/g, (_match, expr) => {
+                mathBlocks.push(renderMath(expr, true));
+                return mathToken(mathBlocks.length - 1);
+            })
+            // Extraction des maths en mode "inline" ($...$)
+            .replace(/\$([^\$\n]+?)\$/g, (_match, expr) => {
+                mathBlocks.push(renderMath(expr, false));
+                return mathToken(mathBlocks.length - 1);
             })
             // Convertir les doubles sauts de ligne
             .replace(/\n\n/g, '___PARAGRAPH_BREAK___')
@@ -82,14 +113,16 @@ function MarkdownRenderer({ content }: { content: string }) {
             // Checkboxes
             .replace(/\[x\]/g, '✅')
             .replace(/\[ \]/g, '⬜')
-            // Superscript (^) 
+            // Superscript (^) — fallback pour la notation hors $...$
             .replace(/\^\{([^}]+)\}/g, '<sup class="md-sup">$1</sup>')
             .replace(/\^([a-zA-Z0-9])/g, '<sup class="md-sup">$1</sup>')
-            // Subscript (_)
+            // Subscript (_) — fallback pour la notation hors $...$
             .replace(/\_\{([^}]+)\}/g, '<sub class="md-sub">$1</sub>')
             .replace(/\_([a-zA-Z0-9])/g, '<sub class="md-sub">$1</sub>')
-            // Fraction (simple)
-            .replace(/\/\(([^)]+)\)\//g, '<span class="md-fraction">$1</span>');
+            // Fraction (simple) — fallback
+            .replace(/\/\(([^)]+)\)\//g, '<span class="md-fraction">$1</span>')
+            // Réinjection des blocs mathématiques rendus par KaTeX
+            .replace(/XKATEXMATHTOKENX(\d+)X/g, (_match, i) => mathBlocks[parseInt(i, 10)] ?? '');
 
         return html;
     };
@@ -226,7 +259,7 @@ function MarkdownRenderer({ content }: { content: string }) {
                     .md-ul { margin: 0.6rem 0 0.6rem 1.5rem; list-style: disc; }
                     .md-li { margin: 0.3rem 0; color: #ccc; line-height: 1.6; }
                     
-                    /* Notations mathématiques */
+                    /* Notations mathématiques (fallback hors KaTeX) */
                     .md-sup { 
                         font-size: 0.7em; 
                         vertical-align: super; 
@@ -250,6 +283,26 @@ function MarkdownRenderer({ content }: { content: string }) {
                     }
                     .md-fraction::after {
                         content: ')';
+                    }
+                    .md-math-error {
+                        color: #f87171;
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 0.85em;
+                    }
+
+                    /* KaTeX — intégration au thème sombre */
+                    .katex {
+                        color: #e8e8e8;
+                        font-size: 1.05em;
+                    }
+                    .katex-display {
+                        margin: 0.8rem 0 !important;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        padding: 0.2rem 0;
+                    }
+                    .katex-display > .katex {
+                        color: #f0f0f0;
                     }
                     
                     /* Blockquotes */
