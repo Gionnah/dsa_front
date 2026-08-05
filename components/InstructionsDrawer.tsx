@@ -393,10 +393,10 @@ export default function InstructionsDrawer({
                 }`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur flex-shrink-0">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur shrink-0">
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center shrink-0">
                                 <BookOpen className="w-4 h-4 text-teal-400" />
                             </div>
                             <div className="min-w-0">
@@ -424,14 +424,14 @@ export default function InstructionsDrawer({
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white hover:bg-neutral-700 rounded-lg p-1.5 transition-colors flex-shrink-0"
+                        className="text-gray-400 hover:text-white hover:bg-neutral-700 rounded-lg p-1.5 transition-colors shrink-0"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex items-center justify-between gap-1 px-4 pt-3 border-b border-neutral-800 pb-0 flex-shrink-0">
+                <div className="flex items-center justify-between gap-1 px-4 pt-3 border-b border-neutral-800 pb-0 shrink-0">
                     <div className="flex gap-1 overflow-x-auto">
                         {availableTabs.map((tab) => (
                             <button
@@ -554,7 +554,7 @@ export default function InstructionsDrawer({
                 </div>
 
                 {/* Footer avec raccourcis */}
-                <div className="flex items-center justify-between px-5 py-2 border-t border-neutral-800 bg-neutral-900/50 flex-shrink-0">
+                <div className="flex items-center justify-between px-5 py-2 border-t border-neutral-800 bg-neutral-900/50 shrink-0">
                     <div className="flex items-center gap-3 text-xs text-gray-600">
                         <span>⌘ + K</span>
                         <span className="w-px h-3 bg-neutral-700" />
