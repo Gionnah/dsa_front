@@ -135,13 +135,13 @@ function OutputPanel({ output, error, resTest, activeMode, loading }: {
 // ─── Main Console ─────────────────────────────────────────────────────────────
 export default function Console({
     error, code, id, output, loading, loadingSubmit, submitCode,
-    runCode, setLanguage, setValue, runSingleTest, runAllTest,
+    handleRunCode, setLanguage, setValue, runSingleTest, runAllTest,
     challengeData, resTest, activeMode, onSave, loadingSave, executionTime,
     Language,
 }: {
     error: string; submitCode: (code: string, id: string) => void;
     output: string; id: string; loading: boolean; loadingSubmit: boolean;
-    code: string; runCode: () => void; setLanguage: (lang: string) => void;
+    code: string; handleRunCode: () => void; setLanguage: (lang: string) => void;
     setValue: (code: string) => void; challengeData: any;
     runSingleTest: (id: number) => void; runAllTest: () => void; resTest: any;
     activeMode: 'code' | 'test'; onSave: () => void; loadingSave: boolean;
@@ -229,7 +229,7 @@ export default function Console({
             }}>
                 {/* Run */}
                 <button
-                    onClick={runCode}
+                    onClick={handleRunCode}
                     disabled={loading}
                     style={{
                         display: 'flex', alignItems: 'center', gap: 7,

@@ -32,7 +32,12 @@ export default function ChallengePage() {
     const [challengeData, setChallengesData] = useState<any>(null);
     const [timeElapsed, setTimeElapsed] = useState<string>("00:00:00");
     const [challengeStarted, setChallengeStarted] = useState<boolean>(false);
+    const [showRunCode, setShowRunCode] = useState<boolean>(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+    
+    // États pour le popup
+    const [popupInput, setPopupInput] = useState<string>("");
+    const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
 
     const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
         setToast({ message, type });
@@ -112,6 +117,40 @@ export default function ChallengePage() {
         finally { setLoading(false); }
     };
 
+    const handleRunCode = () => {
+        setShowRunCode(!showRunCode);
+        if (!showRunCode) {
+            // Ouvre le popup quand showRunCode passe à true
+            setIsPopupOpen(true);
+            setPopupInput(""); // Réinitialise l'input
+        }
+    }
+
+    // Gestionnaire pour le bouton "Envoyer" du popup
+    const handlePopupSubmit = () => {
+        // Ici tu peux utiliser popupInput pour ce que tu veux
+        console.log("Input value:", popupInput);
+        
+        // Ferme le popup
+        setIsPopupOpen(false);
+        setShowRunCode(false);
+        
+        // Exécute le code (si c'est ce que tu veux faire)
+        runCode();
+        
+        // Optionnel : montre un toast avec la valeur
+        if (popupInput.trim()) {
+            showToast(`Input: ${popupInput.substring(0, 50)}${popupInput.length > 50 ? '...' : ''}`, 'info');
+        }
+    };
+
+    // Gestionnaire pour le bouton "Annuler" du popup
+    const handlePopupCancel = () => {
+        setIsPopupOpen(false);
+        setShowRunCode(false);
+        setPopupInput("");
+    };
+
     const runCode = async () => {
         setActiveMode('code'); setLoading(true); setOutput(""); setError(""); setResponseTest(null);
         const t0 = Date.now();
@@ -122,6 +161,8 @@ export default function ChallengePage() {
                     source_code: code,
                     // language_id: JUDGE0_LANG_MAP[Language] ?? 71,
                     language: Language ?? 'python',
+                    // Ajouter l'input du popup si nécessaire
+                    ...(popupInput && { stdin_input: popupInput }),
                 }),
             });
             const result = await res.json();
@@ -180,6 +221,172 @@ export default function ChallengePage() {
                     {toast.message}
                 </div>
             )}
+
+            {/* ── Popup Modal ── */}
+            {isPopupOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 23, 0, 0.1)',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10000,
+                    animation: 'fadeIn 0.2s ease-out',
+                }}>
+                    <div style={{
+                        background: '#080600',
+                        border: '1px solid #1e2535',
+                        borderRadius: 12,
+                        padding: '32px 40px',
+                        maxWidth: '600px',
+                        width: '90%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+                        animation: 'slideUp 0.3s ease-out',
+                    }}>
+                        <h3 style={{
+                            color: '#e0e0e0',
+                            fontSize: 18,
+                            fontWeight: 600,
+                            margin: '0 0 8px 0',
+                            letterSpacing: '0.02em',
+                        }}>
+                            ⚡ Run Code
+                        </h3>
+                        {/* <p style={{
+                            color: '#888',
+                            fontSize: 13,
+                            margin: '0 0 20px 0',
+                            lineHeight: 1.6,
+                        }}>
+                            Enter any input values (optional) or click "Run" to execute the code.
+                            Use multi-line input for complex data.
+                        </p> */}
+                        
+                        <div style={{ marginBottom: 24 }}>
+                            <label style={{
+                                display: 'block',
+                                color: '#999',
+                                fontSize: 12,
+                                marginBottom: 6,
+                                letterSpacing: '0.05em',
+                            }}>
+                                Input (optional)
+                            </label>
+                            <textarea
+                                value={popupInput}
+                                onChange={(e) => setPopupInput(e.target.value)}
+                                placeholder="Enter input values...&#10;You can use multiple lines&#10;for example:&#10;1 2 3&#10;hello world"
+                                onKeyDown={(e) => {
+                                    // Ctrl+Enter ou Cmd+Enter pour soumettre
+                                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handlePopupSubmit();
+                                    }
+                                    if (e.key === 'Escape') {
+                                        handlePopupCancel();
+                                    }
+                                }}
+                                style={{
+                                    width: '100%',
+                                    minHeight: '120px',
+                                    padding: '12px 14px',
+                                    background: '#0e0f14',
+                                    border: '1px solid #1e2535',
+                                    borderRadius: 6,
+                                    color: '#e0e0e0',
+                                    fontSize: 14,
+                                    fontFamily: "'IBM Plex Mono', monospace",
+                                    outline: 'none',
+                                    resize: 'vertical',
+                                    transition: 'border-color 0.2s',
+                                    lineHeight: 1.6,
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                                onBlur={(e) => e.target.style.borderColor = '#1e2535'}
+                                autoFocus
+                            />
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                color: '#666',
+                                fontSize: 11,
+                                marginTop: 6,
+                                fontStyle: 'italic',
+                            }}>
+                                <span>Press Ctrl+Enter to submit, Esc to cancel</span>
+                                <span>{popupInput.split('\n').length} lines</span>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            display: 'flex',
+                            gap: 12,
+                            justifyContent: 'flex-end',
+                        }}>
+                            <button
+                                onClick={handlePopupCancel}
+                                style={{
+                                    padding: '8px 24px',
+                                    background: 'transparent',
+                                    border: '1px solid #1e2535',
+                                    borderRadius: 6,
+                                    color: '#888',
+                                    fontSize: 13,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    letterSpacing: '0.05em',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#444'}
+                                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1e2535'}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handlePopupSubmit}
+                                style={{
+                                    padding: '8px 28px',
+                                    background: '#3b82f6',
+                                    border: 'none',
+                                    borderRadius: 6,
+                                    color: '#fff',
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    letterSpacing: '0.05em',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
+                            >
+                                Run
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Styles d'animation ── */}
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px) scale(0.98);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+            `}</style>
 
             {/* ── Top bar ── */}
             <header style={{
@@ -269,7 +476,7 @@ export default function ChallengePage() {
                     <Console
                         error={error}
                         output={output}
-                        runCode={runCode}
+                        handleRunCode={handleRunCode}
                         loading={loading}
                         setLanguage={handleLanguageChange}
                         setValue={setCode}

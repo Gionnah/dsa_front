@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           code: body.source_code,
           language: body.language,
-          stdin: body.stdin || "",
+          stdin_input: body.stdin_input || "",
           cpu_time_limit: 10,
           memory_limit: 128000,
         }),
